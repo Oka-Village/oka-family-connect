@@ -101,7 +101,10 @@ export function useCredits() {
 export function sessionErrorMessage(e: unknown) {
   const msg = e instanceof Error ? e.message : typeof e === "object" && e && "message" in e ? String((e as { message: unknown }).message) : "";
   if (msg.includes("INSUFFICIENT_CREDITS")) {
-    return "You don't have a free credit just yet. Host a night or share an hour of your own gifts, and your credits will grow.";
+    return "You don't have enough free credits just yet. Host a night or offer a skill, and your credits will grow.";
+  }
+  if (msg.includes("DATES_UNAVAILABLE")) {
+    return "Someone has already asked for some of those nights. Try different dates.";
   }
   return msg || "Something went wrong. Please try again.";
 }

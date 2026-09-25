@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { MemberAvatar, ProfileSections } from "@/components/oka/profile-sections";
 import { TagInput } from "@/components/oka/tag-input";
 import { MyOfferings } from "@/components/oka/my-offerings";
+import { MyHouses } from "@/components/oka/my-houses";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
@@ -90,7 +91,7 @@ function ProfilePage() {
       </div>
 
       <div className="mt-6">
-        {editing ? <ProfileEditor profile={profile} onDone={() => setEditing(false)} /> : <><ProfileSections profile={profile} /><MyOfferings userId={profile.id} /></>}
+        {editing ? <ProfileEditor profile={profile} onDone={() => setEditing(false)} /> : <><ProfileSections profile={profile} /><MyOfferings userId={profile.id} /><MyHouses userId={profile.id} /></>}
       </div>
     </div>
   );
