@@ -18,6 +18,8 @@ import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authentic
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedSkillsRouteImport } from './routes/_authenticated/skills'
 import { Route as AuthenticatedEventsIndexRouteImport } from './routes/_authenticated/events.index'
+import { Route as AuthenticatedEventsNewRouteImport } from './routes/_authenticated/events.new'
+import { Route as AuthenticatedEventsEditEventIdRouteImport } from './routes/_authenticated/events.edit.$eventId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -64,6 +66,17 @@ const AuthenticatedEventsIndexRoute =
     path: '/events/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedEventsNewRoute = AuthenticatedEventsNewRouteImport.update({
+  id: '/events/new',
+  path: '/events/new',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedEventsEditEventIdRoute =
+  AuthenticatedEventsEditEventIdRouteImport.update({
+    id: '/events/edit/$eventId',
+    path: '/events/edit/$eventId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -73,7 +86,9 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/skills': typeof AuthenticatedSkillsRoute
+  '/events/new': typeof AuthenticatedEventsNewRoute
   '/events/': typeof AuthenticatedEventsIndexRoute
+  '/events/edit/$eventId': typeof AuthenticatedEventsEditEventIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -83,7 +98,9 @@ export interface FileRoutesByTo {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/skills': typeof AuthenticatedSkillsRoute
+  '/events/new': typeof AuthenticatedEventsNewRoute
   '/events': typeof AuthenticatedEventsIndexRoute
+  '/events/edit/$eventId': typeof AuthenticatedEventsEditEventIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -95,7 +112,9 @@ export interface FileRoutesById {
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/skills': typeof AuthenticatedSkillsRoute
+  '/_authenticated/events/new': typeof AuthenticatedEventsNewRoute
   '/_authenticated/events/': typeof AuthenticatedEventsIndexRoute
+  '/_authenticated/events/edit/$eventId': typeof AuthenticatedEventsEditEventIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -107,7 +126,9 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/profile'
     | '/skills'
+    | '/events/new'
     | '/events/'
+    | '/events/edit/$eventId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -117,7 +138,9 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/profile'
     | '/skills'
+    | '/events/new'
     | '/events'
+    | '/events/edit/$eventId'
   id:
     | '__root__'
     | '/'
@@ -128,7 +151,9 @@ export interface FileRouteTypes {
     | '/_authenticated/onboarding'
     | '/_authenticated/profile'
     | '/_authenticated/skills'
+    | '/_authenticated/events/new'
     | '/_authenticated/events/'
+    | '/_authenticated/events/edit/$eventId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -201,6 +226,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEventsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/events/new': {
+      id: '/_authenticated/events/new'
+      path: '/events/new'
+      fullPath: '/events/new'
+      preLoaderRoute: typeof AuthenticatedEventsNewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/events/edit/$eventId': {
+      id: '/_authenticated/events/edit/$eventId'
+      path: '/events/edit/$eventId'
+      fullPath: '/events/edit/$eventId'
+      preLoaderRoute: typeof AuthenticatedEventsEditEventIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -211,7 +250,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedSkillsRoute: typeof AuthenticatedSkillsRoute
+  AuthenticatedEventsNewRoute: typeof AuthenticatedEventsNewRoute
   AuthenticatedEventsIndexRoute: typeof AuthenticatedEventsIndexRoute
+  AuthenticatedEventsEditEventIdRoute: typeof AuthenticatedEventsEditEventIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -221,7 +262,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedSkillsRoute: AuthenticatedSkillsRoute,
+  AuthenticatedEventsNewRoute: AuthenticatedEventsNewRoute,
   AuthenticatedEventsIndexRoute: AuthenticatedEventsIndexRoute,
+  AuthenticatedEventsEditEventIdRoute: AuthenticatedEventsEditEventIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
