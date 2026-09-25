@@ -16,7 +16,7 @@ import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, List, Plus } from
 import { useState } from "react";
 import { z } from "zod";
 
-import { EventCard } from "@/components/oka/event-card";
+import { EventCard, FeaturedEvent } from "@/components/oka/event-card";
 import { Button } from "@/components/ui/button";
 import { useCurrentUserId } from "@/hooks/use-is-admin";
 import { supabase } from "@/integrations/supabase/client";
@@ -187,6 +187,16 @@ function ListView({ search }: { search: Search }) {
     enabled: showPast,
   });
   const rsvps = useRsvpMap([...(upcoming.data ?? []), ...(past.data ?? [])]);
+  const list = upcoming.data ?? [];
+  const featured = list.find((e) => e.status === "published");
+  const groups: [string, EventRow[]][] = [];
+  for (const e of list) {
+    if (e === featured) continue;
+    const label = fmt(new Date(e.starts_at), "MMMM yyyy");
+    const g = groups.at(-1);
+    if (g && g[0] === label) g[1].push(e);
+    else groups.push([label, [e]]);
+  }
 
   if (upcoming.isLoading) return <p className="mt-12 text-muted-foreground">Gathering the schedule…</p>;
   if (upcoming.error) return <p className="mt-12 text-destructive">We couldn't load events. Please try again.</p>;
@@ -196,11 +206,20 @@ function ListView({ search }: { search: Search }) {
       {upcoming.data!.length === 0 ? (
         <QuietCalendar />
       ) : (
-        <div className="grid gap-5">
-          {upcoming.data!.map((e) => (
-            <EventCard key={e.id} event={e} rsvp={rsvps.data?.[e.id]} />
+        <>
+          {featured && <FeaturedEvent event={featured} rsvp={rsvps.data?.[featured.id]} />}
+          {groups.map(([label, items]) => (
+            <section key={label} className="mt-14">
+              <div className="flex items-center gap-4">
+                <h2 className="text-3xl text-foreground">{label}</h2>
+                <span className="h-px flex-1 bg-border" />
+              </div>
+              <div className="mt-6 grid gap-5 md:grid-cols-2">
+                {items.map((e) => <EventCard key={e.id} event={e} rsvp={rsvps.data?.[e.id]} />)}
+              </div>
+            </section>
           ))}
-        </div>
+        </>
       )}
       <button
         onClick={() => setShowPast((s) => !s)}
@@ -241,6 +260,7 @@ function CalendarView({ search, onMonth }: { search: Search; onMonth: (m: string
     byDay.set(k, [...(byDay.get(k) ?? []), e]);
   }
   const days = eachDayOfInterval({ start: gridStart, end: gridEnd });
+  const [selected, setSelected] = useState<string | null>(null);
 
   return (
     <div className="mt-10">
@@ -253,41 +273,60 @@ function CalendarView({ search, onMonth }: { search: Search; onMonth: (m: string
           <ChevronRight className="size-5 text-primary" strokeWidth={1.5} />
         </Button>
       </div>
-      <div className="mt-6 grid grid-cols-7 gap-px overflow-hidden rounded-2xl border border-border bg-border shadow-soft">
-        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
-          <div key={d} className="bg-accent py-2 text-center text-xs uppercase tracking-widest text-muted-foreground">
-            {d}
-          </div>
-        ))}
-        {days.map((d) => {
-          const list = byDay.get(fmt(d, "yyyy-MM-dd")) ?? [];
-          return (
-            <div key={d.toISOString()} className={cn("min-h-24 bg-card p-1.5 sm:min-h-28", !isSameMonth(d, month) && "bg-background opacity-50")}>
-              <span className={cn("inline-flex size-6 items-center justify-center rounded-full text-xs", isToday(d) ? "bg-primary text-primary-foreground" : "text-muted-foreground")}>
-                {fmt(d, "d")}
-              </span>
-              <div className="mt-1 flex flex-col gap-1">
-                {list.slice(0, 3).map((e) => (
-                  <Link
-                    key={e.id}
-                    to="/events/$eventId"
-                    params={{ eventId: e.id }}
-                    title={`${e.title} · ${formatEventDate(e.starts_at, e.timezone)}`}
-                    className={cn(
-                      "truncate rounded-md px-1.5 py-0.5 text-[0.7rem]",
-                      e.status === "cancelled" ? "bg-muted text-muted-foreground line-through" : rsvps.data?.[e.id] === "going" ? "bg-sage text-on-terracotta" : "bg-secondary text-secondary-foreground",
-                    )}
-                  >
-                    {fmt(new Date(e.starts_at), "HH:mm")} {e.title}
-                  </Link>
-                ))}
-                {list.length > 3 && <span className="px-1 text-[0.7rem] text-muted-foreground">+{list.length - 3} more</span>}
-              </div>
-            </div>
-          );
-        })}
+      <div className="mt-6 rounded-3xl bg-card p-3 shadow-soft sm:p-6">
+        <div className="grid grid-cols-7">
+          {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
+            <div key={d} className="pb-3 text-center text-[0.65rem] uppercase tracking-widest text-muted-foreground">{d}</div>
+          ))}
+        </div>
+        <div className="grid grid-cols-7 gap-1 sm:gap-2">
+          {days.map((d) => {
+            const key = fmt(d, "yyyy-MM-dd");
+            const list = byDay.get(key) ?? [];
+            const inMonth = isSameMonth(d, month);
+            const isSel = selected === key;
+            return (
+              <button
+                key={key}
+                onClick={() => setSelected(isSel ? null : key)}
+                className={cn(
+                  "flex aspect-square flex-col items-center justify-start rounded-2xl p-1 text-left transition-colors sm:aspect-auto sm:min-h-24 sm:items-stretch sm:p-2",
+                  !inMonth && "opacity-35",
+                  isSel ? "bg-secondary" : list.length ? "bg-accent/50 hover:bg-accent" : "hover:bg-accent/40",
+                )}
+              >
+                <span className={cn("font-serif inline-flex size-7 items-center justify-center rounded-full text-lg", isToday(d) ? "bg-primary text-primary-foreground" : "text-foreground")}>
+                  {fmt(d, "d")}
+                </span>
+                <span className="mt-1 flex gap-1 sm:hidden">
+                  {list.slice(0, 3).map((e) => (
+                    <span key={e.id} className={cn("size-1.5 rounded-full", e.status === "cancelled" ? "bg-muted-foreground" : "bg-primary")} />
+                  ))}
+                </span>
+                <span className="mt-1 hidden flex-col gap-1 sm:flex">
+                  {list.slice(0, 2).map((e) => (
+                    <span key={e.id} className="flex items-center gap-1.5 truncate text-[0.7rem] text-foreground">
+                      <span className={cn("size-1.5 shrink-0 rounded-full", e.status === "cancelled" ? "bg-muted-foreground" : rsvps.data?.[e.id] === "going" ? "bg-sage" : "bg-primary")} />
+                      <span className={cn("truncate", e.status === "cancelled" && "line-through")}>{e.title}</span>
+                    </span>
+                  ))}
+                  {list.length > 2 && <span className="text-[0.65rem] text-muted-foreground">+{list.length - 2} more</span>}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
-      {q.data?.length === 0 && <p className="mt-6 text-center text-muted-foreground">The calendar is quiet this month — new gatherings are coming.</p>}
+      {selected && (
+        <div className="mt-8">
+          <p className="section-label">{fmt(parse(selected, "yyyy-MM-dd", new Date()), "EEEE, MMMM d")}</p>
+          <div className="mt-4 grid gap-4">
+            {(byDay.get(selected) ?? []).length === 0 && <p className="text-muted-foreground">Nothing planned this day.</p>}
+            {(byDay.get(selected) ?? []).map((e) => <EventCard key={e.id} event={e} rsvp={rsvps.data?.[e.id]} />)}
+          </div>
+        </div>
+      )}
+      {q.data?.length === 0 && <p className="font-serif mt-8 text-center text-2xl text-muted-foreground">The calendar is quiet this month — new gatherings are coming.</p>}
     </div>
   );
 }
