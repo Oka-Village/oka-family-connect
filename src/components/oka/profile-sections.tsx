@@ -1,13 +1,15 @@
+import { useState } from "react";
 import { Gift, Heart, MapPin, Plane, Sparkles, User } from "lucide-react";
 
 import { TagList } from "@/components/oka/tag-input";
 import type { OkaProfile } from "@/lib/profile";
 
 export function MemberAvatar({ src, name, className = "size-20" }: { src: string | null | undefined; name?: string | null; className?: string }) {
-  return src ? (
-    <img src={src} alt={name ?? "Member photo"} className={`${className} rounded-full object-cover`} />
+  const [failed, setFailed] = useState<string | null>(null);
+  return src && failed !== src ? (
+    <img src={src} alt={name ?? "Member photo"} referrerPolicy="no-referrer" onError={() => setFailed(src)} className={`${className} shrink-0 rounded-full object-cover`} />
   ) : (
-    <span className={`${className} flex items-center justify-center rounded-full bg-secondary`}>
+    <span className={`${className} flex shrink-0 items-center justify-center rounded-full bg-secondary`}>
       <User className="size-1/3 text-primary" strokeWidth={1.5} />
     </span>
   );
