@@ -95,7 +95,7 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
     if (locErr) return toast.error(locErr.message);
     await queryClient.invalidateQueries();
     toast.success(mode === "create" ? (isAdmin ? "Event published" : "Proposal sent for review") : "Event updated");
-    navigate({ to: "/events/$eventId", params: { eventId: eventId! } });
+    return navigate({ to: "/events/$eventId", params: { eventId: eventId! } });
   }
 
   return (
