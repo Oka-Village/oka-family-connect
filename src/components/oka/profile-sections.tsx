@@ -4,7 +4,7 @@ import { Gift, Heart, MapPin, Plane, Sparkles, User } from "lucide-react";
 import { TagList } from "@/components/oka/tag-input";
 import type { OkaProfile } from "@/lib/profile";
 
-export function MemberAvatar({ src, name, className = "size-20" }: { src: string | null | undefined; name?: string | null; className?: string }) {
+export function MemberAvatar({ src, name, className = "size-20" }: { src: string | null | undefined; name?: string | null | undefined; className?: string }) {
   const [failed, setFailed] = useState<string | null>(null);
   return src && failed !== src ? (
     <img src={src} alt={name ?? "Member photo"} referrerPolicy="no-referrer" onError={() => setFailed(src)} className={`${className} shrink-0 rounded-full object-cover`} />
