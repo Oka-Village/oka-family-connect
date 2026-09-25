@@ -1,22 +1,30 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, ShieldCheck } from "lucide-react";
+import { CalendarDays, Home, Plus, Search, ShieldCheck, Sparkles, Users } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
+import { z } from "zod";
 
 import { EmptyState } from "@/components/oka/empty-state";
 import { Button } from "@/components/ui/button";
-import { useIsAdmin } from "@/hooks/use-is-admin";
+import { Input } from "@/components/ui/input";
+import { useCurrentUserId, useRoles } from "@/hooks/use-is-admin";
 import { supabase } from "@/integrations/supabase/client";
 import { setEventStatus } from "@/lib/event-admin";
 import { EVENT_SELECT, TYPE_LABELS, formatEventDate, formatEventTime, hostName, type EventRow } from "@/lib/events";
+import { cn } from "@/lib/utils";
+
+const TABS = ["events", "members", "listings"] as const;
+type Tab = (typeof TABS)[number];
 
 export const Route = createFileRoute("/_authenticated/admin")({
+  validateSearch: z.object({ tab: z.enum(TABS).optional().catch(undefined) }),
   head: () => ({
     meta: [
       { title: "Admin — Oka" },
-      { name: "description", content: "Review proposed events and manage the Oka schedule." },
+      { name: "description", content: "Review events, manage roles and moderate listings across Oka." },
       { property: "og:title", content: "Admin — Oka" },
-      { property: "og:description", content: "Review proposed events and manage the Oka schedule." },
+      { property: "og:description", content: "Review events, manage roles and moderate listings across Oka." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -24,7 +32,53 @@ export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
 });
 
-async function load(statuses: string[], upcomingOnly: boolean) {
+function AdminPage() {
+  const { data: roles, isLoading } = useRoles();
+  const { tab } = Route.useSearch();
+  const navigate = useNavigate({ from: "/admin" });
+
+  if (isLoading) return null;
+  if (!roles?.isStaff) {
+    return <EmptyState icon={ShieldCheck} label="Admin" title="This space is for the stewards" description="If you think you should have access, reach out to the Oka team." />;
+  }
+  const tabs: { id: Tab; label: string; icon: typeof Users }[] = [
+    { id: "events", label: "Events", icon: CalendarDays },
+    ...(roles.isAdmin ? [{ id: "members" as const, label: "Members", icon: Users }] : []),
+    { id: "listings", label: "Houses & skills", icon: Home },
+  ];
+  const active: Tab = tab && tabs.some((t) => t.id === tab) ? tab : "events";
+
+  return (
+    <div className="mx-auto max-w-5xl px-6 py-10 lg:py-16">
+      <p className="section-label">{roles.isAdmin ? "Admin" : "Moderation"}</p>
+      <h1 className="mt-3 text-4xl text-foreground">Tend the family</h1>
+      <div className="mt-8 flex flex-wrap gap-2">
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => navigate({ search: { tab: t.id }, replace: true })}
+            className={cn(
+              "flex items-center gap-2 rounded-full border px-4 py-2 text-sm",
+              active === t.id ? "border-transparent bg-secondary text-secondary-foreground" : "border-border text-muted-foreground",
+            )}
+          >
+            <t.icon className="size-4 text-primary" strokeWidth={1.5} /> {t.label}
+          </button>
+        ))}
+      </div>
+      {active === "events" && <EventsSection />}
+      {active === "members" && roles.isAdmin && <MembersSection />}
+      {active === "listings" && <ListingsSection />}
+    </div>
+  );
+}
+
+function Card({ children }: { children: React.ReactNode }) {
+  return <li className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-card p-5 shadow-soft">{children}</li>;
+}
+
+// ---------------- Events ----------------
+async function loadEvents(statuses: string[], upcomingOnly: boolean) {
   let q = supabase.from("events").select(EVENT_SELECT).in("status", statuses).order("starts_at").limit(100);
   if (upcomingOnly) q = q.gte("starts_at", new Date().toISOString());
   const { data, error } = await q;
@@ -32,29 +86,21 @@ async function load(statuses: string[], upcomingOnly: boolean) {
   return data as unknown as EventRow[];
 }
 
-function AdminPage() {
-  const { data: isAdmin, isLoading } = useIsAdmin();
+function EventsSection() {
   const qc = useQueryClient();
-  const pending = useQuery({ queryKey: ["admin", "pending"], queryFn: () => load(["pending_approval"], false), enabled: !!isAdmin });
-  const live = useQuery({ queryKey: ["admin", "live"], queryFn: () => load(["published"], true), enabled: !!isAdmin });
+  const pending = useQuery({ queryKey: ["admin", "pending"], queryFn: () => loadEvents(["pending_approval"], false) });
+  const live = useQuery({ queryKey: ["admin", "live"], queryFn: () => loadEvents(["published"], true) });
   const act = useMutation({
     mutationFn: ({ id, status }: { id: string; status: "published" | "rejected" | "cancelled" }) => setEventStatus(id, status),
     onSuccess: () => { toast.success("Event updated"); qc.invalidateQueries(); },
     onError: (e: Error) => toast.error(e.message),
   });
 
-  if (isLoading) return null;
-  if (!isAdmin) {
-    return <EmptyState icon={ShieldCheck} label="Admin" title="This space is for admins" description="If you think you should have access, reach out to the Oka team." />;
-  }
-
   const Row = ({ e, children }: { e: EventRow; children: React.ReactNode }) => (
-    <li className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-card p-5 shadow-soft">
+    <Card>
       <div>
         <p className="text-xs uppercase tracking-widest text-muted-foreground">{TYPE_LABELS[e.event_type]}</p>
-        <Link to="/events/$eventId" params={{ eventId: e.id }} className="mt-1 block text-xl text-foreground hover:underline" style={{ fontFamily: "var(--font-serif)" }}>
-          {e.title}
-        </Link>
+        <Link to="/events/$eventId" params={{ eventId: e.id }} className="font-serif mt-1 block text-xl text-foreground hover:underline">{e.title}</Link>
         <p className="mt-1 text-sm text-muted-foreground">
           {formatEventDate(e.starts_at, e.timezone)} · {formatEventTime(e.starts_at, e.timezone)} · by {hostName(e.host)}
           {e.capacity ? ` · ${e.going_count}/${e.capacity} going` : ""}
@@ -66,22 +112,17 @@ function AdminPage() {
         </Button>
         {children}
       </div>
-    </li>
+    </Card>
   );
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-10 lg:py-16">
-      <div className="flex flex-wrap items-end justify-between gap-6">
-        <div>
-          <p className="section-label">Admin</p>
-          <h1 className="mt-3 text-4xl text-foreground">Tend the schedule</h1>
-        </div>
+    <section className="mt-10">
+      <div className="flex justify-end">
         <Button asChild className="rounded-full">
           <Link to="/events/new"><Plus className="size-4" strokeWidth={1.5} /> Create event</Link>
         </Button>
       </div>
-
-      <p className="section-label mt-12">Awaiting review</p>
+      <p className="section-label mt-6">Awaiting review</p>
       <ul className="mt-4 grid gap-4">
         {pending.data?.length === 0 && <p className="text-muted-foreground">Nothing waiting — all caught up.</p>}
         {pending.data?.map((e) => (
@@ -91,18 +132,155 @@ function AdminPage() {
           </Row>
         ))}
       </ul>
-
       <p className="section-label mt-12">Upcoming published</p>
       <ul className="mt-4 grid gap-4">
         {live.data?.length === 0 && <p className="text-muted-foreground">No upcoming events yet.</p>}
         {live.data?.map((e) => (
           <Row key={e.id} e={e}>
-            <Button size="sm" variant="outline" className="rounded-full text-destructive" onClick={() => confirm("Cancel this event for everyone?") && act.mutate({ id: e.id, status: "cancelled" })}>
-              Cancel
-            </Button>
+            <Button size="sm" variant="outline" className="rounded-full text-destructive" onClick={() => confirm("Cancel this event for everyone?") && act.mutate({ id: e.id, status: "cancelled" })}>Cancel</Button>
           </Row>
         ))}
       </ul>
-    </div>
+    </section>
+  );
+}
+
+// ---------------- Members (admin only) ----------------
+function MembersSection() {
+  const qc = useQueryClient();
+  const { data: me } = useCurrentUserId();
+  const [term, setTerm] = useState("");
+  const q = useQuery({
+    queryKey: ["admin", "members", term],
+    queryFn: async () => {
+      let pq = supabase.from("profiles").select("id,display_name,location,profession").order("display_name").limit(25);
+      if (term.trim()) pq = pq.ilike("display_name", `%${term.trim().replace(/[%_]/g, "")}%`);
+      const { data: people, error } = await pq;
+      if (error) throw error;
+      const ids = (people ?? []).map((p) => p.id);
+      const { data: roles } = ids.length
+        ? await supabase.from("user_roles").select("user_id,role").in("user_id", ids)
+        : { data: [] as { user_id: string; role: string }[] };
+      const byUser = new Map<string, Set<string>>();
+      for (const r of roles ?? []) byUser.set(r.user_id, (byUser.get(r.user_id) ?? new Set()).add(r.role));
+      return (people ?? []).map((p) => ({ ...p, roles: byUser.get(p.id) ?? new Set<string>() }));
+    },
+  });
+
+  const toggle = useMutation({
+    mutationFn: async ({ userId, role, grant }: { userId: string; role: "admin" | "moderator"; grant: boolean }) => {
+      const res = grant
+        ? await supabase.from("user_roles").upsert({ user_id: userId, role }, { onConflict: "user_id,role", ignoreDuplicates: true })
+        : await supabase.from("user_roles").delete().eq("user_id", userId).eq("role", role);
+      if (res.error) throw res.error;
+    },
+    onSuccess: () => { toast.success("Role updated"); qc.invalidateQueries({ queryKey: ["admin", "members"] }); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <section className="mt-10">
+      <div className="relative max-w-md">
+        <Search className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-primary" strokeWidth={1.5} />
+        <Input value={term} onChange={(e) => setTerm(e.target.value)} placeholder="Search members by name" className="rounded-full pl-10" />
+      </div>
+      <ul className="mt-6 grid gap-3">
+        {q.data?.length === 0 && <p className="text-muted-foreground">No members match that name.</p>}
+        {q.data?.map((p) => {
+          const isAdmin = p.roles.has("admin");
+          const isMod = p.roles.has("moderator");
+          const self = p.id === me;
+          return (
+            <Card key={p.id}>
+              <div>
+                <p className="font-serif text-xl text-foreground">{p.display_name || "Unnamed member"}{self && <span className="ml-2 text-sm text-muted-foreground">(you)</span>}</p>
+                <p className="text-sm text-muted-foreground">{[p.profession, p.location].filter(Boolean).join(" · ") || "—"}</p>
+                <div className="mt-2 flex gap-2">
+                  {isAdmin && <span className="rounded-full bg-primary/15 px-3 py-0.5 text-xs text-primary">Admin</span>}
+                  {isMod && <span className="rounded-full bg-secondary px-3 py-0.5 text-xs text-secondary-foreground">Moderator</span>}
+                  {!isAdmin && !isMod && <span className="rounded-full bg-accent px-3 py-0.5 text-xs text-muted-foreground">Member</span>}
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button size="sm" variant={isMod ? "outline" : "default"} className="rounded-full" disabled={toggle.isPending}
+                  onClick={() => toggle.mutate({ userId: p.id, role: "moderator", grant: !isMod })}>
+                  {isMod ? "Demote to member" : "Make moderator"}
+                </Button>
+                <Button size="sm" variant="outline" className="rounded-full" disabled={toggle.isPending || (self && isAdmin)}
+                  title={self && isAdmin ? "You can't remove your own admin role" : undefined}
+                  onClick={() => confirm(isAdmin ? "Revoke admin?" : "Grant full admin access?") && toggle.mutate({ userId: p.id, role: "admin", grant: !isAdmin })}>
+                  {isAdmin ? "Revoke admin" : "Grant admin"}
+                </Button>
+              </div>
+            </Card>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
+// ---------------- Houses & skills moderation ----------------
+type Listing = { id: string; title: string; status: string; sub: string | null; owner: { display_name: string | null } | null };
+
+function ListingsSection() {
+  const qc = useQueryClient();
+  const houses = useQuery({
+    queryKey: ["admin", "houses"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("houses")
+        .select("id,title,status,sub:location_text,owner:profiles!houses_owner_id_fkey(display_name)")
+        .in("status", ["published", "archived"]).order("created_at", { ascending: false }).limit(50);
+      if (error) throw error;
+      return data as unknown as Listing[];
+    },
+  });
+  const skills = useQuery({
+    queryKey: ["admin", "skills"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("skills")
+        .select("id,title,status,sub:category,owner:profiles!skills_owner_id_fkey(display_name)")
+        .in("status", ["published", "archived"]).order("created_at", { ascending: false }).limit(50);
+      if (error) throw error;
+      return data as unknown as Listing[];
+    },
+  });
+  const act = useMutation({
+    mutationFn: async ({ table, id, status }: { table: "houses" | "skills"; id: string; status: "archived" | "published" }) => {
+      const { error } = await supabase.from(table).update({ status }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => { toast.success("Listing updated"); qc.invalidateQueries({ queryKey: ["admin"] }); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const List = ({ table, icon: Icon, label, items }: { table: "houses" | "skills"; icon: typeof Home; label: string; items?: Listing[] | undefined }) => (
+    <>
+      <p className="section-label mt-10 flex items-center gap-2"><Icon className="size-4 text-primary" strokeWidth={1.5} /> {label}</p>
+      <ul className="mt-4 grid gap-3">
+        {items?.length === 0 && <p className="text-muted-foreground">Nothing listed yet.</p>}
+        {items?.map((l) => (
+          <Card key={l.id}>
+            <div>
+              <p className={cn("font-serif text-xl text-foreground", l.status === "archived" && "line-through opacity-60")}>{l.title}</p>
+              <p className="text-sm text-muted-foreground">{[l.sub, l.owner?.display_name && `by ${l.owner.display_name}`].filter(Boolean).join(" · ")}</p>
+            </div>
+            {l.status === "archived" ? (
+              <Button size="sm" variant="outline" className="rounded-full" onClick={() => act.mutate({ table, id: l.id, status: "published" })}>Restore</Button>
+            ) : (
+              <Button size="sm" variant="outline" className="rounded-full text-destructive" onClick={() => confirm("Unlist this for everyone?") && act.mutate({ table, id: l.id, status: "archived" })}>Unlist</Button>
+            )}
+          </Card>
+        ))}
+      </ul>
+    </>
+  );
+
+  return (
+    <section className="mt-4">
+      <p className="mt-6 text-sm text-muted-foreground">Members publish houses and skills directly. Unlist anything that doesn't belong.</p>
+      <List table="houses" icon={Home} label="Houses" items={houses.data} />
+      <List table="skills" icon={Sparkles} label="Skills" items={skills.data} />
+    </section>
   );
 }

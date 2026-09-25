@@ -536,6 +536,7 @@ export type Database = {
       }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
       is_event_manager: { Args: { _event_id: string }; Returns: boolean }
+      is_staff: { Args: { _user_id: string }; Returns: boolean }
       promote_waitlist: { Args: { _event_id: string }; Returns: undefined }
       rsvp_event: { Args: { _event_id: string }; Returns: string }
     }

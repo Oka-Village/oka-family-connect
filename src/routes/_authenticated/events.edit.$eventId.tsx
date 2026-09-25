@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 
 import { EventForm } from "@/components/oka/event-form";
-import { useCurrentUserId, useIsAdmin } from "@/hooks/use-is-admin";
+import { useCurrentUserId, useIsStaff } from "@/hooks/use-is-admin";
 import { supabase } from "@/integrations/supabase/client";
 import { EVENT_SELECT, type EventRow } from "@/lib/events";
 
@@ -22,7 +22,7 @@ export const Route = createFileRoute("/_authenticated/events/edit/$eventId")({
 
 function EditEvent() {
   const { eventId } = Route.useParams();
-  const admin = useIsAdmin();
+  const admin = useIsStaff();
   const uid = useCurrentUserId();
   const q = useQuery({
     queryKey: ["event-edit", eventId],

@@ -1,16 +1,25 @@
 import { Link } from "@tanstack/react-router";
-import { CalendarDays, Clock, MapPin, Users, Video } from "lucide-react";
+import { ArrowRight, Clock, MapPin, Users, Video } from "lucide-react";
 
 import {
   FORMAT_LABELS,
   TYPE_LABELS,
-  formatEventDate,
   formatEventTime,
   hostName,
   spotsLeft,
   type EventRow,
+  type EventType,
 } from "@/lib/events";
 import { cn } from "@/lib/utils";
+
+/** Soft brand tint per event type, so the schedule reads like a warm calendar. */
+export const TYPE_TINT: Record<EventType, string> = {
+  gathering: "bg-sage-light/60",
+  workshop: "bg-sand/70",
+  pod_session: "bg-terracotta-light/30",
+  meditation: "bg-sage-light/40",
+  retreat: "bg-golden/20",
+};
 
 export function RsvpBadge({ status }: { status?: string | undefined }) {
   if (status !== "going" && status !== "waitlist") return null;
@@ -26,53 +35,87 @@ export function RsvpBadge({ status }: { status?: string | undefined }) {
   );
 }
 
-export function EventCard({ event, rsvp }: { event: EventRow; rsvp?: string | undefined }) {
-  const left = spotsLeft(event);
-  const cancelled = event.status === "cancelled";
-  const FormatIcon = event.format === "virtual" ? Video : MapPin;
+function spotsText(e: EventRow) {
+  const left = spotsLeft(e);
+  return left == null ? "Open to all" : left === 0 ? "Full · waitlist open" : `${left} spot${left === 1 ? "" : "s"} left`;
+}
 
+function DateBlock({ iso, tz, large }: { iso: string; tz: string | null; large?: boolean }) {
+  const d = new Date(iso);
+  const opt = (o: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat("en-US", { timeZone: tz || undefined, ...o }).format(d);
+  return (
+    <div className={cn("flex shrink-0 flex-col items-center justify-center rounded-2xl bg-card/80 text-center", large ? "size-28" : "size-20")}>
+      <span className="text-[0.65rem] uppercase tracking-widest text-primary">{opt({ month: "short" })}</span>
+      <span className={cn("font-serif leading-none text-foreground", large ? "text-6xl" : "text-4xl")}>{opt({ day: "numeric" })}</span>
+      <span className="text-[0.65rem] uppercase tracking-widest text-muted-foreground">{opt({ weekday: "short" })}</span>
+    </div>
+  );
+}
+
+function Meta({ event }: { event: EventRow }) {
+  const FormatIcon = event.format === "virtual" ? Video : MapPin;
+  return (
+    <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
+      <span className="flex items-center gap-1.5"><Clock className="size-4 text-primary" strokeWidth={1.5} />{formatEventTime(event.starts_at, event.timezone)}</span>
+      <span className="flex items-center gap-1.5"><FormatIcon className="size-4 text-primary" strokeWidth={1.5} />{FORMAT_LABELS[event.format]}</span>
+      <span className="flex items-center gap-1.5"><Users className="size-4 text-primary" strokeWidth={1.5} />{hostName(event.host)}</span>
+    </div>
+  );
+}
+
+/** An event rendered like an invitation card. */
+export function EventCard({ event, rsvp }: { event: EventRow; rsvp?: string | undefined }) {
+  const cancelled = event.status === "cancelled";
   return (
     <Link
       to="/events/$eventId"
       params={{ eventId: event.id }}
       className={cn(
-        "surface-card block rounded-2xl border border-border bg-card p-6 shadow-soft transition-shadow hover:shadow-lifted",
-        cancelled && "opacity-70",
+        "group flex gap-5 rounded-2xl p-5 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lifted sm:p-6",
+        TYPE_TINT[event.event_type],
+        cancelled && "opacity-60",
       )}
     >
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="rounded-full bg-secondary px-3 py-1 text-xs uppercase tracking-widest text-secondary-foreground">
-          {TYPE_LABELS[event.event_type]}
-        </span>
-        <span className="flex items-center gap-1 rounded-full border border-border px-3 py-1 text-xs text-muted-foreground">
-          <FormatIcon className="size-3.5 text-primary" strokeWidth={1.5} />
-          {FORMAT_LABELS[event.format]}
-        </span>
-        {cancelled && (
-          <span className="rounded-full bg-destructive/10 px-3 py-1 text-xs text-destructive">Cancelled</span>
-        )}
-        <span className="ml-auto">
-          <RsvpBadge status={rsvp} />
-        </span>
+      <DateBlock iso={event.starts_at} tz={event.timezone} />
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[0.7rem] uppercase tracking-widest text-primary">{TYPE_LABELS[event.event_type]}</span>
+          {cancelled && <span className="rounded-full bg-destructive/10 px-2.5 py-0.5 text-xs text-destructive">Cancelled</span>}
+          <span className="ml-auto"><RsvpBadge status={rsvp} /></span>
+        </div>
+        <h3 className={cn("mt-1 text-2xl leading-tight text-foreground sm:text-3xl", cancelled && "line-through")}>{event.title}</h3>
+        <div className="mt-3"><Meta event={event} /></div>
+        <p className="mt-3 text-xs uppercase tracking-widest text-muted-foreground">{spotsText(event)}</p>
       </div>
-      <h3 className="mt-4 text-2xl leading-tight text-foreground">{event.title}</h3>
-      <div className="mt-4 grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
-        <span className="flex items-center gap-2">
-          <CalendarDays className="size-4 text-primary" strokeWidth={1.5} />
-          {formatEventDate(event.starts_at, event.timezone)}
-        </span>
-        <span className="flex items-center gap-2">
-          <Clock className="size-4 text-primary" strokeWidth={1.5} />
-          {formatEventTime(event.starts_at, event.timezone)}
-        </span>
-        <span className="flex items-center gap-2">
-          <Users className="size-4 text-primary" strokeWidth={1.5} />
-          Hosted by {hostName(event.host)}
-        </span>
-        <span className="flex items-center gap-2">
-          <span className="size-4" />
-          {left == null ? "Open to all" : left === 0 ? "Full · waitlist open" : `${left} spot${left === 1 ? "" : "s"} left`}
-        </span>
+    </Link>
+  );
+}
+
+/** The next gathering, featured large at the top of the schedule. */
+export function FeaturedEvent({ event, rsvp }: { event: EventRow; rsvp?: string | undefined }) {
+  return (
+    <Link
+      to="/events/$eventId"
+      params={{ eventId: event.id }}
+      className={cn("group relative block overflow-hidden rounded-3xl p-8 shadow-soft transition-shadow hover:shadow-lifted sm:p-12", TYPE_TINT[event.event_type])}
+    >
+      <div className="pointer-events-none absolute -right-16 -top-16 size-64 rounded-full bg-terracotta-light/25" />
+      <div className="pointer-events-none absolute -bottom-24 right-24 size-48 rounded-full bg-sage/15" />
+      <div className="relative flex flex-col gap-8 sm:flex-row sm:items-center">
+        <DateBlock iso={event.starts_at} tz={event.timezone} large />
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="section-label">Next gathering · {TYPE_LABELS[event.event_type]}</p>
+            <RsvpBadge status={rsvp} />
+          </div>
+          <h2 className="mt-3 text-4xl leading-[1.05] text-foreground sm:text-6xl">{event.title}</h2>
+          {event.description && <p className="mt-4 line-clamp-2 max-w-xl leading-relaxed text-muted-foreground">{event.description}</p>}
+          <div className="mt-6"><Meta event={event} /></div>
+          <span className="mt-8 inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm text-primary-foreground">
+            {rsvp === "going" ? "View details" : spotsLeft(event) === 0 ? "Join the waitlist" : "Save my spot"}
+            <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" strokeWidth={1.5} />
+          </span>
+        </div>
       </div>
     </Link>
   );
