@@ -209,7 +209,7 @@ function EventDetail() {
 
           <div className="rounded-2xl border border-border bg-card p-6 shadow-soft">
             <p className="section-label">Host</p>
-            <Link to="/directory" className="mt-4 flex items-center gap-3">
+            <Link to={ev.host_id ? "/members/$memberId" : "/directory"} params={{ memberId: ev.host_id ?? "" }} className="mt-4 flex items-center gap-3">
               <Avatar className="size-12">
                 {photo.data && <AvatarImage src={photo.data} alt="" />}
                 <AvatarFallback className="bg-secondary text-foreground">
