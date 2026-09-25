@@ -1,11 +1,12 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { CalendarDays, Coins, Home, LogOut, Sparkles, User, Users } from "lucide-react";
+import { CalendarDays, Coins, Home, LogOut, ShieldCheck, Sparkles, User, Users } from "lucide-react";
 
 import { Wordmark } from "@/components/oka/wordmark";
 import { Button } from "@/components/ui/button";
 import { useProfile } from "@/hooks/use-profile";
+import { useIsAdmin } from "@/hooks/use-is-admin";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +25,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { data: profile, isLoading } = useProfile();
+  const { data: isAdmin } = useIsAdmin();
+  const items = isAdmin
+    ? [...NAV_ITEMS, { to: "/admin", label: "Admin", icon: ShieldCheck } as const]
+    : NAV_ITEMS;
 
   // Anyone who hasn't finished the welcome steps is taken back to them.
   useEffect(() => {
@@ -47,7 +52,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </Link>
         <p className="section-label mt-10 px-2">Circle</p>
         <nav className="mt-4 flex flex-1 flex-col gap-1">
-          {NAV_ITEMS.map((item) => {
+          {items.map((item) => {
             const active = pathname.startsWith(item.to);
             return (
               <Link
@@ -92,7 +97,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <main className="pb-28 lg:pb-0 lg:pl-64">{children}</main>
 
       <nav className="fixed inset-x-0 bottom-0 z-10 flex justify-between border-t border-border bg-sidebar px-2 py-2 lg:hidden">
-        {NAV_ITEMS.map((item) => {
+        {items.map((item) => {
           const active = pathname.startsWith(item.to);
           return (
             <Link
