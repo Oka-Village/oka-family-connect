@@ -72,6 +72,7 @@ function ProfilePage() {
           <Link to="/members/$memberId" params={{ memberId: profile.id }} className="mt-1 inline-block text-sm text-primary hover:underline">
             See how others see you
           </Link>
+          <Link to="/affiliate" className="ml-4 mt-1 inline-block text-sm text-primary hover:underline">Invite & earn</Link>
         </div>
         {!editing && (
           <Button className="rounded-full px-6" onClick={() => setEditing(true)}>

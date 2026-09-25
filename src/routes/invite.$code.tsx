@@ -5,7 +5,7 @@ import { Globe2, HeartHandshake, Home, Loader2, Sparkles } from "lucide-react";
 
 import { Wordmark } from "@/components/oka/wordmark";
 import { Button } from "@/components/ui/button";
-import { lovable } from "@/integrations/lovable";
+import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
 import { saveInviteCode } from "@/lib/affiliates";
 
