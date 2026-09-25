@@ -22,7 +22,10 @@ import { Route as AuthenticatedEventsIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedEventsEventIdRouteImport } from './routes/_authenticated/events.$eventId'
 import { Route as AuthenticatedEventsNewRouteImport } from './routes/_authenticated/events.new'
 import { Route as AuthenticatedMembersMemberIdRouteImport } from './routes/_authenticated/members.$memberId'
+import { Route as AuthenticatedSkillsIndexRouteImport } from './routes/_authenticated/skills.index'
+import { Route as AuthenticatedSkillsNewRouteImport } from './routes/_authenticated/skills.new'
 import { Route as AuthenticatedEventsEditEventIdRouteImport } from './routes/_authenticated/events.edit.$eventId'
+import { Route as AuthenticatedSkillsEditSkillIdRouteImport } from './routes/_authenticated/skills.edit.$skillId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -91,11 +94,28 @@ const AuthenticatedMembersMemberIdRoute =
     path: '/members/$memberId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedSkillsIndexRoute =
+  AuthenticatedSkillsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedSkillsRoute,
+  } as any)
+const AuthenticatedSkillsNewRoute = AuthenticatedSkillsNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AuthenticatedSkillsRoute,
+} as any)
 const AuthenticatedEventsEditEventIdRoute =
   AuthenticatedEventsEditEventIdRouteImport.update({
     id: '/events/edit/$eventId',
     path: '/events/edit/$eventId',
     getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSkillsEditSkillIdRoute =
+  AuthenticatedSkillsEditSkillIdRouteImport.update({
+    id: '/edit/$skillId',
+    path: '/edit/$skillId',
+    getParentRoute: () => AuthenticatedSkillsRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -106,12 +126,15 @@ export interface FileRoutesByFullPath {
   '/houses': typeof AuthenticatedHousesRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/profile': typeof AuthenticatedProfileRoute
-  '/skills': typeof AuthenticatedSkillsRoute
+  '/skills': typeof AuthenticatedSkillsRouteWithChildren
   '/events/$eventId': typeof AuthenticatedEventsEventIdRoute
   '/events/new': typeof AuthenticatedEventsNewRoute
   '/members/$memberId': typeof AuthenticatedMembersMemberIdRoute
+  '/skills/new': typeof AuthenticatedSkillsNewRoute
   '/events/': typeof AuthenticatedEventsIndexRoute
+  '/skills/': typeof AuthenticatedSkillsIndexRoute
   '/events/edit/$eventId': typeof AuthenticatedEventsEditEventIdRoute
+  '/skills/edit/$skillId': typeof AuthenticatedSkillsEditSkillIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -121,12 +144,14 @@ export interface FileRoutesByTo {
   '/houses': typeof AuthenticatedHousesRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/profile': typeof AuthenticatedProfileRoute
-  '/skills': typeof AuthenticatedSkillsRoute
   '/events/$eventId': typeof AuthenticatedEventsEventIdRoute
   '/events/new': typeof AuthenticatedEventsNewRoute
   '/members/$memberId': typeof AuthenticatedMembersMemberIdRoute
+  '/skills/new': typeof AuthenticatedSkillsNewRoute
   '/events': typeof AuthenticatedEventsIndexRoute
+  '/skills': typeof AuthenticatedSkillsIndexRoute
   '/events/edit/$eventId': typeof AuthenticatedEventsEditEventIdRoute
+  '/skills/edit/$skillId': typeof AuthenticatedSkillsEditSkillIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -138,12 +163,15 @@ export interface FileRoutesById {
   '/_authenticated/houses': typeof AuthenticatedHousesRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
-  '/_authenticated/skills': typeof AuthenticatedSkillsRoute
+  '/_authenticated/skills': typeof AuthenticatedSkillsRouteWithChildren
   '/_authenticated/events/$eventId': typeof AuthenticatedEventsEventIdRoute
   '/_authenticated/events/new': typeof AuthenticatedEventsNewRoute
   '/_authenticated/members/$memberId': typeof AuthenticatedMembersMemberIdRoute
+  '/_authenticated/skills/new': typeof AuthenticatedSkillsNewRoute
   '/_authenticated/events/': typeof AuthenticatedEventsIndexRoute
+  '/_authenticated/skills/': typeof AuthenticatedSkillsIndexRoute
   '/_authenticated/events/edit/$eventId': typeof AuthenticatedEventsEditEventIdRoute
+  '/_authenticated/skills/edit/$skillId': typeof AuthenticatedSkillsEditSkillIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -159,8 +187,11 @@ export interface FileRouteTypes {
     | '/events/$eventId'
     | '/events/new'
     | '/members/$memberId'
+    | '/skills/new'
     | '/events/'
+    | '/skills/'
     | '/events/edit/$eventId'
+    | '/skills/edit/$skillId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -170,12 +201,14 @@ export interface FileRouteTypes {
     | '/houses'
     | '/onboarding'
     | '/profile'
-    | '/skills'
     | '/events/$eventId'
     | '/events/new'
     | '/members/$memberId'
+    | '/skills/new'
     | '/events'
+    | '/skills'
     | '/events/edit/$eventId'
+    | '/skills/edit/$skillId'
   id:
     | '__root__'
     | '/'
@@ -190,8 +223,11 @@ export interface FileRouteTypes {
     | '/_authenticated/events/$eventId'
     | '/_authenticated/events/new'
     | '/_authenticated/members/$memberId'
+    | '/_authenticated/skills/new'
     | '/_authenticated/events/'
+    | '/_authenticated/skills/'
     | '/_authenticated/events/edit/$eventId'
+    | '/_authenticated/skills/edit/$skillId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -292,6 +328,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMembersMemberIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/skills/': {
+      id: '/_authenticated/skills/'
+      path: '/'
+      fullPath: '/skills/'
+      preLoaderRoute: typeof AuthenticatedSkillsIndexRouteImport
+      parentRoute: typeof AuthenticatedSkillsRoute
+    }
+    '/_authenticated/skills/new': {
+      id: '/_authenticated/skills/new'
+      path: '/new'
+      fullPath: '/skills/new'
+      preLoaderRoute: typeof AuthenticatedSkillsNewRouteImport
+      parentRoute: typeof AuthenticatedSkillsRoute
+    }
     '/_authenticated/events/edit/$eventId': {
       id: '/_authenticated/events/edit/$eventId'
       path: '/events/edit/$eventId'
@@ -299,8 +349,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEventsEditEventIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/skills/edit/$skillId': {
+      id: '/_authenticated/skills/edit/$skillId'
+      path: '/edit/$skillId'
+      fullPath: '/skills/edit/$skillId'
+      preLoaderRoute: typeof AuthenticatedSkillsEditSkillIdRouteImport
+      parentRoute: typeof AuthenticatedSkillsRoute
+    }
   }
 }
+
+interface AuthenticatedSkillsRouteChildren {
+  AuthenticatedSkillsNewRoute: typeof AuthenticatedSkillsNewRoute
+  AuthenticatedSkillsIndexRoute: typeof AuthenticatedSkillsIndexRoute
+  AuthenticatedSkillsEditSkillIdRoute: typeof AuthenticatedSkillsEditSkillIdRoute
+}
+
+const AuthenticatedSkillsRouteChildren: AuthenticatedSkillsRouteChildren = {
+  AuthenticatedSkillsNewRoute: AuthenticatedSkillsNewRoute,
+  AuthenticatedSkillsIndexRoute: AuthenticatedSkillsIndexRoute,
+  AuthenticatedSkillsEditSkillIdRoute: AuthenticatedSkillsEditSkillIdRoute,
+}
+
+const AuthenticatedSkillsRouteWithChildren =
+  AuthenticatedSkillsRoute._addFileChildren(AuthenticatedSkillsRouteChildren)
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
@@ -309,7 +381,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedHousesRoute: typeof AuthenticatedHousesRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
-  AuthenticatedSkillsRoute: typeof AuthenticatedSkillsRoute
+  AuthenticatedSkillsRoute: typeof AuthenticatedSkillsRouteWithChildren
   AuthenticatedEventsEventIdRoute: typeof AuthenticatedEventsEventIdRoute
   AuthenticatedEventsNewRoute: typeof AuthenticatedEventsNewRoute
   AuthenticatedMembersMemberIdRoute: typeof AuthenticatedMembersMemberIdRoute
@@ -324,7 +396,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedHousesRoute: AuthenticatedHousesRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
-  AuthenticatedSkillsRoute: AuthenticatedSkillsRoute,
+  AuthenticatedSkillsRoute: AuthenticatedSkillsRouteWithChildren,
   AuthenticatedEventsEventIdRoute: AuthenticatedEventsEventIdRoute,
   AuthenticatedEventsNewRoute: AuthenticatedEventsNewRoute,
   AuthenticatedMembersMemberIdRoute: AuthenticatedMembersMemberIdRoute,
