@@ -132,6 +132,38 @@ export type Database = {
           },
         ]
       }
+      event_locations: {
+        Row: {
+          created_at: string
+          event_id: string
+          updated_at: string
+          venue_address: string | null
+          video_link: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          updated_at?: string
+          venue_address?: string | null
+          video_link?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          updated_at?: string
+          venue_address?: string | null
+          video_link?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_locations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: true
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_rsvps: {
         Row: {
           created_at: string
@@ -180,6 +212,7 @@ export type Database = {
           ends_at: string | null
           event_type: string
           format: string
+          going_count: number
           host_id: string | null
           id: string
           starts_at: string
@@ -187,8 +220,7 @@ export type Database = {
           timezone: string | null
           title: string
           updated_at: string
-          venue_address: string | null
-          video_link: string | null
+          waitlist_count: number
         }
         Insert: {
           capacity?: number | null
@@ -198,6 +230,7 @@ export type Database = {
           ends_at?: string | null
           event_type: string
           format: string
+          going_count?: number
           host_id?: string | null
           id?: string
           starts_at: string
@@ -205,8 +238,7 @@ export type Database = {
           timezone?: string | null
           title: string
           updated_at?: string
-          venue_address?: string | null
-          video_link?: string | null
+          waitlist_count?: number
         }
         Update: {
           capacity?: number | null
@@ -216,6 +248,7 @@ export type Database = {
           ends_at?: string | null
           event_type?: string
           format?: string
+          going_count?: number
           host_id?: string | null
           id?: string
           starts_at?: string
@@ -223,8 +256,7 @@ export type Database = {
           timezone?: string | null
           title?: string
           updated_at?: string
-          venue_address?: string | null
-          video_link?: string | null
+          waitlist_count?: number
         }
         Relationships: [
           {
@@ -496,8 +528,16 @@ export type Database = {
       }
     }
     Functions: {
+      cancel_rsvp: { Args: { _event_id: string }; Returns: string }
       generate_invite_code: { Args: never; Returns: string }
+      has_event_rsvp: {
+        Args: { _event_id: string; _going_only: boolean }
+        Returns: boolean
+      }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
+      is_event_manager: { Args: { _event_id: string }; Returns: boolean }
+      promote_waitlist: { Args: { _event_id: string }; Returns: undefined }
+      rsvp_event: { Args: { _event_id: string }; Returns: string }
     }
     Enums: {
       [_ in never]: never
