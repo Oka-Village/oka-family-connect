@@ -14,18 +14,22 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedCreditsRouteImport } from './routes/_authenticated/credits'
 import { Route as AuthenticatedDirectoryRouteImport } from './routes/_authenticated/directory'
-import { Route as AuthenticatedHousesRouteImport } from './routes/_authenticated/houses'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedSessionsRouteImport } from './routes/_authenticated/sessions'
+import { Route as AuthenticatedStaysRouteImport } from './routes/_authenticated/stays'
 import { Route as AuthenticatedEventsIndexRouteImport } from './routes/_authenticated/events.index'
 import { Route as AuthenticatedEventsEventIdRouteImport } from './routes/_authenticated/events.$eventId'
 import { Route as AuthenticatedEventsNewRouteImport } from './routes/_authenticated/events.new'
+import { Route as AuthenticatedHousesIndexRouteImport } from './routes/_authenticated/houses.index'
+import { Route as AuthenticatedHousesHouseIdRouteImport } from './routes/_authenticated/houses.$houseId'
+import { Route as AuthenticatedHousesNewRouteImport } from './routes/_authenticated/houses.new'
 import { Route as AuthenticatedMembersMemberIdRouteImport } from './routes/_authenticated/members.$memberId'
 import { Route as AuthenticatedSkillsIndexRouteImport } from './routes/_authenticated/skills.index'
 import { Route as AuthenticatedSkillsSkillIdRouteImport } from './routes/_authenticated/skills.$skillId'
 import { Route as AuthenticatedSkillsNewRouteImport } from './routes/_authenticated/skills.new'
 import { Route as AuthenticatedEventsEditEventIdRouteImport } from './routes/_authenticated/events.edit.$eventId'
+import { Route as AuthenticatedHousesEditHouseIdRouteImport } from './routes/_authenticated/houses.edit.$houseId'
 import { Route as AuthenticatedSkillsEditSkillIdRouteImport } from './routes/_authenticated/skills.edit.$skillId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -52,11 +56,6 @@ const AuthenticatedDirectoryRoute = AuthenticatedDirectoryRouteImport.update({
   path: '/directory',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedHousesRoute = AuthenticatedHousesRouteImport.update({
-  id: '/houses',
-  path: '/houses',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
@@ -70,6 +69,11 @@ const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
 const AuthenticatedSessionsRoute = AuthenticatedSessionsRouteImport.update({
   id: '/sessions',
   path: '/sessions',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedStaysRoute = AuthenticatedStaysRouteImport.update({
+  id: '/stays',
+  path: '/stays',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedEventsIndexRoute =
@@ -87,6 +91,23 @@ const AuthenticatedEventsEventIdRoute =
 const AuthenticatedEventsNewRoute = AuthenticatedEventsNewRouteImport.update({
   id: '/events/new',
   path: '/events/new',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedHousesIndexRoute =
+  AuthenticatedHousesIndexRouteImport.update({
+    id: '/houses/',
+    path: '/houses/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedHousesHouseIdRoute =
+  AuthenticatedHousesHouseIdRouteImport.update({
+    id: '/houses/$houseId',
+    path: '/houses/$houseId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedHousesNewRoute = AuthenticatedHousesNewRouteImport.update({
+  id: '/houses/new',
+  path: '/houses/new',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedMembersMemberIdRoute =
@@ -118,6 +139,12 @@ const AuthenticatedEventsEditEventIdRoute =
     path: '/events/edit/$eventId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedHousesEditHouseIdRoute =
+  AuthenticatedHousesEditHouseIdRouteImport.update({
+    id: '/houses/edit/$houseId',
+    path: '/houses/edit/$houseId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSkillsEditSkillIdRoute =
   AuthenticatedSkillsEditSkillIdRouteImport.update({
     id: '/skills/edit/$skillId',
@@ -130,18 +157,22 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRoute
   '/credits': typeof AuthenticatedCreditsRoute
   '/directory': typeof AuthenticatedDirectoryRoute
-  '/houses': typeof AuthenticatedHousesRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/sessions': typeof AuthenticatedSessionsRoute
+  '/stays': typeof AuthenticatedStaysRoute
   '/events/$eventId': typeof AuthenticatedEventsEventIdRoute
   '/events/new': typeof AuthenticatedEventsNewRoute
+  '/houses/$houseId': typeof AuthenticatedHousesHouseIdRoute
+  '/houses/new': typeof AuthenticatedHousesNewRoute
   '/members/$memberId': typeof AuthenticatedMembersMemberIdRoute
   '/skills/$skillId': typeof AuthenticatedSkillsSkillIdRoute
   '/skills/new': typeof AuthenticatedSkillsNewRoute
   '/events/': typeof AuthenticatedEventsIndexRoute
+  '/houses/': typeof AuthenticatedHousesIndexRoute
   '/skills/': typeof AuthenticatedSkillsIndexRoute
   '/events/edit/$eventId': typeof AuthenticatedEventsEditEventIdRoute
+  '/houses/edit/$houseId': typeof AuthenticatedHousesEditHouseIdRoute
   '/skills/edit/$skillId': typeof AuthenticatedSkillsEditSkillIdRoute
 }
 export interface FileRoutesByTo {
@@ -149,18 +180,22 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRoute
   '/credits': typeof AuthenticatedCreditsRoute
   '/directory': typeof AuthenticatedDirectoryRoute
-  '/houses': typeof AuthenticatedHousesRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/sessions': typeof AuthenticatedSessionsRoute
+  '/stays': typeof AuthenticatedStaysRoute
   '/events/$eventId': typeof AuthenticatedEventsEventIdRoute
   '/events/new': typeof AuthenticatedEventsNewRoute
+  '/houses/$houseId': typeof AuthenticatedHousesHouseIdRoute
+  '/houses/new': typeof AuthenticatedHousesNewRoute
   '/members/$memberId': typeof AuthenticatedMembersMemberIdRoute
   '/skills/$skillId': typeof AuthenticatedSkillsSkillIdRoute
   '/skills/new': typeof AuthenticatedSkillsNewRoute
   '/events': typeof AuthenticatedEventsIndexRoute
+  '/houses': typeof AuthenticatedHousesIndexRoute
   '/skills': typeof AuthenticatedSkillsIndexRoute
   '/events/edit/$eventId': typeof AuthenticatedEventsEditEventIdRoute
+  '/houses/edit/$houseId': typeof AuthenticatedHousesEditHouseIdRoute
   '/skills/edit/$skillId': typeof AuthenticatedSkillsEditSkillIdRoute
 }
 export interface FileRoutesById {
@@ -170,18 +205,22 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/credits': typeof AuthenticatedCreditsRoute
   '/_authenticated/directory': typeof AuthenticatedDirectoryRoute
-  '/_authenticated/houses': typeof AuthenticatedHousesRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/sessions': typeof AuthenticatedSessionsRoute
+  '/_authenticated/stays': typeof AuthenticatedStaysRoute
   '/_authenticated/events/$eventId': typeof AuthenticatedEventsEventIdRoute
   '/_authenticated/events/new': typeof AuthenticatedEventsNewRoute
+  '/_authenticated/houses/$houseId': typeof AuthenticatedHousesHouseIdRoute
+  '/_authenticated/houses/new': typeof AuthenticatedHousesNewRoute
   '/_authenticated/members/$memberId': typeof AuthenticatedMembersMemberIdRoute
   '/_authenticated/skills/$skillId': typeof AuthenticatedSkillsSkillIdRoute
   '/_authenticated/skills/new': typeof AuthenticatedSkillsNewRoute
   '/_authenticated/events/': typeof AuthenticatedEventsIndexRoute
+  '/_authenticated/houses/': typeof AuthenticatedHousesIndexRoute
   '/_authenticated/skills/': typeof AuthenticatedSkillsIndexRoute
   '/_authenticated/events/edit/$eventId': typeof AuthenticatedEventsEditEventIdRoute
+  '/_authenticated/houses/edit/$houseId': typeof AuthenticatedHousesEditHouseIdRoute
   '/_authenticated/skills/edit/$skillId': typeof AuthenticatedSkillsEditSkillIdRoute
 }
 export interface FileRouteTypes {
@@ -191,18 +230,22 @@ export interface FileRouteTypes {
     | '/admin'
     | '/credits'
     | '/directory'
-    | '/houses'
     | '/onboarding'
     | '/profile'
     | '/sessions'
+    | '/stays'
     | '/events/$eventId'
     | '/events/new'
+    | '/houses/$houseId'
+    | '/houses/new'
     | '/members/$memberId'
     | '/skills/$skillId'
     | '/skills/new'
     | '/events/'
+    | '/houses/'
     | '/skills/'
     | '/events/edit/$eventId'
+    | '/houses/edit/$houseId'
     | '/skills/edit/$skillId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -210,18 +253,22 @@ export interface FileRouteTypes {
     | '/admin'
     | '/credits'
     | '/directory'
-    | '/houses'
     | '/onboarding'
     | '/profile'
     | '/sessions'
+    | '/stays'
     | '/events/$eventId'
     | '/events/new'
+    | '/houses/$houseId'
+    | '/houses/new'
     | '/members/$memberId'
     | '/skills/$skillId'
     | '/skills/new'
     | '/events'
+    | '/houses'
     | '/skills'
     | '/events/edit/$eventId'
+    | '/houses/edit/$houseId'
     | '/skills/edit/$skillId'
   id:
     | '__root__'
@@ -230,18 +277,22 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/credits'
     | '/_authenticated/directory'
-    | '/_authenticated/houses'
     | '/_authenticated/onboarding'
     | '/_authenticated/profile'
     | '/_authenticated/sessions'
+    | '/_authenticated/stays'
     | '/_authenticated/events/$eventId'
     | '/_authenticated/events/new'
+    | '/_authenticated/houses/$houseId'
+    | '/_authenticated/houses/new'
     | '/_authenticated/members/$memberId'
     | '/_authenticated/skills/$skillId'
     | '/_authenticated/skills/new'
     | '/_authenticated/events/'
+    | '/_authenticated/houses/'
     | '/_authenticated/skills/'
     | '/_authenticated/events/edit/$eventId'
+    | '/_authenticated/houses/edit/$houseId'
     | '/_authenticated/skills/edit/$skillId'
   fileRoutesById: FileRoutesById
 }
@@ -287,13 +338,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDirectoryRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/houses': {
-      id: '/_authenticated/houses'
-      path: '/houses'
-      fullPath: '/houses'
-      preLoaderRoute: typeof AuthenticatedHousesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/onboarding': {
       id: '/_authenticated/onboarding'
       path: '/onboarding'
@@ -315,6 +359,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSessionsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/stays': {
+      id: '/_authenticated/stays'
+      path: '/stays'
+      fullPath: '/stays'
+      preLoaderRoute: typeof AuthenticatedStaysRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/events/': {
       id: '/_authenticated/events/'
       path: '/events'
@@ -334,6 +385,27 @@ declare module '@tanstack/react-router' {
       path: '/events/new'
       fullPath: '/events/new'
       preLoaderRoute: typeof AuthenticatedEventsNewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/houses/': {
+      id: '/_authenticated/houses/'
+      path: '/houses'
+      fullPath: '/houses/'
+      preLoaderRoute: typeof AuthenticatedHousesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/houses/$houseId': {
+      id: '/_authenticated/houses/$houseId'
+      path: '/houses/$houseId'
+      fullPath: '/houses/$houseId'
+      preLoaderRoute: typeof AuthenticatedHousesHouseIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/houses/new': {
+      id: '/_authenticated/houses/new'
+      path: '/houses/new'
+      fullPath: '/houses/new'
+      preLoaderRoute: typeof AuthenticatedHousesNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/members/$memberId': {
@@ -371,6 +443,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEventsEditEventIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/houses/edit/$houseId': {
+      id: '/_authenticated/houses/edit/$houseId'
+      path: '/houses/edit/$houseId'
+      fullPath: '/houses/edit/$houseId'
+      preLoaderRoute: typeof AuthenticatedHousesEditHouseIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/skills/edit/$skillId': {
       id: '/_authenticated/skills/edit/$skillId'
       path: '/skills/edit/$skillId'
@@ -385,18 +464,22 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedCreditsRoute: typeof AuthenticatedCreditsRoute
   AuthenticatedDirectoryRoute: typeof AuthenticatedDirectoryRoute
-  AuthenticatedHousesRoute: typeof AuthenticatedHousesRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedSessionsRoute: typeof AuthenticatedSessionsRoute
+  AuthenticatedStaysRoute: typeof AuthenticatedStaysRoute
   AuthenticatedEventsEventIdRoute: typeof AuthenticatedEventsEventIdRoute
   AuthenticatedEventsNewRoute: typeof AuthenticatedEventsNewRoute
+  AuthenticatedHousesHouseIdRoute: typeof AuthenticatedHousesHouseIdRoute
+  AuthenticatedHousesNewRoute: typeof AuthenticatedHousesNewRoute
   AuthenticatedMembersMemberIdRoute: typeof AuthenticatedMembersMemberIdRoute
   AuthenticatedSkillsSkillIdRoute: typeof AuthenticatedSkillsSkillIdRoute
   AuthenticatedSkillsNewRoute: typeof AuthenticatedSkillsNewRoute
   AuthenticatedEventsIndexRoute: typeof AuthenticatedEventsIndexRoute
+  AuthenticatedHousesIndexRoute: typeof AuthenticatedHousesIndexRoute
   AuthenticatedSkillsIndexRoute: typeof AuthenticatedSkillsIndexRoute
   AuthenticatedEventsEditEventIdRoute: typeof AuthenticatedEventsEditEventIdRoute
+  AuthenticatedHousesEditHouseIdRoute: typeof AuthenticatedHousesEditHouseIdRoute
   AuthenticatedSkillsEditSkillIdRoute: typeof AuthenticatedSkillsEditSkillIdRoute
 }
 
@@ -404,18 +487,22 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedCreditsRoute: AuthenticatedCreditsRoute,
   AuthenticatedDirectoryRoute: AuthenticatedDirectoryRoute,
-  AuthenticatedHousesRoute: AuthenticatedHousesRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedSessionsRoute: AuthenticatedSessionsRoute,
+  AuthenticatedStaysRoute: AuthenticatedStaysRoute,
   AuthenticatedEventsEventIdRoute: AuthenticatedEventsEventIdRoute,
   AuthenticatedEventsNewRoute: AuthenticatedEventsNewRoute,
+  AuthenticatedHousesHouseIdRoute: AuthenticatedHousesHouseIdRoute,
+  AuthenticatedHousesNewRoute: AuthenticatedHousesNewRoute,
   AuthenticatedMembersMemberIdRoute: AuthenticatedMembersMemberIdRoute,
   AuthenticatedSkillsSkillIdRoute: AuthenticatedSkillsSkillIdRoute,
   AuthenticatedSkillsNewRoute: AuthenticatedSkillsNewRoute,
   AuthenticatedEventsIndexRoute: AuthenticatedEventsIndexRoute,
+  AuthenticatedHousesIndexRoute: AuthenticatedHousesIndexRoute,
   AuthenticatedSkillsIndexRoute: AuthenticatedSkillsIndexRoute,
   AuthenticatedEventsEditEventIdRoute: AuthenticatedEventsEditEventIdRoute,
+  AuthenticatedHousesEditHouseIdRoute: AuthenticatedHousesEditHouseIdRoute,
   AuthenticatedSkillsEditSkillIdRoute: AuthenticatedSkillsEditSkillIdRoute,
 }
 
