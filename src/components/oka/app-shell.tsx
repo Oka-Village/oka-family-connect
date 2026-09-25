@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useProfile } from "@/hooks/use-profile";
 import { useIsStaff } from "@/hooks/use-is-admin";
 import { supabase } from "@/integrations/supabase/client";
+import { useClaimInvite } from "@/lib/affiliates";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
@@ -25,6 +26,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { data: profile, isLoading } = useProfile();
+  useClaimInvite(Boolean(profile));
   const { data: isAdmin } = useIsStaff();
   const items = isAdmin
     ? [...NAV_ITEMS, { to: "/admin", label: "Admin", icon: ShieldCheck } as const]

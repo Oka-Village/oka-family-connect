@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { useProfile } from "@/hooks/use-profile";
 import { supabase } from "@/integrations/supabase/client";
+import { useClaimInvite } from "@/lib/affiliates";
 import { AGE_RANGES } from "@/lib/profile";
 import { cn } from "@/lib/utils";
 
@@ -47,6 +48,7 @@ function Onboarding() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: profile, isLoading } = useProfile();
+  useClaimInvite(Boolean(profile));
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
