@@ -254,7 +254,7 @@ function ListingsSection() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const List = ({ table, icon: Icon, label, items }: { table: "houses" | "skills"; icon: typeof Home; label: string; items?: Listing[] }) => (
+  const List = ({ table, icon: Icon, label, items }: { table: "houses" | "skills"; icon: typeof Home; label: string; items?: Listing[] | undefined }) => (
     <>
       <p className="section-label mt-10 flex items-center gap-2"><Icon className="size-4 text-primary" strokeWidth={1.5} /> {label}</p>
       <ul className="mt-4 grid gap-3">
