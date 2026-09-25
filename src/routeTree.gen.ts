@@ -14,7 +14,6 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedCreditsRouteImport } from './routes/_authenticated/credits'
 import { Route as AuthenticatedDirectoryRouteImport } from './routes/_authenticated/directory'
-import { Route as AuthenticatedHousesRouteImport } from './routes/_authenticated/houses'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedSessionsRouteImport } from './routes/_authenticated/sessions'
@@ -55,11 +54,6 @@ const AuthenticatedDirectoryRoute = AuthenticatedDirectoryRouteImport.update({
   path: '/directory',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedHousesRoute = AuthenticatedHousesRouteImport.update({
-  id: '/houses',
-  path: '/houses',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
@@ -94,14 +88,14 @@ const AuthenticatedEventsNewRoute = AuthenticatedEventsNewRouteImport.update({
 } as any)
 const AuthenticatedHousesIndexRoute =
   AuthenticatedHousesIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthenticatedHousesRoute,
+    id: '/houses/',
+    path: '/houses/',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedHousesNewRoute = AuthenticatedHousesNewRouteImport.update({
-  id: '/new',
-  path: '/new',
-  getParentRoute: () => AuthenticatedHousesRoute,
+  id: '/houses/new',
+  path: '/houses/new',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedMembersMemberIdRoute =
   AuthenticatedMembersMemberIdRouteImport.update({
@@ -134,9 +128,9 @@ const AuthenticatedEventsEditEventIdRoute =
   } as any)
 const AuthenticatedHousesEditHouseIdRoute =
   AuthenticatedHousesEditHouseIdRouteImport.update({
-    id: '/edit/$houseId',
-    path: '/edit/$houseId',
-    getParentRoute: () => AuthenticatedHousesRoute,
+    id: '/houses/edit/$houseId',
+    path: '/houses/edit/$houseId',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedSkillsEditSkillIdRoute =
   AuthenticatedSkillsEditSkillIdRouteImport.update({
@@ -150,7 +144,6 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRoute
   '/credits': typeof AuthenticatedCreditsRoute
   '/directory': typeof AuthenticatedDirectoryRoute
-  '/houses': typeof AuthenticatedHousesRouteWithChildren
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/sessions': typeof AuthenticatedSessionsRoute
@@ -195,7 +188,6 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/credits': typeof AuthenticatedCreditsRoute
   '/_authenticated/directory': typeof AuthenticatedDirectoryRoute
-  '/_authenticated/houses': typeof AuthenticatedHousesRouteWithChildren
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/sessions': typeof AuthenticatedSessionsRoute
@@ -219,7 +211,6 @@ export interface FileRouteTypes {
     | '/admin'
     | '/credits'
     | '/directory'
-    | '/houses'
     | '/onboarding'
     | '/profile'
     | '/sessions'
@@ -263,7 +254,6 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/credits'
     | '/_authenticated/directory'
-    | '/_authenticated/houses'
     | '/_authenticated/onboarding'
     | '/_authenticated/profile'
     | '/_authenticated/sessions'
@@ -323,13 +313,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDirectoryRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/houses': {
-      id: '/_authenticated/houses'
-      path: '/houses'
-      fullPath: '/houses'
-      preLoaderRoute: typeof AuthenticatedHousesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/onboarding': {
       id: '/_authenticated/onboarding'
       path: '/onboarding'
@@ -374,17 +357,17 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/houses/': {
       id: '/_authenticated/houses/'
-      path: '/'
+      path: '/houses'
       fullPath: '/houses/'
       preLoaderRoute: typeof AuthenticatedHousesIndexRouteImport
-      parentRoute: typeof AuthenticatedHousesRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/houses/new': {
       id: '/_authenticated/houses/new'
-      path: '/new'
+      path: '/houses/new'
       fullPath: '/houses/new'
       preLoaderRoute: typeof AuthenticatedHousesNewRouteImport
-      parentRoute: typeof AuthenticatedHousesRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/members/$memberId': {
       id: '/_authenticated/members/$memberId'
@@ -423,10 +406,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/houses/edit/$houseId': {
       id: '/_authenticated/houses/edit/$houseId'
-      path: '/edit/$houseId'
+      path: '/houses/edit/$houseId'
       fullPath: '/houses/edit/$houseId'
       preLoaderRoute: typeof AuthenticatedHousesEditHouseIdRouteImport
-      parentRoute: typeof AuthenticatedHousesRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/skills/edit/$skillId': {
       id: '/_authenticated/skills/edit/$skillId'
@@ -438,37 +421,24 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface AuthenticatedHousesRouteChildren {
-  AuthenticatedHousesNewRoute: typeof AuthenticatedHousesNewRoute
-  AuthenticatedHousesIndexRoute: typeof AuthenticatedHousesIndexRoute
-  AuthenticatedHousesEditHouseIdRoute: typeof AuthenticatedHousesEditHouseIdRoute
-}
-
-const AuthenticatedHousesRouteChildren: AuthenticatedHousesRouteChildren = {
-  AuthenticatedHousesNewRoute: AuthenticatedHousesNewRoute,
-  AuthenticatedHousesIndexRoute: AuthenticatedHousesIndexRoute,
-  AuthenticatedHousesEditHouseIdRoute: AuthenticatedHousesEditHouseIdRoute,
-}
-
-const AuthenticatedHousesRouteWithChildren =
-  AuthenticatedHousesRoute._addFileChildren(AuthenticatedHousesRouteChildren)
-
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedCreditsRoute: typeof AuthenticatedCreditsRoute
   AuthenticatedDirectoryRoute: typeof AuthenticatedDirectoryRoute
-  AuthenticatedHousesRoute: typeof AuthenticatedHousesRouteWithChildren
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedSessionsRoute: typeof AuthenticatedSessionsRoute
   AuthenticatedEventsEventIdRoute: typeof AuthenticatedEventsEventIdRoute
   AuthenticatedEventsNewRoute: typeof AuthenticatedEventsNewRoute
+  AuthenticatedHousesNewRoute: typeof AuthenticatedHousesNewRoute
   AuthenticatedMembersMemberIdRoute: typeof AuthenticatedMembersMemberIdRoute
   AuthenticatedSkillsSkillIdRoute: typeof AuthenticatedSkillsSkillIdRoute
   AuthenticatedSkillsNewRoute: typeof AuthenticatedSkillsNewRoute
   AuthenticatedEventsIndexRoute: typeof AuthenticatedEventsIndexRoute
+  AuthenticatedHousesIndexRoute: typeof AuthenticatedHousesIndexRoute
   AuthenticatedSkillsIndexRoute: typeof AuthenticatedSkillsIndexRoute
   AuthenticatedEventsEditEventIdRoute: typeof AuthenticatedEventsEditEventIdRoute
+  AuthenticatedHousesEditHouseIdRoute: typeof AuthenticatedHousesEditHouseIdRoute
   AuthenticatedSkillsEditSkillIdRoute: typeof AuthenticatedSkillsEditSkillIdRoute
 }
 
@@ -476,18 +446,20 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedCreditsRoute: AuthenticatedCreditsRoute,
   AuthenticatedDirectoryRoute: AuthenticatedDirectoryRoute,
-  AuthenticatedHousesRoute: AuthenticatedHousesRouteWithChildren,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedSessionsRoute: AuthenticatedSessionsRoute,
   AuthenticatedEventsEventIdRoute: AuthenticatedEventsEventIdRoute,
   AuthenticatedEventsNewRoute: AuthenticatedEventsNewRoute,
+  AuthenticatedHousesNewRoute: AuthenticatedHousesNewRoute,
   AuthenticatedMembersMemberIdRoute: AuthenticatedMembersMemberIdRoute,
   AuthenticatedSkillsSkillIdRoute: AuthenticatedSkillsSkillIdRoute,
   AuthenticatedSkillsNewRoute: AuthenticatedSkillsNewRoute,
   AuthenticatedEventsIndexRoute: AuthenticatedEventsIndexRoute,
+  AuthenticatedHousesIndexRoute: AuthenticatedHousesIndexRoute,
   AuthenticatedSkillsIndexRoute: AuthenticatedSkillsIndexRoute,
   AuthenticatedEventsEditEventIdRoute: AuthenticatedEventsEditEventIdRoute,
+  AuthenticatedHousesEditHouseIdRoute: AuthenticatedHousesEditHouseIdRoute,
   AuthenticatedSkillsEditSkillIdRoute: AuthenticatedSkillsEditSkillIdRoute,
 }
 
