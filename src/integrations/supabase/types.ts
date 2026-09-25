@@ -659,7 +659,29 @@ export type Database = {
       }
     }
     Functions: {
+      activate_affiliate: { Args: never; Returns: string }
+      affiliate_invite_info: {
+        Args: { _code: string }
+        Returns: {
+          inviter_name: string
+          inviter_photo: string
+        }[]
+      }
+      affiliate_referral_stats: {
+        Args: { _affiliate_id?: string }
+        Returns: {
+          display_name: string
+          earned_cents: number
+          joined_at: string
+          membership_tier: string
+          paid_cents: number
+          photo_url: string
+          referred_user_id: string
+          test_cents: number
+        }[]
+      }
       cancel_rsvp: { Args: { _event_id: string }; Returns: string }
+      claim_referral: { Args: { _code: string }; Returns: string }
       generate_invite_code: { Args: never; Returns: string }
       has_event_rsvp: {
         Args: { _event_id: string; _going_only: boolean }
