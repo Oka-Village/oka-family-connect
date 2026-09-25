@@ -10,6 +10,9 @@ import { useCurrentUserId, useIsStaff } from "@/hooks/use-is-admin";
 import { resolvePhotoUrl } from "@/hooks/use-profile";
 import { supabase } from "@/integrations/supabase/client";
 import { setEventStatus } from "@/lib/event-admin";
+import { getVideoConfigured } from "@/lib/video.functions";
+import { VideoRoom } from "@/components/oka/video-room";
+import { useServerFn } from "@tanstack/react-start";
 import {
   EVENT_SELECT,
   FORMAT_LABELS,
@@ -42,6 +45,8 @@ function EventDetail() {
   const qc = useQueryClient();
   const { data: uid } = useCurrentUserId();
   const { data: isAdmin } = useIsStaff();
+  const fetchVideoCfg = useServerFn(getVideoConfigured);
+  const videoCfg = useQuery({ queryKey: ["video-configured"], queryFn: () => fetchVideoCfg(), staleTime: 5 * 60_000 });
 
   const q = useQuery({
     queryKey: ["event", eventId],
@@ -106,6 +111,7 @@ function EventDetail() {
   const fill = ev.capacity ? Math.min(100, (ev.going_count / ev.capacity) * 100) : 0;
   const LocIcon = ev.format === "virtual" ? Video : MapPin;
   const loc = q.data?.location;
+  const useRoom = ev.format === "virtual" && videoCfg.data?.configured === true && !past && ev.status !== "cancelled";
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-10 lg:py-16">
@@ -139,8 +145,17 @@ function EventDetail() {
           </div>
 
           <div className="mt-8 rounded-2xl bg-secondary/50 p-5">
-            <p className="section-label">{ev.format === "virtual" ? "Video link" : "Location"}</p>
-            {loc && (loc.video_link || loc.venue_address) ? (
+            <p className="section-label">{ev.format === "virtual" ? (useRoom ? "Event room" : "Video link") : "Location"}</p>
+            {useRoom ? (
+              status === "going" || isManager || isAdmin ? (
+                <VideoRoom eventId={ev.id} startsAt={ev.starts_at} bypassTiming={!!isAdmin} />
+              ) : (
+                <p className="mt-3 flex items-center gap-2 text-muted-foreground">
+                  <Lock className="size-4 text-primary" strokeWidth={1.5} />
+                  The room is open to confirmed guests once you're going.
+                </p>
+              )
+            ) : loc && (loc.video_link || loc.venue_address) ? (
               <p className="mt-3 flex items-start gap-2 break-all">
                 <LocIcon className="mt-0.5 size-4 shrink-0 text-primary" strokeWidth={1.5} />
                 {loc.video_link ? (
