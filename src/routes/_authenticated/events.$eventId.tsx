@@ -148,7 +148,7 @@ function EventDetail() {
             <p className="section-label">{ev.format === "virtual" ? (useRoom ? "Event room" : "Video link") : "Location"}</p>
             {useRoom ? (
               status === "going" || isManager || isAdmin ? (
-                <VideoRoom eventId={ev.id} startsAt={ev.starts_at} bypassTiming={isAdmin} />
+                <VideoRoom eventId={ev.id} startsAt={ev.starts_at} bypassTiming={!!isAdmin} />
               ) : (
                 <p className="mt-3 flex items-center gap-2 text-muted-foreground">
                   <Lock className="size-4 text-primary" strokeWidth={1.5} />
