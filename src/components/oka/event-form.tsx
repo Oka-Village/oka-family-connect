@@ -52,7 +52,7 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
   const [saving, setSaving] = useState(false);
   const up = (k: keyof typeof f) => (e: { target: { value: string } }) => setF((s) => ({ ...s, [k]: e.target.value }));
 
-  async function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent): Promise<unknown> {
     e.preventDefault();
     if (!f.title.trim() || !f.starts) return toast.error("Please add a title and a start time.");
     if (f.video && !/^https?:\/\//.test(f.video)) return toast.error("The video link should start with https://");

@@ -12,7 +12,7 @@ import {
 } from "@/lib/events";
 import { cn } from "@/lib/utils";
 
-export function RsvpBadge({ status }: { status?: string }) {
+export function RsvpBadge({ status }: { status?: string | undefined }) {
   if (status !== "going" && status !== "waitlist") return null;
   return (
     <span
@@ -26,7 +26,7 @@ export function RsvpBadge({ status }: { status?: string }) {
   );
 }
 
-export function EventCard({ event, rsvp }: { event: EventRow; rsvp?: string }) {
+export function EventCard({ event, rsvp }: { event: EventRow; rsvp?: string | undefined }) {
   const left = spotsLeft(event);
   const cancelled = event.status === "cancelled";
   const FormatIcon = event.format === "virtual" ? Video : MapPin;

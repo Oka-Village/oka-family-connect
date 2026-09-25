@@ -40,10 +40,10 @@ export const EVENT_SELECT =
   "id,title,description,event_type,format,starts_at,ends_at,timezone,capacity,going_count,waitlist_count,status,host_id,created_by,host:profiles!events_host_id_fkey(id,display_name,photo_url)";
 
 export type EventFilters = {
-  type?: EventType;
-  format?: EventFormat;
-  from?: string; // yyyy-mm-dd
-  to?: string;
+  type?: EventType | undefined;
+  format?: EventFormat | undefined;
+  from?: string | undefined; // yyyy-mm-dd
+  to?: string | undefined;
 };
 
 /** Events visible on the schedule: published, plus cancelled ones the member RSVPd to (RLS). */
@@ -125,7 +125,7 @@ export function formatDuration(start: string, end: string | null) {
 
 // ---- Timezone conversion for the event form (wall time in an IANA zone <-> UTC) ----
 function tzOffsetMs(ts: number, tz: string) {
-  const parts = Object.fromEntries(
+  const parts: Record<string, string> = Object.fromEntries(
     new Intl.DateTimeFormat("en-US", {
       timeZone: tz,
       hourCycle: "h23",
@@ -139,15 +139,16 @@ function tzOffsetMs(ts: number, tz: string) {
       .formatToParts(new Date(ts))
       .map((p) => [p.type, p.value]),
   );
-  const asUtc = Date.UTC(+parts.year, +parts.month - 1, +parts.day, +parts.hour, +parts.minute, +parts.second);
+  const n = (k: string) => Number(parts[k] ?? 0);
+  const asUtc = Date.UTC(n("year"), n("month") - 1, n("day"), n("hour"), n("minute"), n("second"));
   return asUtc - ts;
 }
 
 /** "2026-10-04T18:00" in Europe/Berlin -> ISO UTC string. */
 export function zonedInputToUtc(local: string, tz: string): string {
-  const [d, t] = local.split("T");
-  const [y, mo, da] = d.split("-").map(Number);
-  const [h, mi] = t.split(":").map(Number);
+  const [d = "", t = "00:00"] = local.split("T");
+  const [y = 0, mo = 1, da = 1] = d.split("-").map(Number);
+  const [h = 0, mi = 0] = t.split(":").map(Number);
   const guess = Date.UTC(y, mo - 1, da, h, mi);
   let ts = guess - tzOffsetMs(guess, tz);
   ts = guess - tzOffsetMs(ts, tz);
