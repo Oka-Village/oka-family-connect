@@ -251,7 +251,7 @@ function Onboarding() {
           <Button
             variant="ghost"
             className="rounded-full text-muted-foreground"
-            onClick={() => (step === 0 ? navigate({ to: "/events" }) : setStep((s) => s - 1))}
+            onClick={() => (step === 0 ? void finish() : setStep((s) => s - 1))}
           >
             {step === 0 ? "Skip for now" : "Back"}
           </Button>
