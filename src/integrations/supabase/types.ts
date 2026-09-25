@@ -441,6 +441,67 @@ export type Database = {
         }
         Relationships: []
       }
+      skill_session_requests: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          host_id: string
+          id: string
+          message: string | null
+          proposed_at: string
+          requester_id: string
+          skill_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          host_id: string
+          id?: string
+          message?: string | null
+          proposed_at: string
+          requester_id: string
+          skill_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          host_id?: string
+          id?: string
+          message?: string | null
+          proposed_at?: string
+          requester_id?: string
+          skill_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "skill_session_requests_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "skill_session_requests_requester_id_fkey"
+            columns: ["requester_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "skill_session_requests_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "skills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       skills: {
         Row: {
           category: string | null
@@ -450,6 +511,7 @@ export type Database = {
           format: string
           id: string
           owner_id: string
+          photo_url: string | null
           status: string
           title: string
           updated_at: string
@@ -462,6 +524,7 @@ export type Database = {
           format: string
           id?: string
           owner_id: string
+          photo_url?: string | null
           status?: string
           title: string
           updated_at?: string
@@ -474,6 +537,7 @@ export type Database = {
           format?: string
           id?: string
           owner_id?: string
+          photo_url?: string | null
           status?: string
           title?: string
           updated_at?: string
@@ -537,8 +601,24 @@ export type Database = {
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
       is_event_manager: { Args: { _event_id: string }; Returns: boolean }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      my_credit_summary: {
+        Args: never
+        Returns: {
+          available: number
+          balance: number
+          reserved: number
+        }[]
+      }
       promote_waitlist: { Args: { _event_id: string }; Returns: undefined }
+      request_skill_session: {
+        Args: { _message: string; _proposed_at: string; _skill_id: string }
+        Returns: string
+      }
       rsvp_event: { Args: { _event_id: string }; Returns: string }
+      update_skill_session: {
+        Args: { _action: string; _request_id: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
