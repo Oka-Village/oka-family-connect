@@ -63,9 +63,7 @@ function HousesPage() {
           <p className="mt-3 max-w-xl text-muted-foreground">Stay with family you haven't met yet. One night is one credit.</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <span className="rounded-full bg-secondary px-4 py-2 text-sm text-secondary-foreground">
-            {credits.data ? `${credits.data.available} credit${credits.data.available === 1 ? "" : "s"} available` : "…"}
-          </span>
+          <CreditPill />
           <Button asChild variant="outline" className="rounded-full"><Link to="/stays"><BedDouble className="size-4 text-primary" strokeWidth={1.5} />Stays</Link></Button>
           <Button asChild className="rounded-full"><Link to="/houses/new"><Plus className="size-4" strokeWidth={1.5} />List my home</Link></Button>
         </div>

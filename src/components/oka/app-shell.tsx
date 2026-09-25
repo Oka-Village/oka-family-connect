@@ -32,7 +32,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   // Anyone who hasn't finished the welcome steps is taken back to them.
   useEffect(() => {
-    if (!isLoading && profile && !profile.profile_completed) {
+    if (!isLoading && profile && !profile.onboarded_at) {
       navigate({ to: "/onboarding", replace: true });
     }
   }, [isLoading, profile, navigate]);

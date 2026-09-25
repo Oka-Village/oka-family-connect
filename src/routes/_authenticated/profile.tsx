@@ -172,7 +172,6 @@ function ProfileEditor({ profile, onDone }: { profile: OkaProfile; onDone: () =>
       gift_excited_to_give: clean(draft.gift_excited_to_give),
       gift_loved_gestures: clean(draft.gift_loved_gestures),
       // Once every section is shared, mark the profile complete (never unset).
-      ...(profileCompleteness(draft) === 100 ? { profile_completed: true } : {}),
     };
     const { error } = await supabase.from("profiles").update(payload).eq("id", profile.id);
     setSaving(false);

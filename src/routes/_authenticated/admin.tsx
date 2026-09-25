@@ -150,6 +150,7 @@ function MembersSection() {
   const qc = useQueryClient();
   const { data: me } = useCurrentUserId();
   const [term, setTerm] = useState("");
+  const [adjusting, setAdjusting] = useState<string | null>(null);
   const q = useQuery({
     queryKey: ["admin", "members", term],
     queryFn: async () => {
@@ -211,12 +212,41 @@ function MembersSection() {
                   onClick={() => confirm(isAdmin ? "Revoke admin?" : "Grant full admin access?") && toggle.mutate({ userId: p.id, role: "admin", grant: !isAdmin })}>
                   {isAdmin ? "Revoke admin" : "Grant admin"}
                 </Button>
+                <Button size="sm" variant="outline" className="rounded-full" onClick={() => setAdjusting(adjusting === p.id ? null : p.id)}>Adjust credits</Button>
               </div>
+              {adjusting === p.id && <AdjustCredits userId={p.id} onDone={() => setAdjusting(null)} />}
             </Card>
           );
         })}
       </ul>
     </section>
+  );
+}
+
+function AdjustCredits({ userId, onDone }: { userId: string; onDone: () => void }) {
+  const qc = useQueryClient();
+  const [amount, setAmount] = useState("");
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    const delta = Number.parseInt(amount, 10);
+    if (!Number.isFinite(delta) || delta === 0 || Math.abs(delta) > 1000) { toast.error("Enter a whole number between -1000 and 1000, not 0."); return; }
+    if (!note.trim()) { toast.error("Please add a note — the member sees it in their history."); return; }
+    setBusy(true);
+    const { error } = await supabase.from("credit_ledger").insert({ user_id: userId, delta, reason: "manual_adjustment", reference_type: "admin", note: note.trim().slice(0, 300) });
+    setBusy(false);
+    if (error) { toast.error("The adjustment didn't save."); return; }
+    toast.success(`${delta > 0 ? "+" : ""}${delta} credits recorded`);
+    await Promise.all([qc.invalidateQueries({ queryKey: ["credits"] }), qc.invalidateQueries({ queryKey: ["ledger"] })]);
+    onDone();
+  }
+  return (
+    <form onSubmit={save} className="flex w-full flex-wrap items-center gap-2 border-t border-border pt-4">
+      <Input type="number" step={1} placeholder="+2 or -1" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-28 rounded-full" />
+      <Input placeholder="Note shown to the member" maxLength={300} value={note} onChange={(e) => setNote(e.target.value)} className="min-w-56 flex-1 rounded-full" />
+      <Button type="submit" size="sm" className="rounded-full" disabled={busy}>Record</Button>
+    </form>
   );
 }
 
