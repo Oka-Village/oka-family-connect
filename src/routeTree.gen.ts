@@ -15,6 +15,8 @@ import { Route as AuthenticatedCreditsRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedDirectoryRouteImport } from './routes/_authenticated/directory'
 import { Route as AuthenticatedEventsRouteImport } from './routes/_authenticated/events'
 import { Route as AuthenticatedHousesRouteImport } from './routes/_authenticated/houses'
+import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
+import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedSkillsRouteImport } from './routes/_authenticated/skills'
 
 const IndexRoute = IndexRouteImport.update({
@@ -46,6 +48,16 @@ const AuthenticatedHousesRoute = AuthenticatedHousesRouteImport.update({
   path: '/houses',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedSkillsRoute = AuthenticatedSkillsRouteImport.update({
   id: '/skills',
   path: '/skills',
@@ -58,6 +70,8 @@ export interface FileRoutesByFullPath {
   '/directory': typeof AuthenticatedDirectoryRoute
   '/events': typeof AuthenticatedEventsRoute
   '/houses': typeof AuthenticatedHousesRoute
+  '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/profile': typeof AuthenticatedProfileRoute
   '/skills': typeof AuthenticatedSkillsRoute
 }
 export interface FileRoutesByTo {
@@ -66,6 +80,8 @@ export interface FileRoutesByTo {
   '/directory': typeof AuthenticatedDirectoryRoute
   '/events': typeof AuthenticatedEventsRoute
   '/houses': typeof AuthenticatedHousesRoute
+  '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/profile': typeof AuthenticatedProfileRoute
   '/skills': typeof AuthenticatedSkillsRoute
 }
 export interface FileRoutesById {
@@ -76,13 +92,31 @@ export interface FileRoutesById {
   '/_authenticated/directory': typeof AuthenticatedDirectoryRoute
   '/_authenticated/events': typeof AuthenticatedEventsRoute
   '/_authenticated/houses': typeof AuthenticatedHousesRoute
+  '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
+  '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/skills': typeof AuthenticatedSkillsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/credits' | '/directory' | '/events' | '/houses' | '/skills'
+  fullPaths:
+    | '/'
+    | '/credits'
+    | '/directory'
+    | '/events'
+    | '/houses'
+    | '/onboarding'
+    | '/profile'
+    | '/skills'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/credits' | '/directory' | '/events' | '/houses' | '/skills'
+  to:
+    | '/'
+    | '/credits'
+    | '/directory'
+    | '/events'
+    | '/houses'
+    | '/onboarding'
+    | '/profile'
+    | '/skills'
   id:
     | '__root__'
     | '/'
@@ -91,6 +125,8 @@ export interface FileRouteTypes {
     | '/_authenticated/directory'
     | '/_authenticated/events'
     | '/_authenticated/houses'
+    | '/_authenticated/onboarding'
+    | '/_authenticated/profile'
     | '/_authenticated/skills'
   fileRoutesById: FileRoutesById
 }
@@ -143,6 +179,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedHousesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/onboarding': {
+      id: '/_authenticated/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/skills': {
       id: '/_authenticated/skills'
       path: '/skills'
@@ -158,6 +208,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDirectoryRoute: typeof AuthenticatedDirectoryRoute
   AuthenticatedEventsRoute: typeof AuthenticatedEventsRoute
   AuthenticatedHousesRoute: typeof AuthenticatedHousesRoute
+  AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
+  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedSkillsRoute: typeof AuthenticatedSkillsRoute
 }
 
@@ -166,6 +218,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDirectoryRoute: AuthenticatedDirectoryRoute,
   AuthenticatedEventsRoute: AuthenticatedEventsRoute,
   AuthenticatedHousesRoute: AuthenticatedHousesRoute,
+  AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
+  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedSkillsRoute: AuthenticatedSkillsRoute,
 }
 
