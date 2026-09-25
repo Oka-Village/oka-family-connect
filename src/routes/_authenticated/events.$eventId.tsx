@@ -45,6 +45,8 @@ function EventDetail() {
   const qc = useQueryClient();
   const { data: uid } = useCurrentUserId();
   const { data: isAdmin } = useIsStaff();
+  const fetchVideoCfg = useServerFn(getVideoConfigured);
+  const videoCfg = useQuery({ queryKey: ["video-configured"], queryFn: () => fetchVideoCfg(), staleTime: 5 * 60_000 });
 
   const q = useQuery({
     queryKey: ["event", eventId],
