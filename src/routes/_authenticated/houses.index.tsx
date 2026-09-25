@@ -1,3 +1,4 @@
+import { CreditPill } from "@/components/oka/credit-pill";
 import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useInfiniteQuery } from "@tanstack/react-query";
@@ -10,7 +11,7 @@ import { HouseCard } from "@/components/oka/house-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PROPERTY_LABELS, PROPERTY_TYPES, fetchHousesPage, type HouseCursor } from "@/lib/houses";
-import { useCredits } from "@/lib/skills";
+import { CreditPill } from "@/components/oka/credit-pill";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/houses/")({
@@ -37,7 +38,6 @@ const pill = (on: boolean) =>
 function HousesPage() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
-  const credits = useCredits();
   const [loc, setLoc] = useState(search.location);
   useEffect(() => {
     const t = setTimeout(() => { if (loc !== search.location) void navigate({ search: (p) => ({ ...p, location: loc }), replace: true }); }, 300);

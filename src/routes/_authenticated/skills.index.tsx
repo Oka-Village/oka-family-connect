@@ -1,3 +1,4 @@
+import { CreditPill } from "@/components/oka/credit-pill";
 import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useInfiniteQuery } from "@tanstack/react-query";
@@ -39,7 +40,6 @@ const pill = (on: boolean) =>
 function SkillsPage() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
-  const credits = useCredits();
   const [q, setQ] = useState(search.q);
   useEffect(() => {
     const t = setTimeout(() => { if (q !== search.q) void navigate({ search: (p) => ({ ...p, q }), replace: true }); }, 300);
