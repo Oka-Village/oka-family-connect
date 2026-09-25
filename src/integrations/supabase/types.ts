@@ -453,6 +453,7 @@ export type Database = {
           intentions: string[]
           location: string | null
           membership_tier: string
+          onboarded_at: string | null
           photo_url: string | null
           profession: string | null
           profile_completed: boolean
@@ -473,6 +474,7 @@ export type Database = {
           intentions?: string[]
           location?: string | null
           membership_tier?: string
+          onboarded_at?: string | null
           photo_url?: string | null
           profession?: string | null
           profile_completed?: boolean
@@ -493,6 +495,7 @@ export type Database = {
           intentions?: string[]
           location?: string | null
           membership_tier?: string
+          onboarded_at?: string | null
           photo_url?: string | null
           profession?: string | null
           profile_completed?: boolean
@@ -672,6 +675,17 @@ export type Database = {
       }
       is_event_manager: { Args: { _event_id: string }; Returns: boolean }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      my_credit_history: {
+        Args: { _before_created?: string; _before_id?: string; _limit?: number }
+        Returns: {
+          created_at: string
+          delta: number
+          description: string
+          id: string
+          note: string
+          reason: string
+        }[]
+      }
       my_credit_summary: {
         Args: never
         Returns: {
@@ -679,6 +693,10 @@ export type Database = {
           balance: number
           reserved: number
         }[]
+      }
+      profile_is_complete: {
+        Args: { p: Database["public"]["Tables"]["profiles"]["Row"] }
+        Returns: boolean
       }
       promote_waitlist: { Args: { _event_id: string }; Returns: undefined }
       request_booking: {

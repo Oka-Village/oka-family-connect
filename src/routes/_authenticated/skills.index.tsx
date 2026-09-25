@@ -1,3 +1,4 @@
+import { CreditPill } from "@/components/oka/credit-pill";
 import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useInfiniteQuery } from "@tanstack/react-query";
@@ -39,7 +40,6 @@ const pill = (on: boolean) =>
 function SkillsPage() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
-  const credits = useCredits();
   const [q, setQ] = useState(search.q);
   useEffect(() => {
     const t = setTimeout(() => { if (q !== search.q) void navigate({ search: (p) => ({ ...p, q }), replace: true }); }, 300);
@@ -65,9 +65,7 @@ function SkillsPage() {
           <p className="mt-3 max-w-xl text-muted-foreground">One hour of a shared skill is one credit. Ask for a session, or offer your own.</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <span className="rounded-full bg-secondary px-4 py-2 text-sm text-secondary-foreground">
-            {credits.data ? `${credits.data.available} credit${credits.data.available === 1 ? "" : "s"} available` : "…"}
-          </span>
+          <CreditPill />
           <Button asChild variant="outline" className="rounded-full"><Link to="/sessions"><Inbox className="size-4 text-primary" strokeWidth={1.5} />Sessions</Link></Button>
           <Button asChild className="rounded-full"><Link to="/skills/new"><Plus className="size-4" strokeWidth={1.5} />Offer a skill</Link></Button>
         </div>

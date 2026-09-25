@@ -10,7 +10,7 @@ import { HouseCard } from "@/components/oka/house-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PROPERTY_LABELS, PROPERTY_TYPES, fetchHousesPage, type HouseCursor } from "@/lib/houses";
-import { useCredits } from "@/lib/skills";
+import { CreditPill } from "@/components/oka/credit-pill";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/houses/")({
@@ -37,7 +37,6 @@ const pill = (on: boolean) =>
 function HousesPage() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
-  const credits = useCredits();
   const [loc, setLoc] = useState(search.location);
   useEffect(() => {
     const t = setTimeout(() => { if (loc !== search.location) void navigate({ search: (p) => ({ ...p, location: loc }), replace: true }); }, 300);
@@ -63,9 +62,7 @@ function HousesPage() {
           <p className="mt-3 max-w-xl text-muted-foreground">Stay with family you haven't met yet. One night is one credit.</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <span className="rounded-full bg-secondary px-4 py-2 text-sm text-secondary-foreground">
-            {credits.data ? `${credits.data.available} credit${credits.data.available === 1 ? "" : "s"} available` : "…"}
-          </span>
+          <CreditPill />
           <Button asChild variant="outline" className="rounded-full"><Link to="/stays"><BedDouble className="size-4 text-primary" strokeWidth={1.5} />Stays</Link></Button>
           <Button asChild className="rounded-full"><Link to="/houses/new"><Plus className="size-4" strokeWidth={1.5} />List my home</Link></Button>
         </div>

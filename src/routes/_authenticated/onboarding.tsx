@@ -101,7 +101,7 @@ function Onboarding() {
         location: draft.location.trim() || null,
         age_range: draft.age_range || null,
         profession: draft.profession.trim() || null,
-        profile_completed: true,
+        onboarded_at: new Date().toISOString(),
       })
       .eq("id", auth.user.id);
 
