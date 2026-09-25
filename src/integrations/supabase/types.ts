@@ -91,6 +91,70 @@ export type Database = {
           },
         ]
       }
+      bookings: {
+        Row: {
+          check_in: string
+          check_out: string
+          created_at: string
+          guest_id: string
+          host_id: string
+          house_id: string
+          id: string
+          message: string | null
+          nights: number | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          check_in: string
+          check_out: string
+          created_at?: string
+          guest_id: string
+          host_id: string
+          house_id: string
+          id?: string
+          message?: string | null
+          nights?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          check_in?: string
+          check_out?: string
+          created_at?: string
+          guest_id?: string
+          host_id?: string
+          house_id?: string
+          id?: string
+          message?: string | null
+          nights?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_house_id_fkey"
+            columns: ["house_id"]
+            isOneToOne: false
+            referencedRelation: "houses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       credit_ledger: {
         Row: {
           created_at: string
@@ -599,6 +663,13 @@ export type Database = {
         Returns: boolean
       }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
+      house_booked_ranges: {
+        Args: { _house_id: string }
+        Returns: {
+          check_in: string
+          check_out: string
+        }[]
+      }
       is_event_manager: { Args: { _event_id: string }; Returns: boolean }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
       my_credit_summary: {
@@ -610,11 +681,24 @@ export type Database = {
         }[]
       }
       promote_waitlist: { Args: { _event_id: string }; Returns: undefined }
+      request_booking: {
+        Args: {
+          _check_in: string
+          _check_out: string
+          _house_id: string
+          _message: string
+        }
+        Returns: string
+      }
       request_skill_session: {
         Args: { _message: string; _proposed_at: string; _skill_id: string }
         Returns: string
       }
       rsvp_event: { Args: { _event_id: string }; Returns: string }
+      update_booking: {
+        Args: { _action: string; _booking_id: string }
+        Returns: string
+      }
       update_skill_session: {
         Args: { _action: string; _request_id: string }
         Returns: string
