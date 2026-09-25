@@ -12,12 +12,14 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedAffiliateRouteImport } from './routes/_authenticated/affiliate'
 import { Route as AuthenticatedCreditsRouteImport } from './routes/_authenticated/credits'
 import { Route as AuthenticatedDirectoryRouteImport } from './routes/_authenticated/directory'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedSessionsRouteImport } from './routes/_authenticated/sessions'
 import { Route as AuthenticatedStaysRouteImport } from './routes/_authenticated/stays'
+import { Route as InviteCodeRouteImport } from './routes/invite.$code'
 import { Route as AuthenticatedEventsIndexRouteImport } from './routes/_authenticated/events.index'
 import { Route as AuthenticatedEventsEventIdRouteImport } from './routes/_authenticated/events.$eventId'
 import { Route as AuthenticatedEventsNewRouteImport } from './routes/_authenticated/events.new'
@@ -44,6 +46,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAffiliateRoute = AuthenticatedAffiliateRouteImport.update({
+  id: '/affiliate',
+  path: '/affiliate',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedCreditsRoute = AuthenticatedCreditsRouteImport.update({
@@ -75,6 +82,11 @@ const AuthenticatedStaysRoute = AuthenticatedStaysRouteImport.update({
   id: '/stays',
   path: '/stays',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const InviteCodeRoute = InviteCodeRouteImport.update({
+  id: '/invite/$code',
+  path: '/invite/$code',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedEventsIndexRoute =
   AuthenticatedEventsIndexRouteImport.update({
@@ -155,12 +167,14 @@ const AuthenticatedSkillsEditSkillIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/affiliate': typeof AuthenticatedAffiliateRoute
   '/credits': typeof AuthenticatedCreditsRoute
   '/directory': typeof AuthenticatedDirectoryRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/sessions': typeof AuthenticatedSessionsRoute
   '/stays': typeof AuthenticatedStaysRoute
+  '/invite/$code': typeof InviteCodeRoute
   '/events/$eventId': typeof AuthenticatedEventsEventIdRoute
   '/events/new': typeof AuthenticatedEventsNewRoute
   '/houses/$houseId': typeof AuthenticatedHousesHouseIdRoute
@@ -178,12 +192,14 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/affiliate': typeof AuthenticatedAffiliateRoute
   '/credits': typeof AuthenticatedCreditsRoute
   '/directory': typeof AuthenticatedDirectoryRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/sessions': typeof AuthenticatedSessionsRoute
   '/stays': typeof AuthenticatedStaysRoute
+  '/invite/$code': typeof InviteCodeRoute
   '/events/$eventId': typeof AuthenticatedEventsEventIdRoute
   '/events/new': typeof AuthenticatedEventsNewRoute
   '/houses/$houseId': typeof AuthenticatedHousesHouseIdRoute
@@ -203,12 +219,14 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/affiliate': typeof AuthenticatedAffiliateRoute
   '/_authenticated/credits': typeof AuthenticatedCreditsRoute
   '/_authenticated/directory': typeof AuthenticatedDirectoryRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/sessions': typeof AuthenticatedSessionsRoute
   '/_authenticated/stays': typeof AuthenticatedStaysRoute
+  '/invite/$code': typeof InviteCodeRoute
   '/_authenticated/events/$eventId': typeof AuthenticatedEventsEventIdRoute
   '/_authenticated/events/new': typeof AuthenticatedEventsNewRoute
   '/_authenticated/houses/$houseId': typeof AuthenticatedHousesHouseIdRoute
@@ -228,12 +246,14 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/affiliate'
     | '/credits'
     | '/directory'
     | '/onboarding'
     | '/profile'
     | '/sessions'
     | '/stays'
+    | '/invite/$code'
     | '/events/$eventId'
     | '/events/new'
     | '/houses/$houseId'
@@ -251,12 +271,14 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin'
+    | '/affiliate'
     | '/credits'
     | '/directory'
     | '/onboarding'
     | '/profile'
     | '/sessions'
     | '/stays'
+    | '/invite/$code'
     | '/events/$eventId'
     | '/events/new'
     | '/houses/$houseId'
@@ -275,12 +297,14 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/_authenticated/admin'
+    | '/_authenticated/affiliate'
     | '/_authenticated/credits'
     | '/_authenticated/directory'
     | '/_authenticated/onboarding'
     | '/_authenticated/profile'
     | '/_authenticated/sessions'
     | '/_authenticated/stays'
+    | '/invite/$code'
     | '/_authenticated/events/$eventId'
     | '/_authenticated/events/new'
     | '/_authenticated/houses/$houseId'
@@ -299,6 +323,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  InviteCodeRoute: typeof InviteCodeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -322,6 +347,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/affiliate': {
+      id: '/_authenticated/affiliate'
+      path: '/affiliate'
+      fullPath: '/affiliate'
+      preLoaderRoute: typeof AuthenticatedAffiliateRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/credits': {
@@ -365,6 +397,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/stays'
       preLoaderRoute: typeof AuthenticatedStaysRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/invite/$code': {
+      id: '/invite/$code'
+      path: '/invite/$code'
+      fullPath: '/invite/$code'
+      preLoaderRoute: typeof InviteCodeRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/events/': {
       id: '/_authenticated/events/'
@@ -462,6 +501,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAffiliateRoute: typeof AuthenticatedAffiliateRoute
   AuthenticatedCreditsRoute: typeof AuthenticatedCreditsRoute
   AuthenticatedDirectoryRoute: typeof AuthenticatedDirectoryRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
@@ -485,6 +525,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAffiliateRoute: AuthenticatedAffiliateRoute,
   AuthenticatedCreditsRoute: AuthenticatedCreditsRoute,
   AuthenticatedDirectoryRoute: AuthenticatedDirectoryRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
@@ -512,6 +553,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  InviteCodeRoute: InviteCodeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
