@@ -1,4 +1,3 @@
-import { CreditPill } from "@/components/oka/credit-pill";
 import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useInfiniteQuery } from "@tanstack/react-query";

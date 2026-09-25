@@ -42,11 +42,9 @@ function CreditsPage() {
     enabled: Boolean(uid),
     initialPageParam: null as Cursor,
     queryFn: async ({ pageParam }) => {
-      const { data, error } = await supabase.rpc("my_credit_history", {
-        _before_created: pageParam?.created_at ?? undefined,
-        _before_id: pageParam?.id ?? undefined,
-        _limit: PAGE,
-      });
+      const { data, error } = await supabase.rpc("my_credit_history", pageParam
+        ? { _before_created: pageParam.created_at, _before_id: pageParam.id, _limit: PAGE }
+        : { _limit: PAGE });
       if (error) throw error;
       return (data ?? []) as Entry[];
     },
