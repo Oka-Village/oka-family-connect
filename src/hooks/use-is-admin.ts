@@ -2,23 +2,29 @@ import { useQuery } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
 
-/** True when the signed-in member holds the admin role (read from user_roles under RLS). */
-export function useIsAdmin() {
+export type Roles = { isAdmin: boolean; isModerator: boolean; isStaff: boolean };
+
+/** The signed-in member's roles, read from user_roles under RLS (never from the profile). */
+export function useRoles() {
   return useQuery({
-    queryKey: ["is-admin"],
-    queryFn: async () => {
+    queryKey: ["my-roles"],
+    queryFn: async (): Promise<Roles> => {
       const { data: auth } = await supabase.auth.getUser();
-      if (!auth.user) return false;
-      const { data } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", auth.user.id)
-        .eq("role", "admin")
-        .maybeSingle();
-      return !!data;
+      if (!auth.user) return { isAdmin: false, isModerator: false, isStaff: false };
+      const { data } = await supabase.from("user_roles").select("role").eq("user_id", auth.user.id);
+      const set = new Set((data ?? []).map((r) => r.role));
+      const isAdmin = set.has("admin");
+      const isModerator = set.has("moderator");
+      return { isAdmin, isModerator, isStaff: isAdmin || isModerator };
     },
     staleTime: 5 * 60_000,
   });
+}
+
+/** Admins and moderators: can publish, edit and moderate events. */
+export function useIsStaff() {
+  const q = useRoles();
+  return { ...q, data: q.data?.isStaff };
 }
 
 export function useCurrentUserId() {

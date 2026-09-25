@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 import { EmptyState } from "@/components/oka/empty-state";
 import { Button } from "@/components/ui/button";
-import { useIsAdmin } from "@/hooks/use-is-admin";
+import { useIsStaff } from "@/hooks/use-is-admin";
 import { supabase } from "@/integrations/supabase/client";
 import { setEventStatus } from "@/lib/event-admin";
 import { EVENT_SELECT, TYPE_LABELS, formatEventDate, formatEventTime, hostName, type EventRow } from "@/lib/events";
@@ -33,7 +33,7 @@ async function load(statuses: string[], upcomingOnly: boolean) {
 }
 
 function AdminPage() {
-  const { data: isAdmin, isLoading } = useIsAdmin();
+  const { data: isAdmin, isLoading } = useIsStaff();
   const qc = useQueryClient();
   const pending = useQuery({ queryKey: ["admin", "pending"], queryFn: () => load(["pending_approval"], false), enabled: !!isAdmin });
   const live = useQuery({ queryKey: ["admin", "live"], queryFn: () => load(["published"], true), enabled: !!isAdmin });

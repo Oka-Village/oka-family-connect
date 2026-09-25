@@ -6,7 +6,7 @@ import { CalendarDays, Coins, Home, LogOut, ShieldCheck, Sparkles, User, Users }
 import { Wordmark } from "@/components/oka/wordmark";
 import { Button } from "@/components/ui/button";
 import { useProfile } from "@/hooks/use-profile";
-import { useIsAdmin } from "@/hooks/use-is-admin";
+import { useIsStaff } from "@/hooks/use-is-admin";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -25,7 +25,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { data: profile, isLoading } = useProfile();
-  const { data: isAdmin } = useIsAdmin();
+  const { data: isAdmin } = useIsStaff();
   const items = isAdmin
     ? [...NAV_ITEMS, { to: "/admin", label: "Admin", icon: ShieldCheck } as const]
     : NAV_ITEMS;

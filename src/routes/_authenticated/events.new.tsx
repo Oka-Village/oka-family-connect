@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { EventForm } from "@/components/oka/event-form";
-import { useCurrentUserId, useIsAdmin } from "@/hooks/use-is-admin";
+import { useCurrentUserId, useIsStaff } from "@/hooks/use-is-admin";
 
 export const Route = createFileRoute("/_authenticated/events/new")({
   head: () => ({
@@ -18,7 +18,7 @@ export const Route = createFileRoute("/_authenticated/events/new")({
 });
 
 function NewEvent() {
-  const admin = useIsAdmin();
+  const admin = useIsStaff();
   const uid = useCurrentUserId();
   return (
     <div className="mx-auto max-w-3xl px-6 py-10 lg:py-16">
@@ -28,7 +28,7 @@ function NewEvent() {
       </h1>
       <p className="mt-3 text-muted-foreground">
         {admin.data
-          ? "As an admin, your event is published straight away."
+          ? "As an admin or moderator, your event is published straight away."
           : "An admin will review your proposal before it appears on the schedule."}
       </p>
       {uid.data && !admin.isLoading && <EventForm mode="create" isAdmin={!!admin.data} userId={uid.data} />}

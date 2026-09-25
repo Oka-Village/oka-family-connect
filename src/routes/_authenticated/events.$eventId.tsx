@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { RsvpBadge } from "@/components/oka/event-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { useCurrentUserId, useIsAdmin } from "@/hooks/use-is-admin";
+import { useCurrentUserId, useIsStaff } from "@/hooks/use-is-admin";
 import { resolvePhotoUrl } from "@/hooks/use-profile";
 import { supabase } from "@/integrations/supabase/client";
 import { setEventStatus } from "@/lib/event-admin";
@@ -41,7 +41,7 @@ function EventDetail() {
   const { eventId } = Route.useParams();
   const qc = useQueryClient();
   const { data: uid } = useCurrentUserId();
-  const { data: isAdmin } = useIsAdmin();
+  const { data: isAdmin } = useIsStaff();
 
   const q = useQuery({
     queryKey: ["event", eventId],
@@ -210,7 +210,7 @@ function EventDetail() {
 
           {(isAdmin || (isManager && ev.status === "pending_approval")) && (
             <div className="grid gap-2 rounded-2xl bg-accent/60 p-5">
-              <p className="section-label">{isAdmin ? "Admin" : "Your proposal"}</p>
+              <p className="section-label">{isAdmin ? "Moderation" : "Your proposal"}</p>
               <Button asChild variant="outline" className="rounded-full">
                 <Link to="/events/edit/$eventId" params={{ eventId }}><Pencil className="size-4" strokeWidth={1.5} /> Edit</Link>
               </Button>
