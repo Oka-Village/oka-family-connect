@@ -147,13 +147,13 @@ function ProfileEditor({ profile, onDone }: { profile: OkaProfile; onDone: () =>
   }, [draft.photo_url]);
 
   async function upload(file: File) {
-    if (!file.type.startsWith("image/")) return toast.error("Please choose an image.");
-    if (file.size > 5 * 1024 * 1024) return toast.error("Please choose a photo under 5 MB.");
+    if (!file.type.startsWith("image/")) return void toast.error("Please choose an image.");
+    if (file.size > 5 * 1024 * 1024) return void toast.error("Please choose a photo under 5 MB.");
     setUploading(true);
     const path = `${profile.id}/${Date.now()}-${file.name.replace(/[^\w.-]/g, "_")}`;
     const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
     setUploading(false);
-    if (error) return toast.error("That photo didn't upload. Please try again.");
+    if (error) return void toast.error("That photo didn't upload. Please try again.");
     set("photo_url", path);
   }
 
@@ -174,7 +174,7 @@ function ProfileEditor({ profile, onDone }: { profile: OkaProfile; onDone: () =>
     };
     const { error } = await supabase.from("profiles").update(payload).eq("id", profile.id);
     setSaving(false);
-    if (error) return toast.error("Your changes didn't save. Please try again.");
+    if (error) return void toast.error("Your changes didn't save. Please try again.");
     await qc.invalidateQueries({ queryKey: ["profile"] });
     await qc.invalidateQueries({ queryKey: ["directory"] });
     await qc.invalidateQueries({ queryKey: ["member", profile.id] });
