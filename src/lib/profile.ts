@@ -1,6 +1,6 @@
 /**
  * Shared profile helpers: the shape Oka reads from the profiles table and the
- * profile-completeness concept used across onboarding and the shell.
+ * profile-completeness concept used across onboarding, My Profile and the shell.
  */
 
 export type OkaProfile = {
@@ -23,15 +23,21 @@ export type OkaProfile = {
   updated_at: string;
 };
 
-/** Fields that count toward the completeness score, in weight order. */
-const COMPLETENESS_FIELDS: Array<keyof OkaProfile> = [
+/** Every field that counts toward completeness — one per profile section item. */
+export const COMPLETENESS_FIELDS = [
   "display_name",
   "photo_url",
-  "location",
   "age_range",
+  "location",
+  "relationship_status",
   "profession",
+  "intentions",
+  "gift_excited_to_give",
+  "gift_loved_gestures",
   "skill_tags",
-];
+  "travel_frequent",
+  "travel_desired",
+] as const satisfies ReadonlyArray<keyof OkaProfile>;
 
 function hasValue(value: unknown): boolean {
   if (Array.isArray(value)) return value.length > 0;
@@ -46,3 +52,20 @@ export function profileCompleteness(profile: Partial<OkaProfile> | null | undefi
 }
 
 export const AGE_RANGES = ["18-24", "25-34", "35-44", "45-54", "55-64", "65+"] as const;
+
+export const RELATIONSHIP_STATUSES = [
+  "Single",
+  "In a relationship",
+  "Married",
+  "It's complicated",
+  "Prefer not to say",
+] as const;
+
+export const INTENTIONS = [
+  "Global Friendships",
+  "Slow Travel",
+  "Skill Sharing",
+  "Hosting",
+  "Deep Connection",
+  "Co-living",
+] as const;
