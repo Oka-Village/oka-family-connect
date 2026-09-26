@@ -298,7 +298,7 @@ export type Database = {
           going_count?: number
           host_id?: string | null
           id?: string
-          join_slug: string
+          join_slug?: string
           starts_at: string
           status?: string
           timezone?: string | null
