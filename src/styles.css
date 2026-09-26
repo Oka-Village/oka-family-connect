@@ -58,6 +58,13 @@
   --color-sand: var(--sand);
   --color-golden: var(--golden);
   --color-on-terracotta: var(--on-terracotta);
+  --color-fire: var(--fire);
+  --color-ember: var(--ember);
+  --color-firelight: var(--firelight);
+  --color-room-background: var(--room-background);
+  --color-room-surface: var(--room-surface);
+  --color-room-control: var(--room-control);
+  --color-room-foreground: var(--room-foreground);
 
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
@@ -75,6 +82,8 @@
 
   --shadow-soft: 0 1px 2px oklch(0.3029 0.0214 57.84 / 0.04), 0 8px 24px oklch(0.3029 0.0214 57.84 / 0.06);
   --shadow-lifted: 0 2px 4px oklch(0.3029 0.0214 57.84 / 0.05), 0 18px 40px oklch(0.3029 0.0214 57.84 / 0.1);
+  --shadow-fire: 0 0 26px oklch(0.7752 0.1238 79.11 / 0.24);
+  --shadow-fire-speaking: 0 0 0 4px oklch(0.7752 0.1238 79.11 / 0.18), 0 0 34px oklch(0.706 0.16 48 / 0.5);
 }
 
 :root {
@@ -90,6 +99,13 @@
   --sand: oklch(0.8928 0.0207 74.65); /* #E4DACD */
   --golden: oklch(0.7752 0.1238 79.11); /* #E0AC51 */
   --on-terracotta: oklch(1 0 0); /* text on terracotta fills */
+  --fire: oklch(0.72 0.18 49);
+  --ember: oklch(0.56 0.17 35);
+  --firelight: oklch(0.82 0.14 75);
+  --room-background: oklch(0.225 0.025 54);
+  --room-surface: oklch(0.29 0.025 55);
+  --room-control: oklch(0.19 0.019 53);
+  --room-foreground: oklch(0.95 0.02 85);
 
   /* Semantic mapping */
   --background: var(--cream);
@@ -174,4 +190,63 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-2xl);
   box-shadow: var(--shadow-soft);
+}
+
+@utility shadow-fire {
+  box-shadow: var(--shadow-fire);
+}
+
+@utility shadow-fire-speaking {
+  box-shadow: var(--shadow-fire-speaking);
+}
+
+.campfire-ambience {
+  background:
+    radial-gradient(circle at 50% 53%, color-mix(in oklab, var(--firelight) 12%, transparent) 0%, transparent 34%),
+    radial-gradient(circle at 50% 50%, var(--room-surface) 0%, var(--room-background) 74%);
+}
+
+.campfire-glow {
+  position: absolute;
+  inset: -4.5rem;
+  border-radius: 9999px;
+  background: radial-gradient(circle, color-mix(in oklab, var(--firelight) 40%, transparent), transparent 66%);
+  animation: campfire-pulse 2.8s ease-in-out infinite;
+}
+
+.campfire-flames {
+  position: relative;
+  width: 5.5rem;
+  height: 6.5rem;
+  filter: drop-shadow(0 0 18px color-mix(in oklab, var(--fire) 65%, transparent));
+}
+
+.campfire-flame {
+  position: absolute;
+  bottom: 0.75rem;
+  left: 50%;
+  border-radius: 70% 20% 62% 38%;
+  transform: translateX(-50%) rotate(45deg);
+  transform-origin: 50% 85%;
+}
+
+.campfire-flame-back { width: 4.4rem; height: 4.4rem; background: var(--ember); animation: campfire-flicker 1.35s ease-in-out infinite alternate; }
+.campfire-flame-mid { width: 3.25rem; height: 3.25rem; bottom: 0.55rem; background: var(--fire); animation: campfire-flicker 1.05s ease-in-out -0.4s infinite alternate-reverse; }
+.campfire-flame-front { width: 2rem; height: 2rem; bottom: 0.35rem; background: var(--firelight); animation: campfire-flicker 0.85s ease-in-out -0.2s infinite alternate; }
+.campfire-logs { position: relative; width: 6.4rem; height: 1.5rem; }
+.campfire-logs span { position: absolute; inset: 0.45rem 0; border-radius: 9999px; background: var(--room-control); transform: rotate(12deg); }
+.campfire-logs span + span { transform: rotate(-12deg); }
+
+@keyframes campfire-flicker {
+  from { transform: translateX(-50%) rotate(42deg) scale(0.94, 1.03); }
+  to { transform: translateX(-50%) rotate(48deg) scale(1.06, 0.92); }
+}
+
+@keyframes campfire-pulse {
+  0%, 100% { opacity: 0.55; transform: scale(0.92); }
+  50% { opacity: 0.82; transform: scale(1.08); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .campfire-glow, .campfire-flame { animation: none; }
 }

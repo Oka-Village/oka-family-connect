@@ -3,6 +3,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { Loader2, Video, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { joinEventRoom } from "@/lib/video.functions";
+import { CampfireCall } from "@/components/oka/campfire-call";
+import { useProfile, resolvePhotoUrl } from "@/hooks/use-profile";
+import { useQuery } from "@tanstack/react-query";
 
 const EARLY_MS = 15 * 60 * 1000;
 
@@ -18,8 +21,14 @@ export function VideoRoom({ eventId, startsAt, bypassTiming, autoJoin = false }:
   const join = useServerFn(joinEventRoom);
   const [now, setNow] = useState(() => Date.now());
   const [busy, setBusy] = useState(false);
-  const [room, setRoom] = useState<string | null>(null);
+  const [room, setRoom] = useState<{ url: string; token: string; isOwner: boolean } | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
+  const profile = useProfile();
+  const photo = useQuery({
+    queryKey: ["video-profile-photo", profile.data?.photo_url],
+    queryFn: () => resolvePhotoUrl(profile.data?.photo_url ?? null),
+    enabled: !!profile.data?.photo_url,
+  });
 
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 15000);
@@ -42,7 +51,7 @@ export function VideoRoom({ eventId, startsAt, bypassTiming, autoJoin = false }:
     setBusy(true); setMsg(null);
     try {
       const r = await join({ data: { eventId } });
-      if (r.status === "ok") setRoom(`${r.url}?t=${encodeURIComponent(r.token)}`);
+       if (r.status === "ok") setRoom(r);
       else if (r.status === "not_configured") setMsg("Video isn't available right now.");
       else setMsg(r.message);
     } catch {
@@ -53,12 +62,14 @@ export function VideoRoom({ eventId, startsAt, bypassTiming, autoJoin = false }:
   if (room) {
     return (
       <div className="mt-3">
-        <div className="overflow-hidden rounded-2xl bg-foreground shadow-lifted">
-          <iframe title="Event room" src={room} allow="camera; microphone; fullscreen; display-capture; autoplay" className="aspect-video min-h-[420px] w-full border-0" />
-        </div>
-        <Button variant="outline" className="mt-3 rounded-full" onClick={() => setRoom(null)}>
-          <X className="size-4" strokeWidth={1.5} /> Leave room
-        </Button>
+        <CampfireCall
+          url={room.url}
+          token={room.token}
+          isOwner={room.isOwner}
+          displayName={profile.data?.display_name?.trim() || "Oka member"}
+          photoUrl={photo.data ?? null}
+          onClose={() => setRoom(null)}
+        />
       </div>
     );
   }
