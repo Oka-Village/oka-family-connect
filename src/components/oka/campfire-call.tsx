@@ -150,7 +150,10 @@ export function CampfireCall({ eventId, url, token, isOwner, displayName, photoU
     let call: DailyCall | null = null;
     void (async () => {
       try {
-        call = DailyIframe.createCallObject({ subscribeToTracksAutomatically: false });
+        call = DailyIframe.createCallObject({
+          subscribeToTracksAutomatically: false,
+          allowMultipleCallInstances: import.meta.env.DEV,
+        });
         callRef.current = call;
         const onParticipant = () => refresh();
         const onSpeaker = (event: { activeSpeaker?: { peerId?: string } }) => {
