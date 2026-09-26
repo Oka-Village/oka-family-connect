@@ -13,6 +13,8 @@ import { setEventStatus } from "@/lib/event-admin";
 import { getVideoConfigured } from "@/lib/video.functions";
 import { VideoRoom } from "@/components/oka/video-room";
 import { useServerFn } from "@tanstack/react-start";
+import { z } from "zod";
+import { CopyJoinLink } from "@/components/oka/copy-join-link";
 import {
   EVENT_SELECT,
   FORMAT_LABELS,
@@ -37,11 +39,13 @@ export const Route = createFileRoute("/_authenticated/events/$eventId")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
+  validateSearch: (s: Record<string, unknown>) => z.object({ via: z.enum(["link"]).optional() }).parse({ via: s.via === "link" ? "link" : undefined }),
   component: EventDetail,
 });
 
 function EventDetail() {
   const { eventId } = Route.useParams();
+  const { via } = Route.useSearch();
   const qc = useQueryClient();
   const { data: uid } = useCurrentUserId();
   const { data: isAdmin } = useIsStaff();
@@ -125,6 +129,22 @@ function EventDetail() {
         </div>
       )}
 
+      {via === "link" && !isManager && (status === "going" || status === "waitlist") && (
+        <div className="mt-6 rounded-2xl bg-secondary px-5 py-3 text-sm text-secondary-foreground">
+          {status === "going" ? "You're in — your spot is saved. The call appears below when the room opens." : "This gathering is full, so you're on the waitlist. We'll move you in if a spot opens."}
+        </div>
+      )}
+
+      {(isManager || isAdmin) && ev.status === "published" && ev.format === "virtual" && !past && (
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-card p-5 shadow-soft">
+          <div>
+            <p className="section-label">Share your call</p>
+            <p className="mt-2 break-all text-sm text-muted-foreground">{typeof window !== "undefined" ? `${window.location.origin}/join/${ev.join_slug}` : `/join/${ev.join_slug}`}</p>
+          </div>
+          <CopyJoinLink slug={ev.join_slug} />
+        </div>
+      )}
+
       <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_320px]">
         <div>
           <div className="flex flex-wrap items-center gap-2">
@@ -148,7 +168,7 @@ function EventDetail() {
             <p className="section-label">{ev.format === "virtual" ? (useRoom ? "Event room" : "Video link") : "Location"}</p>
             {useRoom ? (
               status === "going" || isManager || isAdmin ? (
-                <VideoRoom eventId={ev.id} startsAt={ev.starts_at} bypassTiming={!!isAdmin} />
+                <VideoRoom eventId={ev.id} startsAt={ev.starts_at} bypassTiming={!!isAdmin} autoJoin={via === "link"} />
               ) : (
                 <p className="mt-3 flex items-center gap-2 text-muted-foreground">
                   <Lock className="size-4 text-primary" strokeWidth={1.5} />

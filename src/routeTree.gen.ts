@@ -20,6 +20,7 @@ import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedSessionsRouteImport } from './routes/_authenticated/sessions'
 import { Route as AuthenticatedStaysRouteImport } from './routes/_authenticated/stays'
 import { Route as InviteCodeRouteImport } from './routes/invite.$code'
+import { Route as JoinSlugRouteImport } from './routes/join.$slug'
 import { Route as AuthenticatedEventsIndexRouteImport } from './routes/_authenticated/events.index'
 import { Route as AuthenticatedEventsEventIdRouteImport } from './routes/_authenticated/events.$eventId'
 import { Route as AuthenticatedEventsNewRouteImport } from './routes/_authenticated/events.new'
@@ -86,6 +87,11 @@ const AuthenticatedStaysRoute = AuthenticatedStaysRouteImport.update({
 const InviteCodeRoute = InviteCodeRouteImport.update({
   id: '/invite/$code',
   path: '/invite/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JoinSlugRoute = JoinSlugRouteImport.update({
+  id: '/join/$slug',
+  path: '/join/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedEventsIndexRoute =
@@ -175,6 +181,7 @@ export interface FileRoutesByFullPath {
   '/sessions': typeof AuthenticatedSessionsRoute
   '/stays': typeof AuthenticatedStaysRoute
   '/invite/$code': typeof InviteCodeRoute
+  '/join/$slug': typeof JoinSlugRoute
   '/events/$eventId': typeof AuthenticatedEventsEventIdRoute
   '/events/new': typeof AuthenticatedEventsNewRoute
   '/houses/$houseId': typeof AuthenticatedHousesHouseIdRoute
@@ -200,6 +207,7 @@ export interface FileRoutesByTo {
   '/sessions': typeof AuthenticatedSessionsRoute
   '/stays': typeof AuthenticatedStaysRoute
   '/invite/$code': typeof InviteCodeRoute
+  '/join/$slug': typeof JoinSlugRoute
   '/events/$eventId': typeof AuthenticatedEventsEventIdRoute
   '/events/new': typeof AuthenticatedEventsNewRoute
   '/houses/$houseId': typeof AuthenticatedHousesHouseIdRoute
@@ -227,6 +235,7 @@ export interface FileRoutesById {
   '/_authenticated/sessions': typeof AuthenticatedSessionsRoute
   '/_authenticated/stays': typeof AuthenticatedStaysRoute
   '/invite/$code': typeof InviteCodeRoute
+  '/join/$slug': typeof JoinSlugRoute
   '/_authenticated/events/$eventId': typeof AuthenticatedEventsEventIdRoute
   '/_authenticated/events/new': typeof AuthenticatedEventsNewRoute
   '/_authenticated/houses/$houseId': typeof AuthenticatedHousesHouseIdRoute
@@ -254,6 +263,7 @@ export interface FileRouteTypes {
     | '/sessions'
     | '/stays'
     | '/invite/$code'
+    | '/join/$slug'
     | '/events/$eventId'
     | '/events/new'
     | '/houses/$houseId'
@@ -279,6 +289,7 @@ export interface FileRouteTypes {
     | '/sessions'
     | '/stays'
     | '/invite/$code'
+    | '/join/$slug'
     | '/events/$eventId'
     | '/events/new'
     | '/houses/$houseId'
@@ -305,6 +316,7 @@ export interface FileRouteTypes {
     | '/_authenticated/sessions'
     | '/_authenticated/stays'
     | '/invite/$code'
+    | '/join/$slug'
     | '/_authenticated/events/$eventId'
     | '/_authenticated/events/new'
     | '/_authenticated/houses/$houseId'
@@ -324,6 +336,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   InviteCodeRoute: typeof InviteCodeRoute
+  JoinSlugRoute: typeof JoinSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -403,6 +416,13 @@ declare module '@tanstack/react-router' {
       path: '/invite/$code'
       fullPath: '/invite/$code'
       preLoaderRoute: typeof InviteCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/join/$slug': {
+      id: '/join/$slug'
+      path: '/join/$slug'
+      fullPath: '/join/$slug'
+      preLoaderRoute: typeof JoinSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/events/': {
@@ -554,6 +574,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   InviteCodeRoute: InviteCodeRoute,
+  JoinSlugRoute: JoinSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
