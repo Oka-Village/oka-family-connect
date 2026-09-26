@@ -150,9 +150,12 @@ export function CampfireCall({ eventId, url, token, isOwner, displayName, photoU
     let call: DailyCall | null = null;
     void (async () => {
       try {
+        // React development mode mounts effects twice. Yield so the discarded
+        // effect can cancel before Daily's single call object is created.
+        await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+        if (cancelled) return;
         call = DailyIframe.createCallObject({
           subscribeToTracksAutomatically: false,
-          allowMultipleCallInstances: import.meta.env.DEV,
         });
         callRef.current = call;
         const onParticipant = () => refresh();
