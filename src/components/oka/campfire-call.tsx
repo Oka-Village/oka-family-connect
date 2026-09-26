@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import DailyIframe, { type DailyCall, type DailyParticipant, type DailyParticipantsObject } from "@daily-co/daily-js";
-import { Camera, CameraOff, Flame, Loader2, Mic, MicOff, PhoneOff, Users, X } from "lucide-react";
+import { Camera, CameraOff, Flame, Loader2, Mic, MicOff, Minus, PhoneOff, Plus, Users, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -47,31 +47,17 @@ function MediaTrack({ participant, kind, muted = false, className }: { participa
   return <video ref={(node) => { ref.current = node; }} autoPlay playsInline muted={muted} className={className} />;
 }
 
-function seatPosition(index: number) {
-  let remaining = index;
-  let ring = 0;
-  let seats = 8;
-  while (remaining >= seats) {
-    remaining -= seats;
-    ring += 1;
-    seats = 8 + ring * 4;
-  }
-  const angle = -Math.PI / 2 + (remaining / seats) * Math.PI * 2;
-  const radius = Math.max(27, 41 - ring * 11);
-  return { left: `${50 + Math.cos(angle) * radius}%`, top: `${50 + Math.sin(angle) * radius}%` };
-}
-
-function ParticipantSeat({ participant, index, active, audioLevel, showVideo }: { participant: DailyParticipant; index: number; active: boolean; audioLevel: number; showVideo: boolean }) {
+function ParticipantSeat({ participant, size, left, top, active, audioLevel, showVideo }: { participant: DailyParticipant; size: number; left: number; top: number; active: boolean; audioLevel: number; showVideo: boolean }) {
   const name = participant.user_name || (participant.local ? "You" : "Family member");
   const muted = participant.tracks.audio.state === "off" || participant.tracks.audio.state === "blocked";
   const speaking = active || audioLevel > 0.035;
   return (
-    <div className="group absolute z-20 -translate-x-1/2 -translate-y-1/2" style={seatPosition(index)}>
-      <div className={cn("relative size-14 overflow-hidden rounded-full border-2 bg-room-surface shadow-fire transition-[transform,box-shadow,border-color] duration-300 sm:size-16", speaking ? "scale-110 border-firelight shadow-fire-speaking" : "border-sand") }>
+    <div className="group absolute z-20 -translate-x-1/2 -translate-y-1/2 transition-[left,top] duration-500" style={{ left, top }}>
+      <div className={cn("relative overflow-hidden rounded-full border-2 bg-room-surface shadow-fire transition-[width,height,transform,box-shadow,border-color] duration-500", speaking ? "scale-110 border-firelight shadow-fire-speaking" : "border-sand")} style={{ width: size, height: size }}>
         {showVideo && mediaTrack(participant, "video") ? (
           <MediaTrack participant={participant} kind="video" muted={participant.local} className="h-full w-full object-cover" />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-secondary font-serif text-lg text-foreground">{initials(name)}</div>
+          <div className="flex h-full w-full items-center justify-center bg-secondary font-serif text-foreground" style={{ fontSize: Math.max(11, size * 0.32) }}>{initials(name)}</div>
         )}
         {muted && <span className="absolute bottom-0.5 right-0.5 grid size-5 place-items-center rounded-full bg-room-control text-primary-foreground"><MicOff className="size-3" strokeWidth={1.5} /></span>}
       </div>
@@ -90,6 +76,111 @@ function Fire() {
         <span className="campfire-flame campfire-flame-front" />
       </div>
       <div className="campfire-logs"><span /><span /></div>
+    </div>
+  );
+}
+
+const MIN_ZOOM = 1;
+const MAX_ZOOM = 4;
+
+function CampfireStage({ participants, seatOf, activeId, levels, visibleVideos, children }: { participants: DailyParticipant[]; seatOf: (id: string) => number; activeId: string | null; levels: Record<string, number>; visibleVideos: Set<string>; children?: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [box, setBox] = useState({ w: 0, h: 0 });
+  const [view, setView] = useState({ zoom: 1, x: 0, y: 0 });
+  const viewRef = useRef(view);
+  viewRef.current = view;
+  const pointers = useRef(new Map<number, { x: number; y: number }>());
+  const pinch = useRef<{ dist: number; zoom: number } | null>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new ResizeObserver(([entry]) => { if (entry) setBox({ w: entry.contentRect.width, h: entry.contentRect.height }); });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const clampView = useCallback((zoom: number, x: number, y: number) => {
+    const el = ref.current;
+    const w = el?.clientWidth ?? 0;
+    const h = el?.clientHeight ?? 0;
+    return { zoom, x: Math.min(0, Math.max(w - w * zoom, x)), y: Math.min(0, Math.max(h - h * zoom, y)) };
+  }, []);
+
+  const zoomAt = useCallback((next: number, px: number, py: number) => {
+    const current = viewRef.current;
+    const zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, next));
+    const k = zoom / current.zoom;
+    setView(clampView(zoom, px - (px - current.x) * k, py - (py - current.y) * k));
+  }, [clampView]);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const onWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      const rect = el.getBoundingClientRect();
+      const dy = event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? 100 : 1);
+      zoomAt(viewRef.current.zoom * Math.exp(-dy * 0.0015), event.clientX - rect.left, event.clientY - rect.top);
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, [zoomAt]);
+
+  function onPointerDown(event: React.PointerEvent<HTMLDivElement>) {
+    if ((event.target as HTMLElement).closest("button")) return;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    if (pointers.current.size === 2) {
+      const [a, b] = [...pointers.current.values()] as [{ x: number; y: number }, { x: number; y: number }];
+      pinch.current = { dist: Math.hypot(a.x - b.x, a.y - b.y), zoom: viewRef.current.zoom };
+    }
+  }
+
+  function onPointerMove(event: React.PointerEvent<HTMLDivElement>) {
+    const prev = pointers.current.get(event.pointerId);
+    if (!prev) return;
+    pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    const rect = event.currentTarget.getBoundingClientRect();
+    if (pointers.current.size >= 2 && pinch.current) {
+      const [a, b] = [...pointers.current.values()] as [{ x: number; y: number }, { x: number; y: number }];
+      const dist = Math.hypot(a.x - b.x, a.y - b.y);
+      zoomAt(pinch.current.zoom * (dist / pinch.current.dist), (a.x + b.x) / 2 - rect.left, (a.y + b.y) / 2 - rect.top);
+    } else if (viewRef.current.zoom > 1) {
+      const current = viewRef.current;
+      setView(clampView(current.zoom, current.x + event.clientX - prev.x, current.y + event.clientY - prev.y));
+    }
+  }
+
+  function onPointerEnd(event: React.PointerEvent<HTMLDivElement>) {
+    pointers.current.delete(event.pointerId);
+    if (pointers.current.size < 2) pinch.current = null;
+  }
+
+  // One ring at every count; seats shrink smoothly so everyone fits evenly.
+  const n = Math.max(participants.length, 1);
+  const d = Math.min(box.w, box.h);
+  const radius = d * 0.36;
+  const seatSize = Math.max(28, Math.min(d * 0.26, ((2 * Math.PI * radius) / n) * 0.78));
+  const order = [...participants].sort((a, b) => seatOf(a.session_id) - seatOf(b.session_id));
+
+  const center = () => ({ x: (ref.current?.clientWidth ?? 0) / 2, y: (ref.current?.clientHeight ?? 0) / 2 });
+
+  return (
+    <div ref={ref} className={cn("absolute inset-0 touch-none overflow-hidden", view.zoom > 1 ? "cursor-grab active:cursor-grabbing" : "")} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerEnd} onPointerCancel={onPointerEnd}>
+      <div className="absolute inset-0 origin-top-left transition-transform duration-75 ease-out" style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.zoom})` }}>
+        <div className="absolute inset-0 campfire-ambience" />
+        <Fire />
+        {order.map((participant, index) => {
+          const angle = -Math.PI / 2 + (index / n) * Math.PI * 2;
+          return <ParticipantSeat key={participant.session_id} participant={participant} size={seatSize} left={box.w / 2 + Math.cos(angle) * radius} top={box.h / 2 + Math.sin(angle) * radius} active={participant.session_id === activeId} audioLevel={levels[participant.session_id] ?? 0} showVideo={visibleVideos.has(participant.session_id)} />;
+        })}
+      </div>
+      <div className="absolute bottom-24 left-4 z-30 flex flex-col gap-1 rounded-full bg-room-control/80 p-1 shadow-soft md:bottom-auto md:left-auto md:right-4 md:top-4">
+        <Button size="icon" variant="ghost" className="size-9 rounded-full text-primary-foreground hover:bg-firelight/20 hover:text-primary-foreground" aria-label="Zoom in" onClick={() => { const c = center(); zoomAt(view.zoom * 1.4, c.x, c.y); }}><Plus strokeWidth={1.5} /></Button>
+        <Button size="icon" variant="ghost" className="size-9 rounded-full text-primary-foreground hover:bg-firelight/20 hover:text-primary-foreground" aria-label="Zoom out" disabled={view.zoom <= MIN_ZOOM} onClick={() => { const c = center(); zoomAt(view.zoom / 1.4, c.x, c.y); }}><Minus strokeWidth={1.5} /></Button>
+      </div>
+      {children}
     </div>
   );
 }
@@ -266,8 +357,8 @@ export function CampfireCall({ eventId, url, token, isOwner, displayName, photoU
             <Button type="button" size="icon" variant={camOn ? "secondary" : "outline"} className="size-11 rounded-full" aria-label={camOn ? "Turn off camera" : "Turn on camera"} onClick={() => { const next = !camOn; callRef.current?.setLocalVideo(next); setCamOn(next); }}>{camOn ? <Camera strokeWidth={1.5} /> : <CameraOff strokeWidth={1.5} />}</Button>
           </div>
           {message && <p className="mt-5 text-sm text-firelight">{message}</p>}
-          <Button size="lg" className="mt-6 rounded-full px-8" disabled={phase === "joining"} onClick={() => void takeSeat()}>{phase === "joining" ? <Loader2 className="animate-spin" strokeWidth={1.5} /> : <Flame strokeWidth={1.5} />} Take your seat by the fire</Button>
-          <Button variant="ghost" className="mt-3 rounded-full" onClick={onClose}>Not now</Button>
+          <div className="mt-6 flex flex-col items-center"><Button size="lg" className=" rounded-full px-8" disabled={phase === "joining"} onClick={() => void takeSeat()}>{phase === "joining" ? <Loader2 className="animate-spin" strokeWidth={1.5} /> : <Flame strokeWidth={1.5} />} Take your seat by the fire</Button>
+          <Button variant="ghost" className="mt-3 rounded-full" onClick={onClose}>Not now</Button></div>
         </div>
       </div>
     );
@@ -279,9 +370,7 @@ export function CampfireCall({ eventId, url, token, isOwner, displayName, photoU
     <div className="fixed inset-0 z-[100] isolate overflow-hidden bg-room-background">
       <div className="hidden h-full min-h-[560px] md:flex" onPointerMove={moveDivider} onPointerUp={() => { dragging.current = false; }} onPointerLeave={() => { dragging.current = false; }}>
         <div className="relative overflow-hidden" style={{ width: `${split}%` }}>
-          <div className="absolute inset-0 campfire-ambience" />
-          <Fire />
-          {ordered.map((participant) => <ParticipantSeat key={participant.session_id} participant={participant} index={seatMap.current.get(participant.session_id) ?? 0} active={participant.session_id === activeId} audioLevel={levels[participant.session_id] ?? 0} showVideo={visibleVideos.has(participant.session_id)} />)}
+          <CampfireStage participants={ordered} seatOf={(id) => seatMap.current.get(id) ?? 0} activeId={activeId} levels={levels} visibleVideos={visibleVideos} />
           <div className="absolute left-5 top-5 z-30 flex items-center gap-2 rounded-full bg-room-control/75 px-3 py-2 text-xs text-primary-foreground"><Users className="size-3.5" strokeWidth={1.5} /> {ordered.length} by the fire</div>
         </div>
         <div role="separator" aria-orientation="vertical" aria-label="Resize campfire and speaker" className="group relative z-30 w-2 shrink-0 cursor-col-resize touch-none bg-firelight/20" onPointerDown={(event) => { dragging.current = true; event.currentTarget.setPointerCapture(event.pointerId); }}>
@@ -291,8 +380,7 @@ export function CampfireCall({ eventId, url, token, isOwner, displayName, photoU
       </div>
 
       <div className="relative h-full min-h-[520px] md:hidden">
-        <div className="absolute inset-0 campfire-ambience" /><Fire />
-        {ordered.map((participant) => <ParticipantSeat key={participant.session_id} participant={participant} index={seatMap.current.get(participant.session_id) ?? 0} active={participant.session_id === activeId} audioLevel={levels[participant.session_id] ?? 0} showVideo={visibleVideos.has(participant.session_id)} />)}
+        <CampfireStage participants={ordered} seatOf={(id) => seatMap.current.get(id) ?? 0} activeId={activeId} levels={levels} visibleVideos={visibleVideos} />
         <div className={cn("absolute right-4 top-4 z-40 overflow-hidden transition-all duration-300", mobileSpeakerOpen ? "inset-4" : "h-36 w-28")}><SpeakerPane participant={speaker} expanded={mobileSpeakerOpen} onToggle={() => setMobileSpeakerOpen((open) => !open)} /></div>
       </div>
 
