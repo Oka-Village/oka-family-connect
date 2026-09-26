@@ -7,6 +7,7 @@ import { Wordmark } from "@/components/oka/wordmark";
 import { Button } from "@/components/ui/button";
 import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
+import { takeReturnTo } from "@/lib/join-link";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -56,7 +57,11 @@ function Landing() {
   useEffect(() => {
     let active = true;
     supabase.auth.getSession().then(({ data }) => {
-      if (active && data.session) navigate({ to: "/events", replace: true });
+      if (active && data.session) {
+        const back = takeReturnTo();
+        if (back) window.location.replace(back);
+        else navigate({ to: "/events", replace: true });
+      }
     });
     return () => {
       active = false;
