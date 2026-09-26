@@ -80,3 +80,27 @@ export const joinEventRoom = createServerFn({ method: "POST" })
       return { status: "unavailable", message: "The room couldn't open just now. Please try again in a moment." };
     }
   });
+
+/** Permanently closes a Daily room. The caller must be its host/creator or an admin. */
+export const endEventRoom = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ eventId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const key = process.env["DAILY_API_KEY"];
+    if (!key) return { status: "not_configured" as const };
+    const { supabase, userId } = context;
+    const [eventResult, adminResult] = await Promise.all([
+      supabase.from("events").select("host_id,created_by").eq("id", data.eventId).maybeSingle(),
+      supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
+    ]);
+    const event = eventResult.data;
+    if (!event || (event.host_id !== userId && event.created_by !== userId && adminResult.data !== true)) {
+      return { status: "forbidden" as const };
+    }
+    const response = await fetch(`${DAILY_API}/rooms/oka-${data.eventId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${key}` },
+    });
+    if (!response.ok && response.status !== 404) return { status: "unavailable" as const };
+    return { status: "ok" as const };
+  });

@@ -5,11 +5,14 @@ import { Camera, CameraOff, Flame, Loader2, Mic, MicOff, PhoneOff, Users, X } fr
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { endEventRoom } from "@/lib/video.functions";
+import { useServerFn } from "@tanstack/react-start";
 
 type RoomCredentials = { url: string; token: string; isOwner: boolean };
 type Phase = "preparing" | "prejoin" | "joining" | "joined" | "left" | "error";
 
 type CampfireCallProps = RoomCredentials & {
+  eventId: string;
   displayName: string;
   photoUrl: string | null;
   onClose: () => void;
@@ -107,7 +110,8 @@ function SpeakerPane({ participant, expanded, onToggle }: { participant: DailyPa
   );
 }
 
-export function CampfireCall({ url, token, isOwner, displayName, photoUrl, onClose }: CampfireCallProps) {
+export function CampfireCall({ eventId, url, token, isOwner, displayName, photoUrl, onClose }: CampfireCallProps) {
+  const endRoom = useServerFn(endEventRoom);
   const callRef = useRef<DailyCall | null>(null);
   const seatMap = useRef(new Map<string, number>());
   const nextSeat = useRef(0);
@@ -166,7 +170,16 @@ export function CampfireCall({ url, token, isOwner, displayName, photoUrl, onClo
           .on("active-speaker-change", onSpeaker).on("remote-participants-audio-level", onRemoteLevel)
           .on("local-audio-level", onLocalLevel).on("left-meeting", onLeft).on("error", onError);
         await call.preAuth({ url, token });
-        await call.startCamera({ url, token, userName: displayName });
+        try {
+          await call.startCamera({ url, token, userName: displayName });
+        } catch (error) {
+          console.warn("Daily camera preview unavailable", error);
+          call.setLocalAudio(false);
+          call.setLocalVideo(false);
+          setMicOn(false);
+          setCamOn(false);
+          setMessage("Camera preview isn't available here. You can still take your seat and turn it on inside.");
+        }
         if (cancelled) return;
         refresh();
         setPhase("prejoin");
@@ -216,6 +229,7 @@ export function CampfireCall({ url, token, isOwner, displayName, photoUrl, onClo
     if (endForEveryone && isOwner) {
       const remoteUpdates = Object.fromEntries(ordered.filter((participant) => !participant.local).map((participant) => [participant.session_id, { eject: true as const }]));
       if (Object.keys(remoteUpdates).length) call.updateParticipants(remoteUpdates);
+      await endRoom({ data: { eventId } }).catch(() => undefined);
     }
     await call.leave().catch(() => undefined);
     onClose();
@@ -229,11 +243,11 @@ export function CampfireCall({ url, token, isOwner, displayName, photoUrl, onClo
     setSplit(Math.min(72, Math.max(35, ((event.clientX - bounds.left) / bounds.width) * 100)));
   }
 
-  if (phase === "preparing") return <div className="grid min-h-[420px] place-items-center rounded-2xl bg-room-surface"><p className="flex items-center gap-3 font-serif text-2xl text-firelight"><Loader2 className="size-5 animate-spin" strokeWidth={1.5} /> Lighting the fire…</p></div>;
+  if (phase === "preparing") return <div className="fixed inset-0 z-[100] grid place-items-center bg-room-surface"><p className="flex items-center gap-3 font-serif text-2xl text-firelight"><Loader2 className="size-5 animate-spin" strokeWidth={1.5} /> Lighting the fire…</p></div>;
 
   if (phase === "prejoin" || phase === "joining" || phase === "error") {
     return (
-      <div className="grid min-h-[520px] place-items-center rounded-2xl bg-room-surface p-6 shadow-lifted">
+      <div className="fixed inset-0 z-[100] grid place-items-center bg-room-surface p-6">
         <div className="w-full max-w-xl text-center">
           <p className="section-label text-firelight">Before the gathering</p>
           <div className="relative mx-auto mt-6 aspect-video max-w-lg overflow-hidden rounded-2xl bg-room-control">
@@ -254,11 +268,11 @@ export function CampfireCall({ url, token, isOwner, displayName, photoUrl, onClo
     );
   }
 
-  if (phase === "left") return <div className="grid min-h-[360px] place-items-center rounded-2xl bg-room-surface text-center"><div><Flame className="mx-auto size-7 text-firelight" strokeWidth={1.5} /><p className="mt-4 font-serif text-3xl text-room-foreground">Until the next gathering</p><Button className="mt-6 rounded-full" onClick={onClose}>Return to the event</Button></div></div>;
+  if (phase === "left") return <div className="fixed inset-0 z-[100] grid place-items-center bg-room-surface text-center"><div><Flame className="mx-auto size-7 text-firelight" strokeWidth={1.5} /><p className="mt-4 font-serif text-3xl text-room-foreground">Until the next gathering</p><Button className="mt-6 rounded-full" onClick={onClose}>Return to the event</Button></div></div>;
 
   return (
-    <div className="relative isolate min-h-[min(720px,80vh)] overflow-hidden rounded-2xl bg-room-background shadow-lifted">
-      <div className="hidden h-[min(720px,80vh)] min-h-[560px] md:flex" onPointerMove={moveDivider} onPointerUp={() => { dragging.current = false; }} onPointerLeave={() => { dragging.current = false; }}>
+    <div className="fixed inset-0 z-[100] isolate overflow-hidden bg-room-background">
+      <div className="hidden h-full min-h-[560px] md:flex" onPointerMove={moveDivider} onPointerUp={() => { dragging.current = false; }} onPointerLeave={() => { dragging.current = false; }}>
         <div className="relative overflow-hidden" style={{ width: `${split}%` }}>
           <div className="absolute inset-0 campfire-ambience" />
           <Fire />
@@ -271,7 +285,7 @@ export function CampfireCall({ url, token, isOwner, displayName, photoUrl, onClo
         <div className="min-w-0 flex-1 p-3 pl-2"><SpeakerPane participant={speaker} /></div>
       </div>
 
-      <div className="relative h-[min(720px,80vh)] min-h-[520px] md:hidden">
+      <div className="relative h-full min-h-[520px] md:hidden">
         <div className="absolute inset-0 campfire-ambience" /><Fire />
         {ordered.map((participant) => <ParticipantSeat key={participant.session_id} participant={participant} index={seatMap.current.get(participant.session_id) ?? 0} active={participant.session_id === activeId} audioLevel={levels[participant.session_id] ?? 0} showVideo={visibleVideos.has(participant.session_id)} />)}
         <div className={cn("absolute right-4 top-4 z-40 overflow-hidden transition-all duration-300", mobileSpeakerOpen ? "inset-4" : "h-36 w-28")}><SpeakerPane participant={speaker} expanded={mobileSpeakerOpen} onToggle={() => setMobileSpeakerOpen((open) => !open)} /></div>

@@ -63,6 +63,7 @@ export function VideoRoom({ eventId, startsAt, bypassTiming, autoJoin = false }:
     return (
       <div className="mt-3">
         <CampfireCall
+          eventId={eventId}
           url={room.url}
           token={room.token}
           isOwner={room.isOwner}
