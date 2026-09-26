@@ -1,7 +1,7 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { CalendarDays, Coins, Home, LogOut, ShieldCheck, Sparkles, User, Users } from "lucide-react";
+import { CalendarDays, Coins, Gift, Home, LogOut, ShieldCheck, Sparkles, User, Users } from "lucide-react";
 
 import { Wordmark } from "@/components/oka/wordmark";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ const NAV_ITEMS = [
   { to: "/houses", label: "Houses", icon: Home },
   { to: "/profile", label: "My Profile", icon: User },
   { to: "/credits", label: "Credits", icon: Coins },
+  { to: "/affiliate", label: "Invite & earn", icon: Gift },
 ] as const;
 
 /** Desktop left sidebar, mobile bottom tab bar. */
