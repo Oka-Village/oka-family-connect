@@ -174,8 +174,6 @@ export function CampfireCall({ eventId, url, token, isOwner, displayName, photoU
           await call.startCamera({ url, token, userName: displayName });
         } catch (error) {
           console.warn("Daily camera preview unavailable", error);
-          call.setLocalAudio(false);
-          call.setLocalVideo(false);
           setMicOn(false);
           setCamOn(false);
           setMessage("Camera preview isn't available here. You can still take your seat and turn it on inside.");
@@ -183,7 +181,8 @@ export function CampfireCall({ eventId, url, token, isOwner, displayName, photoU
         if (cancelled) return;
         refresh();
         setPhase("prejoin");
-      } catch {
+      } catch (error) {
+        console.error("Daily room preparation failed", error);
         if (!cancelled) { setMessage("We couldn't prepare your camera and microphone. Check your browser permissions and try again."); setPhase("error"); }
       }
     })();
