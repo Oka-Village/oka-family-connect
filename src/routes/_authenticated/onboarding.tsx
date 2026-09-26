@@ -1,3 +1,4 @@
+import { takeReturnTo } from "@/lib/join-link";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
@@ -113,7 +114,9 @@ function Onboarding() {
       return;
     }
     await queryClient.invalidateQueries({ queryKey: ["profile"] });
-    navigate({ to: "/events", replace: true });
+    const back = takeReturnTo();
+    if (back) window.location.replace(back);
+    else navigate({ to: "/events", replace: true });
   }
 
   const current = STEPS[step];

@@ -12,6 +12,7 @@ import { useCurrentUserId, useRoles } from "@/hooks/use-is-admin";
 import { supabase } from "@/integrations/supabase/client";
 import { setEventStatus } from "@/lib/event-admin";
 import { EVENT_SELECT, TYPE_LABELS, formatEventDate, formatEventTime, hostName, type EventRow } from "@/lib/events";
+import { CopyJoinLink } from "@/components/oka/copy-join-link";
 import { AffiliatesSection } from "@/components/oka/admin-affiliates";
 import { cn } from "@/lib/utils";
 
@@ -140,6 +141,7 @@ function EventsSection() {
         {live.data?.length === 0 && <p className="text-muted-foreground">No upcoming events yet.</p>}
         {live.data?.map((e) => (
           <Row key={e.id} e={e}>
+            {e.format === "virtual" && <CopyJoinLink slug={e.join_slug} />}
             <Button size="sm" variant="outline" className="rounded-full text-destructive" onClick={() => confirm("Cancel this event for everyone?") && act.mutate({ id: e.id, status: "cancelled" })}>Cancel</Button>
           </Row>
         ))}
