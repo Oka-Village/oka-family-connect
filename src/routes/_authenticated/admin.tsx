@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CalendarDays, Gift, Home, Plus, Search, ShieldCheck, Sparkles, Users } from "lucide-react";
 import { useState } from "react";
@@ -21,6 +21,11 @@ type Tab = (typeof TABS)[number];
 
 export const Route = createFileRoute("/_authenticated/admin")({
   validateSearch: z.object({ tab: z.enum(TABS).optional().catch(undefined) }),
+  // Route-level guard: members without admin/moderator are sent to Events before anything renders.
+  beforeLoad: async ({ context }) => {
+    const { data } = await supabase.from("user_roles").select("role").eq("user_id", context.user.id).in("role", ["admin", "moderator"]);
+    if (!data || data.length === 0) throw redirect({ to: "/events" });
+  },
   head: () => ({
     meta: [
       { title: "Admin — Oka" },
