@@ -28,7 +28,7 @@ function mediaTrack(participant: DailyParticipant | undefined, kind: "audio" | "
   return track instanceof MediaStreamTrack ? track : null;
 }
 
-function MediaTrack({ participant, kind, muted = false, className }: { participant?: DailyParticipant; kind: "audio" | "video"; muted?: boolean; className?: string }) {
+function MediaTrack({ participant, kind, muted = false, className }: { participant: DailyParticipant | undefined; kind: "audio" | "video"; muted?: boolean | undefined; className?: string | undefined }) {
   const ref = useRef<HTMLMediaElement | null>(null);
   const track = mediaTrack(participant, kind);
 
@@ -91,7 +91,7 @@ function Fire() {
   );
 }
 
-function SpeakerPane({ participant, expanded, onToggle }: { participant?: DailyParticipant; expanded?: boolean; onToggle?: () => void }) {
+function SpeakerPane({ participant, expanded, onToggle }: { participant: DailyParticipant | undefined; expanded?: boolean | undefined; onToggle?: (() => void) | undefined }) {
   const name = participant?.user_name || "The circle is listening";
   const hasVideo = !!mediaTrack(participant, "video");
   return (
