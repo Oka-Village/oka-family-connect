@@ -39,7 +39,7 @@ export const Route = createFileRoute("/_authenticated/events/$eventId")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  validateSearch: (s: Record<string, unknown>) => z.object({ via: z.enum(["link"]).optional() }).parse({ via: s.via === "link" ? "link" : undefined }),
+  validateSearch: (s: Record<string, unknown>) => z.object({ via: z.enum(["link"]).optional() }).parse({ via: s["via"] === "link" ? "link" : undefined }),
   component: EventDetail,
 });
 
