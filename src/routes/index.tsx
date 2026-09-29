@@ -110,9 +110,6 @@ function Landing() {
             {signingIn ? "Opening Google…" : "Continue with Google"}
           </Button>
         </div>
-        <p className="mt-4 text-sm text-muted-foreground">
-          Google sign-in only — no passwords to remember.
-        </p>
       </section>
 
       <section className="mx-auto grid max-w-5xl gap-6 px-6 pb-24 sm:grid-cols-3">
