@@ -7,11 +7,12 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -136,6 +137,7 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
+  const locationKey = useRouterState({ select: (state) => state.location.href });
 
   // Single app-wide auth subscriber: keeps router and cache in step with the
   // Supabase session without thrashing on token refreshes.
@@ -150,10 +152,25 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
-      <LittleMomentFooter />
+      <div className="flex min-h-screen flex-col">
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <div className="min-h-screen flex-1">
+          <Outlet />
+        </div>
+        <FooterAfterContent key={locationKey} />
+      </div>
       <Toaster />
     </QueryClientProvider>
   );
+}
+
+function FooterAfterContent() {
+  const [contentCommitted, setContentCommitted] = useState(false);
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => setContentCommitted(true));
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
+  return contentCommitted ? <LittleMomentFooter /> : null;
 }
