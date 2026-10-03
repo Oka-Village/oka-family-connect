@@ -86,7 +86,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <details className="group relative">
             <Button asChild variant="secondary" size="icon" className="rounded-full">
               <summary aria-label="Open account menu" className="list-none [&::-webkit-details-marker]:hidden">
-                <span className="font-serif text-lg">{profile?.display_name?.trim().charAt(0).toUpperCase() || <Menu className="size-4" />}</span>
+                {photo ? (
+                  <MemberAvatar src={photo} name={profile?.display_name} className="size-9" />
+                ) : (
+                  <span className="font-serif text-lg">{profile?.display_name?.trim().charAt(0).toUpperCase() || <Menu className="size-4" />}</span>
+                )}
               </summary>
             </Button>
             <div className="absolute right-0 top-12 z-50 hidden w-56 rounded-2xl border border-border bg-popover p-2 text-popover-foreground shadow-card group-open:block">
