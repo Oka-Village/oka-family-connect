@@ -46,10 +46,10 @@ function CollectionsPage() {
       <h1 className="mt-4 text-5xl text-foreground sm:text-6xl">Collections</h1>
       <p className="mt-4 text-muted-foreground">Everything you've kept close.</p>
 
-      <div role="tablist" aria-label="Collections" className="mt-8 flex flex-wrap gap-2 rounded-full bg-cream-deep p-1 sm:w-fit">
+      <div role="tablist" aria-label="Collections" className="mt-8 grid grid-cols-2 gap-1 rounded-3xl bg-cream-deep p-1 sm:flex sm:w-fit sm:rounded-full">
         {TABS.map((t) => (
           <button key={t} type="button" role="tab" aria-selected={tab === t} onClick={() => void navigate({ search: { tab: t }, replace: true })}
-            className={cn("min-h-11 flex-1 rounded-full px-4 text-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:flex-none", tab === t ? "bg-card text-foreground shadow-nav" : "text-muted-foreground hover:text-foreground")}>
+            className={cn("min-h-11 whitespace-nowrap rounded-full px-4 text-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:flex-none", tab === t ? "bg-card text-foreground shadow-nav" : "text-muted-foreground hover:text-foreground")}>
             {LABEL[t]} <span className="ml-1 text-xs text-muted-foreground">{fav.isLoading ? "·" : byTab(t).length}</span>
           </button>
         ))}
@@ -151,12 +151,12 @@ function SavedCards({ items, kind }: { items: Favorite[]; kind: "inspiration" | 
     }, 260);
   };
   return (
-    <div className={cn("grid gap-6", kind === "reflection" ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-2 lg:grid-cols-3")}>
+    <div className={cn("grid gap-6", kind === "reflection" ? "grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-2 lg:grid-cols-3")}>
       {items.map((f) => (
         <article key={f.item_ref} className={cn("saved-card", kind === "reflection" ? "saved-card-reflection" : "saved-card-inspiration", leaving.has(f.item_ref) && "collection-card-exit")}>
           <div>
             {kind === "reflection" && <p className="section-label text-primary">For reflection</p>}
-            <p className={cn("font-serif leading-tight text-foreground", kind === "reflection" ? "mt-4 text-2xl" : "text-2xl")}>{kind === "inspiration" ? `“${f.snapshot?.text ?? ""}”` : f.snapshot?.text}</p>
+            <p className={cn("font-serif leading-tight text-foreground", kind === "reflection" ? "mt-3 text-lg sm:text-2xl" : "text-2xl")}>{kind === "inspiration" ? `“${f.snapshot?.text ?? ""}”` : f.snapshot?.text}</p>
             {f.snapshot?.author && <p className="section-label mt-4">{f.snapshot.author}</p>}
           </div>
           <div className="mt-4 flex items-center justify-between">
