@@ -131,6 +131,12 @@
   --sage: oklch(0.6827 0.0775 158.15); /* #6FA887 */
   --sand: oklch(0.8928 0.0207 74.65); /* #E4DACD */
   --golden: oklch(0.7752 0.1238 79.11); /* #E0AC51 */
+  --moment-paper: #efe6d6;
+  --moment-label: #8c6a52;
+  --moment-muted: #6b5a4c;
+  --moment-inset: inset 0 0 90px rgb(140 106 82 / 0.22);
+  --moment-rule: rgb(140 106 82 / 0.4);
+  --moment-stain: radial-gradient(ellipse, rgb(209 164 147 / 0.18), transparent 70%);
   --cream-deep: oklch(0.956 0.013 79);
   --canvas: oklch(0.928 0.014 81);
   --brown-muted: oklch(0.454 0.032 57);
