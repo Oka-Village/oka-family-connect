@@ -27,7 +27,7 @@ export function MentionPicker({ query, currentUserId, onSelect, onClose }: { que
   }, [active, members.data, onClose, onSelect]);
 
   return (
-    <div ref={listRef} role="listbox" aria-label="Choose a community member" className="absolute inset-x-0 top-full z-30 mt-2 overflow-hidden rounded-2xl border border-border bg-popover p-2 shadow-card">
+    <div ref={listRef} role="listbox" aria-label="Choose a community member" className="relative z-30 mt-2 max-h-72 overflow-y-auto rounded-2xl border border-border bg-popover p-2 shadow-card">
       <div className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground"><Search className="size-4 text-primary" strokeWidth={1.5} />{query ? `Searching “${query}”` : "Choose someone"}</div>
       {members.isLoading ? <div className="space-y-2 p-2"><Skeleton className="h-12" /><Skeleton className="h-12" /></div>
         : members.isError ? <p className="px-3 py-4 text-sm text-muted-foreground">Members couldn't load. Try typing again.</p>
