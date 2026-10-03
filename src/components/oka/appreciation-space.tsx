@@ -43,7 +43,9 @@ export function AppreciationSpace({ currentUserId }: { currentUserId: string }) 
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
           {query.isLoading ? <><Skeleton className="h-44 rounded-2xl" /><Skeleton className="h-44 rounded-2xl" /></>
             : query.isError ? <div className="surface-card p-8 sm:col-span-2"><p className="font-serif text-2xl">These letters couldn't load.</p><button type="button" className="mt-3 text-sm text-primary underline" onClick={() => void query.refetch()}>Try again</button></div>
-            : query.data?.length ? query.data.map((letter) => <LetterCard key={letter.id} letter={letter} kind={tab} onOpen={tab === "received" && !letter.read_at ? () => void openLetter(letter.id) : undefined} />)
+            : query.data?.length ? query.data.map((letter) => tab === "received" && !letter.read_at
+              ? <LetterCard key={letter.id} letter={letter} kind={tab} onOpen={() => void openLetter(letter.id)} />
+              : <LetterCard key={letter.id} letter={letter} kind={tab} />)
             : <div className="surface-card p-8 sm:col-span-2"><p className="font-serif text-2xl text-foreground">{tab === "received" ? "No letters yet" : "No notes sent yet"}</p><p className="mt-2 text-muted-foreground">{tab === "received" ? "When someone appreciates you, it will arrive here." : "A note you send will be kept here."}</p></div>}
         </div>
       </div>
