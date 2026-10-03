@@ -26,6 +26,7 @@ import { Route as AuthenticatedEventsIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedEventsEventIdRouteImport } from './routes/_authenticated/events.$eventId'
 import { Route as AuthenticatedEventsNewRouteImport } from './routes/_authenticated/events.new'
 import { Route as AuthenticatedHomeIndexRouteImport } from './routes/_authenticated/home.index'
+import { Route as AuthenticatedHomeAppreciationRouteImport } from './routes/_authenticated/home.appreciation'
 import { Route as AuthenticatedHomeInspirationRouteImport } from './routes/_authenticated/home.inspiration'
 import { Route as AuthenticatedHomeReflectionRouteImport } from './routes/_authenticated/home.reflection'
 import { Route as AuthenticatedHousesIndexRouteImport } from './routes/_authenticated/houses.index'
@@ -126,6 +127,12 @@ const AuthenticatedHomeIndexRoute = AuthenticatedHomeIndexRouteImport.update({
   path: '/home/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedHomeAppreciationRoute =
+  AuthenticatedHomeAppreciationRouteImport.update({
+    id: '/home/appreciation',
+    path: '/home/appreciation',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedHomeInspirationRoute =
   AuthenticatedHomeInspirationRouteImport.update({
     id: '/home/inspiration',
@@ -212,6 +219,7 @@ export interface FileRoutesByFullPath {
   '/join/$slug': typeof JoinSlugRoute
   '/events/$eventId': typeof AuthenticatedEventsEventIdRoute
   '/events/new': typeof AuthenticatedEventsNewRoute
+  '/home/appreciation': typeof AuthenticatedHomeAppreciationRoute
   '/home/inspiration': typeof AuthenticatedHomeInspirationRoute
   '/home/reflection': typeof AuthenticatedHomeReflectionRoute
   '/houses/$houseId': typeof AuthenticatedHousesHouseIdRoute
@@ -242,6 +250,7 @@ export interface FileRoutesByTo {
   '/join/$slug': typeof JoinSlugRoute
   '/events/$eventId': typeof AuthenticatedEventsEventIdRoute
   '/events/new': typeof AuthenticatedEventsNewRoute
+  '/home/appreciation': typeof AuthenticatedHomeAppreciationRoute
   '/home/inspiration': typeof AuthenticatedHomeInspirationRoute
   '/home/reflection': typeof AuthenticatedHomeReflectionRoute
   '/houses/$houseId': typeof AuthenticatedHousesHouseIdRoute
@@ -274,6 +283,7 @@ export interface FileRoutesById {
   '/join/$slug': typeof JoinSlugRoute
   '/_authenticated/events/$eventId': typeof AuthenticatedEventsEventIdRoute
   '/_authenticated/events/new': typeof AuthenticatedEventsNewRoute
+  '/_authenticated/home/appreciation': typeof AuthenticatedHomeAppreciationRoute
   '/_authenticated/home/inspiration': typeof AuthenticatedHomeInspirationRoute
   '/_authenticated/home/reflection': typeof AuthenticatedHomeReflectionRoute
   '/_authenticated/houses/$houseId': typeof AuthenticatedHousesHouseIdRoute
@@ -306,6 +316,7 @@ export interface FileRouteTypes {
     | '/join/$slug'
     | '/events/$eventId'
     | '/events/new'
+    | '/home/appreciation'
     | '/home/inspiration'
     | '/home/reflection'
     | '/houses/$houseId'
@@ -336,6 +347,7 @@ export interface FileRouteTypes {
     | '/join/$slug'
     | '/events/$eventId'
     | '/events/new'
+    | '/home/appreciation'
     | '/home/inspiration'
     | '/home/reflection'
     | '/houses/$houseId'
@@ -367,6 +379,7 @@ export interface FileRouteTypes {
     | '/join/$slug'
     | '/_authenticated/events/$eventId'
     | '/_authenticated/events/new'
+    | '/_authenticated/home/appreciation'
     | '/_authenticated/home/inspiration'
     | '/_authenticated/home/reflection'
     | '/_authenticated/houses/$houseId'
@@ -511,6 +524,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedHomeIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/home/appreciation': {
+      id: '/_authenticated/home/appreciation'
+      path: '/home/appreciation'
+      fullPath: '/home/appreciation'
+      preLoaderRoute: typeof AuthenticatedHomeAppreciationRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/home/inspiration': {
       id: '/_authenticated/home/inspiration'
       path: '/home/inspiration'
@@ -610,6 +630,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedStaysRoute: typeof AuthenticatedStaysRoute
   AuthenticatedEventsEventIdRoute: typeof AuthenticatedEventsEventIdRoute
   AuthenticatedEventsNewRoute: typeof AuthenticatedEventsNewRoute
+  AuthenticatedHomeAppreciationRoute: typeof AuthenticatedHomeAppreciationRoute
   AuthenticatedHomeInspirationRoute: typeof AuthenticatedHomeInspirationRoute
   AuthenticatedHomeReflectionRoute: typeof AuthenticatedHomeReflectionRoute
   AuthenticatedHousesHouseIdRoute: typeof AuthenticatedHousesHouseIdRoute
@@ -638,6 +659,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedStaysRoute: AuthenticatedStaysRoute,
   AuthenticatedEventsEventIdRoute: AuthenticatedEventsEventIdRoute,
   AuthenticatedEventsNewRoute: AuthenticatedEventsNewRoute,
+  AuthenticatedHomeAppreciationRoute: AuthenticatedHomeAppreciationRoute,
   AuthenticatedHomeInspirationRoute: AuthenticatedHomeInspirationRoute,
   AuthenticatedHomeReflectionRoute: AuthenticatedHomeReflectionRoute,
   AuthenticatedHousesHouseIdRoute: AuthenticatedHousesHouseIdRoute,
