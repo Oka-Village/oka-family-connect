@@ -2,7 +2,7 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { CalendarDays, Coins, Gift, Heart, Home, LogOut, Menu, ShieldCheck, Sparkles, User, Users } from "lucide-react";
+import { CalendarDays, Bookmark, Coins, Gift, Heart, Home, LogOut, Menu, ShieldCheck, Sparkles, User, Users } from "lucide-react";
 
 import { Wordmark } from "@/components/oka/wordmark";
 import { Button } from "@/components/ui/button";
@@ -20,12 +20,13 @@ const NAV_ITEMS = [
   { to: "/directory", label: "Members", icon: Users },
   { to: "/skills", label: "Skills", icon: Sparkles },
   { to: "/houses", label: "Houses", icon: Home },
+  { to: "/collections", label: "Collections", icon: Bookmark },
   { to: "/profile", label: "My Profile", icon: User },
   { to: "/credits", label: "Credits", icon: Coins },
   { to: "/affiliate", label: "Invite & earn", icon: Gift },
 ] as const;
 
-const PRIMARY_ITEMS = NAV_ITEMS.slice(0, 5);
+const PRIMARY_ITEMS = NAV_ITEMS.slice(0, 6);
 
 /** Desktop left sidebar, mobile bottom tab bar. */
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -109,7 +110,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <div className="absolute right-0 top-12 z-50 hidden w-56 rounded-2xl border border-border bg-popover p-2 text-popover-foreground shadow-card group-open:block">
               <p className="px-3 py-2 text-sm text-muted-foreground">{profile?.display_name ?? "Your Oka"}</p>
               <div className="my-1 h-px bg-border" />
-              {items.slice(5).map((item) => (
+              {items.slice(6).map((item) => (
                 <Link key={item.to} to={item.to} className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm hover:bg-accent">
                   <item.icon className="size-4 text-primary" strokeWidth={1.5} />{item.label}
                 </Link>
@@ -143,7 +144,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Link
               key={item.to}
               to={item.to}
-              className={cn("flex flex-1 flex-col items-center gap-1 px-1 py-2 text-[0.625rem] transition-colors", active ? "text-primary" : "text-muted-foreground")}
+              className={cn("flex flex-1 flex-col items-center gap-1 px-0.5 py-2 text-[0.6rem] whitespace-nowrap transition-colors", active ? "text-primary" : "text-muted-foreground")}
             >
               <item.icon className={cn("size-5", active && "text-primary")} strokeWidth={1.5} />
               <span className="relative">{item.label}{item.to === "/home" && unreadCount > 0 && <span className="absolute -right-3 -top-1 flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[0.55rem] leading-4 text-primary-foreground" aria-label={`${unreadCount} unread appreciation letters`}>{unreadCount > 9 ? "9+" : unreadCount}</span>}</span>
