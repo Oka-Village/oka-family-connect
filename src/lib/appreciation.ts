@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export type MentionMember = { id: string; display_name: string; photo_url: string | null; photo: string | null };
+export type MentionMember = { id: string; display_name: string; photo_url: string | null; photo: string | null; location?: string | null };
 export type AppreciationLetter = {
   id: string;
   sender_id: string;
@@ -13,7 +13,7 @@ export type AppreciationLetter = {
 
 const cleanSearch = (value: string) => value.replace(/[%_\\,()*]/g, " ").trim().slice(0, 60);
 
-async function signMembers(rows: Array<{ id: string; display_name: string | null; photo_url: string | null }>): Promise<MentionMember[]> {
+async function signMembers(rows: Array<{ id: string; display_name: string | null; photo_url: string | null; location?: string | null }>): Promise<MentionMember[]> {
   const paths = rows.map((row) => row.photo_url).filter((path): path is string => Boolean(path && !path.startsWith("http")));
   const signed = new Map<string, string>();
   if (paths.length) {
@@ -24,12 +24,13 @@ async function signMembers(rows: Array<{ id: string; display_name: string | null
     id: row.id,
     display_name: row.display_name?.trim() ?? "Oka member",
     photo_url: row.photo_url,
+    location: row.location ?? null,
     photo: row.photo_url?.startsWith("http") ? row.photo_url : row.photo_url ? signed.get(row.photo_url) ?? null : null,
   }));
 }
 
 export async function searchMentionMembers(search: string, currentUserId: string): Promise<MentionMember[]> {
-  let query = supabase.from("profiles").select("id,display_name,photo_url").neq("id", currentUserId).not("display_name", "is", null).order("display_name").limit(8);
+  let query = supabase.from("profiles").select("id,display_name,photo_url,location").neq("id", currentUserId).not("display_name", "is", null).order("display_name").limit(8);
   const term = cleanSearch(search);
   if (term) query = query.ilike("display_name", `%${term}%`);
   const { data, error } = await query;
@@ -44,7 +45,7 @@ export async function fetchLetters(kind: "received" | "sent", currentUserId: str
   const rows = data ?? [];
   const personIds = [...new Set(rows.map((row) => kind === "received" ? row.sender_id : row.recipient_id))];
   const { data: profiles, error: profileError } = personIds.length
-    ? await supabase.from("profiles").select("id,display_name,photo_url").in("id", personIds)
+    ? await supabase.from("profiles").select("id,display_name,photo_url,location").in("id", personIds)
     : { data: [], error: null };
   if (profileError) throw profileError;
   const people = new Map((await signMembers(profiles ?? [])).map((person) => [person.id, person]));
