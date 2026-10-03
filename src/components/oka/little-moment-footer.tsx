@@ -8,7 +8,7 @@ function pickMoment(): { moment: Moment; stain: { left: string; top: string } } 
   let last: string | null = null;
   try { last = sessionStorage.getItem(KEY); } catch { /* ignore */ }
   const pool = MOMENTS.length > 1 ? MOMENTS.filter((m) => m.id !== last) : MOMENTS;
-  const moment = pool[Math.floor(Math.random() * pool.length)];
+  const moment = pool[Math.floor(Math.random() * pool.length)] ?? MOMENTS[0]!;
   try { sessionStorage.setItem(KEY, moment.id); } catch { /* ignore */ }
   return { moment, stain: { left: `${Math.round(Math.random() * 80)}%`, top: `${Math.round(Math.random() * 70)}%` } };
 }
@@ -33,7 +33,7 @@ export function LittleMomentFooter() {
     if (reduced) { setAnimate(false); setVisible(true); return; }
     const el = ref.current;
     if (!el) return;
-    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setVisible(true); io.disconnect(); } }, { threshold: 0.3 });
+    const io = new IntersectionObserver(([e]) => { if (e?.isIntersecting) { setVisible(true); io.disconnect(); } }, { threshold: 0.3 });
     io.observe(el);
     return () => io.disconnect();
   }, []);
