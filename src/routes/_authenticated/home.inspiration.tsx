@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
 
-import { Postcard, SPACE_ART, SpaceShell, pillOutline, pillPrimary, pillSecondary } from "@/components/oka/postcard";
+import { CollectionButton, Postcard, SPACE_ART, SpaceShell, pillOutline, pillSecondary } from "@/components/oka/postcard";
 import { cardKey, useFavorites } from "@/hooks/use-favorites";
 import { INSPIRATION_QUOTES } from "@/lib/home-content";
 import { cn } from "@/lib/utils";
@@ -68,7 +68,7 @@ function InspirationPage() {
         </Postcard>
       </div>
       <div className="flex w-full flex-col items-stretch justify-center gap-3 md:flex-row md:items-center">
-        <button type="button" className={pillPrimary} aria-pressed={pinned} onClick={() => toggle("inspiration", ref, { text: item.quote, author: item.author })}>{pinned ? "Pinned to your wall" : "Pin to my wall"}</button>
+        <CollectionButton saved={pinned} onClick={() => toggle("inspiration", ref, { text: item.quote, author: item.author })} />
         <button type="button" className={pillSecondary} onClick={draw}>Draw another card</button>
         <button type="button" className={pillOutline} onClick={() => void share()}>Send to a friend</button>
       </div>

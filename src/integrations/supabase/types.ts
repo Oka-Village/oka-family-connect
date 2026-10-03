@@ -580,6 +580,38 @@ export type Database = {
         }
         Relationships: []
       }
+      reflections: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          member_id: string
+          question_text: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          member_id?: string
+          question_text: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          member_id?: string
+          question_text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reflections_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       skill_session_requests: {
         Row: {
           completed_at: string | null
