@@ -742,7 +742,12 @@ export type Database = {
       }
       is_event_manager: { Args: { _event_id: string }; Returns: boolean }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
-      mark_letter_read: { Args: { _letter_id: string }; Returns: string }
+      mark_letter_read:
+        | { Args: { _letter_id: string }; Returns: string }
+        | {
+            Args: { _letter_id: string; _recipient_id: string }
+            Returns: string
+          }
       my_credit_history: {
         Args: { _before_created?: string; _before_id?: string; _limit?: number }
         Returns: {
