@@ -227,6 +227,10 @@
 .dealt-card-0:hover { transform: translateY(-6px) rotate(-11deg); }
 .dealt-card-2:hover { transform: translateY(-6px) rotate(11deg); }
 .dealt-stage.is-dealing .dealt-card { opacity: 0; transform: translateY(40px) scale(.96); }
+.dealt-count-1 .dealt-card-0 { left: 160px; top: 6px; width: 240px; height: 350px; transform: none; z-index: 3; cursor: default; box-shadow: var(--shadow-featured); }
+.dealt-count-1 .dealt-card-0:hover { transform: none; }
+.dealt-count-2 .dealt-card-0 { left: 78px; top: 28px; transform: rotate(-7deg); }
+.dealt-count-2 .dealt-card-1 { left: 258px; }
 .discovery-card { transition: transform 300ms ease, box-shadow 300ms ease; }
 .discovery-card:hover { transform: rotate(-1.5deg) translateY(-4px); box-shadow: var(--shadow-card); }
 
@@ -240,6 +244,9 @@
   .dealt-card-0 { left: 2px; top: 30px; }
   .dealt-card-1 { left: 80px; top: 5px; width: 180px; height: 260px; }
   .dealt-card-2 { left: 168px; top: 30px; }
+  .dealt-count-1 .dealt-card-0 { left: 80px; width: 180px; height: 260px; }
+  .dealt-count-2 .dealt-card-0 { left: 20px; }
+  .dealt-count-2 .dealt-card-1 { left: 140px; }
 }
 
 @utility shadow-fire {

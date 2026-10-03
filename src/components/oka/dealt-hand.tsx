@@ -23,6 +23,7 @@ export function DealtHand<T>({ items, itemKey, label, title, description, second
     if (!items.length) return [];
     return Array.from({ length: Math.min(3, items.length) }, (_, i) => items[(offset + i) % items.length]).filter(Boolean) as T[];
   }, [items, offset]);
+  const frontIndex = Math.min(1, picks.length - 1);
 
   function shuffle(step = 3) {
     if (items.length < 2 || dealing) return;
@@ -53,7 +54,7 @@ export function DealtHand<T>({ items, itemKey, label, title, description, second
       </div>
 
       <div
-        className={cn("dealt-stage", dealing && "is-dealing")}
+        className={cn("dealt-stage", `dealt-count-${picks.length}`, dealing && "is-dealing")}
         onTouchStart={(event) => { touchStart.current = event.touches[0]?.clientX ?? null; }}
         onTouchEnd={(event) => {
           const end = event.changedTouches[0]?.clientX;
@@ -65,12 +66,12 @@ export function DealtHand<T>({ items, itemKey, label, title, description, second
           <div
             key={`${itemKey(item)}-${offset}`}
             className={cn("dealt-card", `dealt-card-${index}`)}
-            role={index === 1 ? undefined : "button"}
-            tabIndex={index === 1 ? undefined : 0}
+            role={index === frontIndex ? undefined : "button"}
+            tabIndex={index === frontIndex ? undefined : 0}
             onClick={() => promote(index)}
             onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") promote(index); }}
           >
-            {renderCard(item, index === 1)}
+            {renderCard(item, index === frontIndex)}
           </div>
         ))}
       </div>

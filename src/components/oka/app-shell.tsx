@@ -116,7 +116,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               to={item.to}
               className={cn("flex flex-1 flex-col items-center gap-1 px-1 py-2 text-[0.625rem] transition-colors", active ? "text-primary" : "text-muted-foreground")}
             >
-              <item.icon className="size-5 text-primary" strokeWidth={1.5} />
+              <item.icon className={cn("size-5", active && "text-primary")} strokeWidth={1.5} />
               {item.label}
             </Link>
           );
