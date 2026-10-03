@@ -88,10 +88,10 @@ function HomePage() {
             type="button"
             onClick={() => open(card.id)}
             aria-label={`Open ${card.title}${card.id === "appreciation" && unreadCount ? `, ${unreadCount} unread` : ""}`}
-            className={cn("group w-[92%] text-left focus-visible:outline-none md:w-[340px] md:min-w-0 md:shrink", i > 0 && "max-md:-mt-6", flipping && flipping !== card.id && "postcard-fade-out", flipping === card.id && "postcard-flip-out")}
+            className={cn("group w-[92%] text-left focus-visible:outline-none md:w-[340px] md:min-w-0 md:shrink", i > 0 && "max-md:-mt-5", flipping && flipping !== card.id && "postcard-fade-out", flipping === card.id && "postcard-flip-out")}
             style={{ transition: "opacity 300ms ease-out", zIndex: flipping === card.id ? 10 : undefined }}
           >
-            <Postcard rotate={card.rotate} translateY={card.ty} tape={card.tape} tapeRotate={card.tapeRotate} className="postcard-lift px-3.5 pb-7 pt-3.5 group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-4" style={card.id === "inspiration" ? { boxShadow: "0 22px 46px rgb(55 44 36 / .18)" } : undefined}>
+            <Postcard rotate={card.rotate} translateY={card.ty} tape={card.tape} tapeRotate={card.tapeRotate} className="postcard-lift px-3.5 pb-7 pt-3.5 max-md:pb-16 group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-4" style={card.id === "inspiration" ? { boxShadow: "0 22px 46px rgb(55 44 36 / .18)" } : undefined}>
               <div className="h-[216px] bg-postcard-inner"><img src={SPACE_ART[card.id]} alt="" className="size-full object-contain" /></div>
               <div className="flex flex-col gap-2 px-2 pt-5">
                 <span className="font-serif text-[38px] leading-none text-foreground">{card.title}</span>
