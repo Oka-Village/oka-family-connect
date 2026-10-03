@@ -13,3 +13,4 @@
 - The four discovery pages share the reusable dealt-hand pattern; keep recommendation presentation client-side so visual shuffling never changes backend rules.
 - Appreciation read receipts must go through the authenticated server function and its service-only database function; never add a broad member update policy.
 - Appreciation send motion uses one requestAnimationFrame timeline; keep persistence immediate and independent from decorative playback.
+- Home spaces live at /home/reflection, /home/inspiration, /home/appreciation and share the Postcard pieces in postcard.tsx; old /home?space= links redirect there, and kept/pinned cards reuse favorites rather than new tables.

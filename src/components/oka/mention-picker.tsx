@@ -27,14 +27,14 @@ export function MentionPicker({ query, currentUserId, onSelect, onClose }: { que
   }, [active, members.data, onClose, onSelect]);
 
   return (
-    <div ref={listRef} role="listbox" aria-label="Choose a community member" className="relative z-30 mt-2 max-h-72 overflow-y-auto rounded-2xl border border-border bg-popover p-2 shadow-card">
+    <div ref={listRef} role="listbox" aria-label="Choose a community member" className="relative z-30 mt-2 max-h-72 overflow-y-auto border border-postcard-rule bg-postcard p-2 font-sans not-italic leading-normal shadow-card">
       <div className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground"><Search className="size-4 text-primary" strokeWidth={1.5} />{query ? `Searching “${query}”` : "Choose someone"}</div>
       {members.isLoading ? <div className="space-y-2 p-2"><Skeleton className="h-12" /><Skeleton className="h-12" /></div>
         : members.isError ? <p className="px-3 py-4 text-sm text-muted-foreground">Members couldn't load. Try typing again.</p>
         : members.data?.length ? members.data.map((member, index) => (
           <button key={member.id} type="button" role="option" aria-selected={index === active} onMouseEnter={() => setActive(index)} onClick={() => onSelect(member)} className={cn("flex min-h-12 w-full items-center gap-3 rounded-xl px-3 py-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", index === active && "bg-accent")}>
             <MemberAvatar src={member.photo} name={member.display_name} className="size-9" />
-            <span className="font-medium text-foreground">{member.display_name}</span>
+            <span className="flex flex-col"><span className="font-medium text-foreground">{member.display_name}</span>{member.location && <span className="text-xs text-postcard-label">{member.location}</span>}</span>
           </button>
         )) : <p className="px-3 py-4 text-sm text-muted-foreground">No members match that name yet.</p>}
     </div>

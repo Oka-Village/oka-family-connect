@@ -2,15 +2,15 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Send, X } from "lucide-react";
 import { AppreciationSendAnimation } from "@/components/oka/appreciation-send-animation";
 import { MentionPicker } from "@/components/oka/mention-picker";
-import { MemberAvatar } from "@/components/oka/profile-sections";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { AddressSide, Postcard, PostcardBack, pillPrimary } from "@/components/oka/postcard";
 import { sendAppreciation, type MentionMember } from "@/lib/appreciation";
 
 const SAMPLE_RECIPIENT: MentionMember = { id: "preview", display_name: "Maya Cohen", photo_url: null, photo: null };
 const SAMPLE_NOTE = "Thank you for sitting with me through that hard week.";
 
-export function AppreciationComposer({ currentUserId, senderFirstName, onSent }: { currentUserId: string; senderFirstName: string; onSent: () => Promise<void> | void }) {
+type Props = { currentUserId: string; senderFirstName: string; senderCity?: string | null | undefined; waitingCount: number; onOpenLetterbox: () => void; onSent: () => Promise<void> | void };
+
+export function AppreciationComposer({ currentUserId, senderFirstName, senderCity, waitingCount, onOpenLetterbox, onSent }: Props) {
   const [body, setBody] = useState("");
   const [recipient, setRecipient] = useState<MentionMember | null>(null);
   const [mentionQuery, setMentionQuery] = useState("");
@@ -49,7 +49,7 @@ export function AppreciationComposer({ currentUserId, senderFirstName, onSent }:
     const observer = new ResizeObserver(resize);
     observer.observe(host);
     return () => observer.disconnect();
-  }, []);
+  }, [time > 0]);
 
   useEffect(() => {
     if (devMode.frozen !== null || (!demoRun && time <= 0)) return;
@@ -107,27 +107,46 @@ export function AppreciationComposer({ currentUserId, senderFirstName, onSent }:
   function replay() { setTime(0.001); setDemoRun((value) => value + 1); }
   const activeRecipient = time > 0 ? payloadRef.current.recipient : recipient;
   const activeBody = time > 0 ? payloadRef.current.body : body;
-  const formProgress = Math.max(0, Math.min(1, time / 450));
-  const formEase = formProgress < 0.5 ? 4 * Math.pow(formProgress, 3) : 1 - Math.pow(-2 * formProgress + 2, 3) / 2;
-  const formOpacity = time > 0 ? 1 - formEase : 1;
+
+  const recipientFirst = recipient?.display_name.split(/\s+/)[0];
+
+  if (time > 0 && activeRecipient) {
+    return (
+      <div ref={stageHostRef} className="relative mx-auto w-full max-w-[700px]" style={{ height: 740 * scale }}>
+        <div className="absolute left-0 top-0 h-[740px] w-[700px] origin-top-left overflow-hidden bg-postcard shadow-[var(--postcard-shadow-big)]" style={{ transform: `scale(${scale})` }}>
+          <span className="postcard-grain" aria-hidden />
+          <AppreciationSendAnimation t={time} recipientFullName={activeRecipient.display_name} recipientFirstName={activeRecipient.display_name.split(/\s+/)[0] ?? activeRecipient.display_name} senderFirstName={senderFirstName} body={activeBody} failed={failed} onReset={reset} onRetry={() => void send()} demo={devMode.demo} onReplay={replay} />
+          <span className="sr-only" aria-live="polite">Your appreciation is on its way</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div ref={stageHostRef} className="relative w-full" style={{ height: 740 * scale }}>
-      <div className="absolute left-0 top-0 h-[740px] w-[700px] origin-top-left overflow-hidden rounded-[40px] border border-appreciation-card-border bg-card shadow-appreciation" style={{ transform: `scale(${scale})` }}>
-        <div className="absolute inset-0" style={{ opacity: formOpacity }}>
-          <p className="section-label absolute left-[52px] top-[62px] text-[13px]">From the heart</p>
-          <h3 className="absolute left-[52px] top-[90px] font-serif text-[52px] leading-none text-foreground">A note of appreciation</h3>
-          <div className="absolute left-[52px] top-[190px] h-[300px] w-[596px] rounded-[28px] border border-sand bg-background px-8 py-7">
-            {recipient && <div className="mb-2 flex w-fit items-center gap-2 rounded-full bg-secondary px-3 py-1.5 text-sm text-secondary-foreground"><MemberAvatar src={recipient.photo} name={recipient.display_name} className="size-6" /><span>@{recipient.display_name}</span><button type="button" aria-label={`Remove ${recipient.display_name}`} disabled={time > 0} onClick={() => setRecipient(null)} className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><X className="size-3.5" /></button></div>}
-            <Textarea ref={textareaRef} value={body} maxLength={280} disabled={time > 0} onChange={(event) => handleText(event.target.value)} placeholder="Write a few words of thanks to someone in the community. Type @ to choose who it's for, then send it on its way." className="h-[210px] min-h-0 resize-none border-0 bg-transparent p-0 text-[17px] leading-[1.6] shadow-none focus-visible:ring-0" aria-invalid={Boolean(error)} />
-            {pickerOpen && time === 0 && <MentionPicker query={mentionQuery} currentUserId={currentUserId} onSelect={selectRecipient} onClose={() => setPickerOpen(false)} />}
-          </div>
-          <span className="absolute left-[52px] top-[518px] text-[17px] text-muted-foreground" aria-live="polite">{body.length}/280</span>
-          <Button className="absolute right-[52px] top-[500px] h-[60px] rounded-full px-[30px] text-lg font-medium disabled:bg-primary-disabled disabled:text-primary-foreground" disabled={devMode.frozen !== null || time > 0 || !recipient || !body.trim()} onClick={() => void send()}><Send className="size-[22px]" strokeWidth={1.5} />Send</Button>
-          {error && <p role="alert" className="absolute left-[52px] top-[570px] text-sm text-destructive">{error}</p>}
-        </div>
-        {time > 0 && activeRecipient && <AppreciationSendAnimation t={time} recipientFullName={activeRecipient.display_name} recipientFirstName={activeRecipient.display_name.split(/\s+/)[0] ?? activeRecipient.display_name} senderFirstName={senderFirstName} body={activeBody} failed={failed} onReset={reset} onRetry={() => void send()} demo={devMode.demo} onReplay={replay} />}
-        <span className="sr-only" aria-live="polite">{time > 0 ? "Your appreciation is on its way" : ""}</span>
+    <div ref={stageHostRef} className="flex flex-col gap-9">
+      <div className="postcard-scene">
+        <Postcard rotate={-0.4} className="postcard-arrive max-md:[--r:-0.3deg]" style={{ boxShadow: "var(--postcard-shadow-big)" }}>
+          <PostcardBack
+            message={<>
+              <p className="section-label text-[11px] text-postcard-label">A note of appreciation</p>
+              <div className="postcard-ruled relative mt-4 flex min-h-[252px] flex-1 flex-col font-serif text-[22px] italic md:text-[24px]">
+                <p className="text-foreground">Dear {recipientFirst ?? "…"},</p>
+                <textarea ref={textareaRef} value={body} maxLength={280} onChange={(event) => handleText(event.target.value)} placeholder="Type @ to choose who it's for, then a few words of thanks…" aria-label="Your note of appreciation" aria-invalid={Boolean(error)} className="min-h-[168px] w-full flex-1 resize-none border-0 bg-transparent p-0 leading-[42px] text-foreground placeholder:text-postcard-label focus:outline-none" />
+                {pickerOpen && <div className="absolute inset-x-0 top-[84px]"><MentionPicker query={mentionQuery} currentUserId={currentUserId} onSelect={selectRecipient} onClose={() => setPickerOpen(false)} /></div>}
+              </div>
+              <div className="mt-3 flex items-center justify-between gap-3 font-sans text-[13px] not-italic text-muted-foreground">
+                <span aria-live="polite">{body.length}/280</span>
+                {recipient && <button type="button" onClick={() => setRecipient(null)} className="inline-flex items-center gap-1 text-postcard-label hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label={`Remove ${recipient.display_name}`}><X className="size-3.5" />Change recipient</button>}
+              </div>
+              {error && <p role="alert" className="mt-2 text-sm text-destructive">{error}</p>}
+            </>}
+            address={<AddressSide space="appreciation" postmark={{ top: senderCity || "Oka", bottom: "By dove" }} lines={[recipient ? `To: ${recipient.display_name}` : "To:", recipient?.location ?? ""]} />}
+          />
+        </Postcard>
+      </div>
+      <div className="flex flex-col items-stretch justify-center gap-3 md:flex-row md:items-center">
+        <button type="button" className={pillPrimary} disabled={devMode.frozen !== null || !recipient || !body.trim()} onClick={() => void send()}><Send className="size-4" strokeWidth={1.5} />Send the card</button>
+        {waitingCount > 0 && <button type="button" onClick={onOpenLetterbox} className="text-center text-[13px] text-muted-foreground underline-offset-4 hover:underline">{waitingCount} {waitingCount === 1 ? "card is" : "cards are"} waiting for you in your letterbox</button>}
       </div>
     </div>
   );

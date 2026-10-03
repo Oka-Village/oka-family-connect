@@ -44,6 +44,7 @@ export const REFLECTION_QUESTIONS = [
 ] as const;
 
 export const INSPIRATION_QUOTES = [
+  { quote: "If you want to go fast, go alone. If you want to go far, go together.", author: "African proverb" },
   { quote: "The wound is the place where the Light enters you.", author: "Rumi" },
   { quote: "No act of kindness, no matter how small, is ever wasted.", author: "Aesop" },
   { quote: "The only way out is through.", author: "Robert Frost" },
