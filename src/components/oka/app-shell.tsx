@@ -10,7 +10,6 @@ import { useIsStaff } from "@/hooks/use-is-admin";
 import { supabase } from "@/integrations/supabase/client";
 import { useClaimInvite } from "@/lib/affiliates";
 import { cn } from "@/lib/utils";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { CreditPill } from "@/components/oka/credit-pill";
 
 const NAV_ITEMS = [
@@ -75,20 +74,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </nav>
         <div className="ml-auto flex items-center gap-4">
           <CreditPill />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="secondary" size="icon" className="rounded-full" aria-label="Open account menu">
+          <details className="group relative">
+            <Button asChild variant="secondary" size="icon" className="rounded-full">
+              <summary aria-label="Open account menu" className="list-none [&::-webkit-details-marker]:hidden">
                 <span className="font-serif text-lg">{profile?.display_name?.trim().charAt(0).toUpperCase() || <Menu className="size-4" />}</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2">
-              <DropdownMenuLabel className="font-normal text-muted-foreground">{profile?.display_name ?? "Your Oka"}</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {items.slice(4).map((item) => <DropdownMenuItem key={item.to} asChild className="rounded-xl"><Link to={item.to}><item.icon className="text-primary" strokeWidth={1.5} />{item.label}</Link></DropdownMenuItem>)}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="rounded-xl" onSelect={() => void handleSignOut()}><LogOut className="text-primary" strokeWidth={1.5} />Sign out</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              </summary>
+            </Button>
+            <div className="absolute right-0 top-12 z-50 hidden w-56 rounded-2xl border border-border bg-popover p-2 text-popover-foreground shadow-card group-open:block">
+              <p className="px-3 py-2 text-sm text-muted-foreground">{profile?.display_name ?? "Your Oka"}</p>
+              <div className="my-1 h-px bg-border" />
+              {items.slice(4).map((item) => (
+                <Link key={item.to} to={item.to} className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm hover:bg-accent">
+                  <item.icon className="size-4 text-primary" strokeWidth={1.5} />{item.label}
+                </Link>
+              ))}
+              <div className="my-1 h-px bg-border" />
+              <Button variant="ghost" className="w-full justify-start rounded-xl px-3" onClick={handleSignOut}><LogOut className="text-primary" strokeWidth={1.5} />Sign out</Button>
+            </div>
+          </details>
         </div>
       </header>
 
