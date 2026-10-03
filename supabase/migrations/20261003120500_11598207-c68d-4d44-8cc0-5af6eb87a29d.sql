@@ -1,0 +1,1 @@
+DROP FUNCTION public.mark_letter_read(uuid);

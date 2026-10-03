@@ -50,9 +50,9 @@ function MemberPage() {
   if (!d?.profile) {
     return (
       <div className="mx-auto max-w-xl px-6 py-24 text-center">
-        <p className="section-label">Directory</p>
+        <p className="section-label">Members</p>
         <h1 className="mt-4 text-3xl">We couldn't find this member</h1>
-        <Link to="/directory" className="mt-6 inline-block text-primary">Back to the directory</Link>
+        <Link to="/directory" className="mt-6 inline-block text-primary">Back to members</Link>
       </div>
     );
   }
@@ -61,7 +61,7 @@ function MemberPage() {
   return (
     <div className="mx-auto max-w-3xl px-6 py-12 lg:py-16">
       <Link to="/directory" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="size-4 text-primary" strokeWidth={1.5} /> Directory
+        <ArrowLeft className="size-4 text-primary" strokeWidth={1.5} /> Members
       </Link>
       <div className="mt-8 flex flex-wrap items-center gap-6">
         <MemberAvatar src={d.photo} name={p.display_name} className="size-28" />

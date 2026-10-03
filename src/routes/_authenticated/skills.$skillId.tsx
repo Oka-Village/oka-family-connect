@@ -69,7 +69,7 @@ function SkillDetail() {
         <ArrowLeft className="size-4 text-primary" strokeWidth={1.5} /> All skills
       </Link>
       {skill.status !== "published" && (
-        <div className="mt-6 rounded-2xl bg-golden/25 px-5 py-3 text-sm text-foreground">This offering is archived and hidden from the skills directory.</div>
+        <div className="mt-6 rounded-2xl bg-golden/25 px-5 py-3 text-sm text-foreground">This offering is archived and hidden from the skills list.</div>
       )}
       <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_340px]">
         <div>
