@@ -384,6 +384,33 @@ export type Database = {
           },
         ]
       }
+      favorites: {
+        Row: {
+          created_at: string
+          id: string
+          item_ref: string
+          item_type: string
+          snapshot: Json | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_ref: string
+          item_type: string
+          snapshot?: Json | null
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_ref?: string
+          item_type?: string
+          snapshot?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       houses: {
         Row: {
           created_at: string
