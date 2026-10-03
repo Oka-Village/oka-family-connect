@@ -1,11 +1,13 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { CalendarDays, Coins, Gift, Home, LogOut, Menu, ShieldCheck, Sparkles, User, Users } from "lucide-react";
 
 import { Wordmark } from "@/components/oka/wordmark";
 import { Button } from "@/components/ui/button";
-import { useProfile } from "@/hooks/use-profile";
+import { MemberAvatar } from "@/components/oka/profile-sections";
+import { resolvePhotoUrl, useProfile } from "@/hooks/use-profile";
 import { useIsStaff } from "@/hooks/use-is-admin";
 import { supabase } from "@/integrations/supabase/client";
 import { useClaimInvite } from "@/lib/affiliates";
@@ -32,6 +34,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { data: profile, isLoading } = useProfile();
   useClaimInvite(Boolean(profile));
   const { data: isAdmin } = useIsStaff();
+  const photoQuery = useQuery({
+    queryKey: ["profile-photo", profile?.photo_url ?? null],
+    queryFn: () => resolvePhotoUrl(profile?.photo_url ?? null),
+    enabled: Boolean(profile?.photo_url),
+    staleTime: 60_000,
+  });
+  const photo = photoQuery.data ?? null;
   const items = isAdmin
     ? [...NAV_ITEMS, { to: "/admin", label: "Admin", icon: ShieldCheck } as const]
     : NAV_ITEMS;
@@ -77,7 +86,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <details className="group relative">
             <Button asChild variant="secondary" size="icon" className="rounded-full">
               <summary aria-label="Open account menu" className="list-none [&::-webkit-details-marker]:hidden">
-                <span className="font-serif text-lg">{profile?.display_name?.trim().charAt(0).toUpperCase() || <Menu className="size-4" />}</span>
+                {photo ? (
+                  <MemberAvatar src={photo} name={profile?.display_name} className="size-9" />
+                ) : (
+                  <span className="font-serif text-lg">{profile?.display_name?.trim().charAt(0).toUpperCase() || <Menu className="size-4" />}</span>
+                )}
               </summary>
             </Button>
             <div className="absolute right-0 top-12 z-50 hidden w-56 rounded-2xl border border-border bg-popover p-2 text-popover-foreground shadow-card group-open:block">
