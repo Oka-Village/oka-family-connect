@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useProfile } from "@/hooks/use-profile";
 
 // t / demo are read by the composer's preview-only replay tools.
-const searchSchema = z.object({ t: fallback(z.string().optional(), undefined), demo: fallback(z.string().optional(), undefined) });
+const searchSchema = z.object({ t: fallback(z.union([z.number(), z.string()]).optional(), undefined), demo: fallback(z.string().optional(), undefined) });
 
 export const Route = createFileRoute("/_authenticated/home/appreciation")({
   validateSearch: zodValidator(searchSchema),

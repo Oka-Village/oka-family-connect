@@ -435,3 +435,48 @@
 }
 @keyframes favorite-fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes favorite-fade-out { to { opacity: 0; } }
+
+/* ---------- Postcards (Home & spaces) ---------- */
+.postcard {
+  position: relative;
+  background: var(--postcard-paper);
+  box-shadow: var(--postcard-shadow);
+  transform: rotate(var(--r, 0deg)) translateY(var(--ty, 0px));
+  transition: transform 400ms ease-out, box-shadow 400ms ease-out, opacity 300ms ease-out;
+}
+.postcard-grain {
+  position: absolute; inset: 0; overflow: hidden; pointer-events: none;
+  mix-blend-mode: multiply; background: url(/home/paper-texture.svg) center/cover;
+}
+.postcard-tape {
+  position: absolute; top: -13px; left: 50%; width: 96px; height: 28px; margin-left: -48px;
+  transform: rotate(var(--tape-r, 3deg)); z-index: 2;
+}
+@media (hover: hover) and (min-width: 768px) {
+  .postcard-lift:hover, .group:focus-visible .postcard-lift {
+    transform: rotate(calc(var(--r, 0deg) * 0.25)) translateY(calc(var(--ty, 0px) - 6px));
+    box-shadow: var(--postcard-shadow-lift);
+  }
+}
+.postcard-ruled {
+  background: repeating-linear-gradient(transparent 0 41px, var(--postcard-ink-line) 41px 42px);
+  line-height: 42px;
+}
+.postcard-scene { perspective: 1600px; }
+.postcard-flip-out { animation: postcard-flip-out 350ms cubic-bezier(.2,.8,.2,1) forwards; }
+.postcard-fade-out { opacity: 0 !important; }
+.postcard-arrive { animation: postcard-arrive 450ms cubic-bezier(.2,.8,.2,1) both; }
+.postcard-settle { animation: postcard-settle 400ms ease-out both; }
+@keyframes postcard-flip-out { to { transform: rotateY(90deg) scale(1.04); opacity: 0.6; } }
+@keyframes postcard-arrive {
+  from { transform: rotate(var(--r, 0deg)) rotateY(-90deg); opacity: 0.6; }
+  to { transform: rotate(var(--r, 0deg)) rotateY(0deg); opacity: 1; }
+}
+@keyframes postcard-settle { from { opacity: 0; } to { opacity: 1; } }
+@keyframes postcard-fade { to { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .postcard { transition: opacity 250ms linear; }
+  .postcard-flip-out { animation: postcard-fade 250ms linear forwards; }
+  .postcard-arrive, .postcard-settle { animation: postcard-settle 250ms linear both; }
+}
+.pill { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; border-radius: 9999px; padding: 13px 28px; font-size: 14px; line-height: 1.2; white-space: nowrap; transition: background-color 200ms, opacity 200ms; }

@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 
 const spaceSchema = z.object({
   space: fallback(z.enum(["reflection", "inspiration", "appreciation"]).optional(), undefined),
-  t: fallback(z.string().optional(), undefined),
+  t: fallback(z.union([z.number(), z.string()]).optional(), undefined),
   demo: fallback(z.string().optional(), undefined),
 });
 
@@ -70,7 +70,7 @@ function HomePage() {
   }
 
   return (
-    <div className="postcard-settle mx-auto flex max-w-[1280px] flex-col gap-12 px-5 pb-20 pt-12 md:gap-16 md:px-12 md:pt-[84px] lg:px-24">
+    <div className="postcard-settle mx-auto flex max-w-[1280px] flex-col gap-12 px-5 pb-20 pt-12 md:gap-16 md:px-10 md:pt-[84px] xl:px-24">
       <header className="grid items-end gap-6 md:grid-cols-[1fr_auto]">
         <div>
           <p className="section-label">Your place in Oka</p>
@@ -81,7 +81,7 @@ function HomePage() {
         <p className="font-serif text-xl italic text-postcard-label md:text-right">Three cards arrived<br />this morning.</p>
       </header>
 
-      <div className="postcard-scene flex flex-col items-center pb-5 pt-2.5 md:flex-row md:flex-wrap md:justify-center md:gap-11">
+      <div className="postcard-scene flex flex-col items-center pb-5 pt-2.5 md:flex-row md:flex-wrap md:justify-center md:gap-8 xl:gap-11">
         {CARDS.map((card, i) => (
           <button
             key={card.id}
