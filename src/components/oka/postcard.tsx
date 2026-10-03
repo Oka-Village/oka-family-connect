@@ -13,8 +13,6 @@ export const SPACE_ART: Record<SpaceId, string> = {
   appreciation: "/home/appreciation.svg",
 };
 
-const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
-export const postmarkDate = (d = new Date()) => `${d.getDate()} · ${ROMAN[d.getMonth()]}`;
 export const longDate = (d = new Date()) => d.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" }).replace(",", "");
 
 /** Paper card with grain and washi tape. Square corners, slight rotation. */
@@ -32,9 +30,8 @@ export function Postcard({ rotate = 0, translateY = 0, tape, tapeRotate = 3, cla
 
 export function Postmark({ top, bottom }: { top: string; bottom: string }) {
   return (
-    <div className="flex size-[124px] shrink-0 -rotate-[10deg] flex-col items-center justify-center rounded-full border-[1.5px] border-postcard-rule text-center" aria-hidden>
+    <div className="flex size-[124px] shrink-0 -rotate-[10deg] flex-col items-center justify-center gap-1.5 rounded-full border-[1.5px] border-postcard-rule text-center" aria-hidden>
       <span className="max-w-[96px] truncate text-[10px] uppercase tracking-[0.2em] text-postcard-label">{top}</span>
-      <span className="font-serif text-[26px] leading-tight text-foreground">{postmarkDate()}</span>
       <span className="text-[10px] uppercase tracking-[0.2em] text-postcard-label">{bottom}</span>
     </div>
   );
