@@ -39,7 +39,7 @@ export function useFavorites() {
   const isFavorite = useCallback((type: FavoriteType, ref: string) => set.has(`${type}:${ref}`), [set]);
 
   const mutation = useMutation({
-    mutationFn: async ({ type, ref, snapshot, remove }: { type: FavoriteType; ref: string; snapshot?: FavoriteSnapshot; remove: boolean }) => {
+    mutationFn: async ({ type, ref, snapshot, remove }: { type: FavoriteType; ref: string; snapshot?: FavoriteSnapshot | undefined; remove: boolean }) => {
       if (remove) {
         const { error } = await supabase.from("favorites").delete().eq("item_type", type).eq("item_ref", ref);
         if (error) throw error;
