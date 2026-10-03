@@ -2,7 +2,7 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { CalendarDays, Coins, Gift, Home, LogOut, Menu, ShieldCheck, Sparkles, User, Users } from "lucide-react";
+import { CalendarDays, Coins, Gift, Heart, Home, LogOut, Menu, ShieldCheck, Sparkles, User, Users } from "lucide-react";
 
 import { Wordmark } from "@/components/oka/wordmark";
 import { Button } from "@/components/ui/button";
@@ -15,8 +15,9 @@ import { cn } from "@/lib/utils";
 import { CreditPill } from "@/components/oka/credit-pill";
 
 const NAV_ITEMS = [
+  { to: "/home", label: "Home", icon: Heart },
   { to: "/events", label: "Events", icon: CalendarDays },
-  { to: "/directory", label: "Directory", icon: Users },
+  { to: "/directory", label: "Members", icon: Users },
   { to: "/skills", label: "Skills", icon: Sparkles },
   { to: "/houses", label: "Houses", icon: Home },
   { to: "/profile", label: "My Profile", icon: User },
@@ -24,7 +25,7 @@ const NAV_ITEMS = [
   { to: "/affiliate", label: "Invite & earn", icon: Gift },
 ] as const;
 
-const PRIMARY_ITEMS = NAV_ITEMS.slice(0, 4);
+const PRIMARY_ITEMS = NAV_ITEMS.slice(0, 5);
 
 /** Desktop left sidebar, mobile bottom tab bar. */
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -63,7 +64,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-canvas p-0 lg:p-3">
       <div className="min-h-screen bg-background lg:min-h-[calc(100vh-1.5rem)] lg:rounded-2xl lg:border lg:border-border">
       <header className="sticky top-0 z-30 hidden items-center gap-8 border-b border-border bg-background/95 px-8 py-5 backdrop-blur lg:flex xl:px-14">
-        <Link to="/events"><Wordmark /></Link>
+        <Link to="/home" aria-label="Oka home"><Wordmark /></Link>
         <nav className="flex rounded-full bg-cream-deep p-1">
           {PRIMARY_ITEMS.map((item) => {
             const active = pathname.startsWith(item.to);
@@ -96,7 +97,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <div className="absolute right-0 top-12 z-50 hidden w-56 rounded-2xl border border-border bg-popover p-2 text-popover-foreground shadow-card group-open:block">
               <p className="px-3 py-2 text-sm text-muted-foreground">{profile?.display_name ?? "Your Oka"}</p>
               <div className="my-1 h-px bg-border" />
-              {items.slice(4).map((item) => (
+              {items.slice(5).map((item) => (
                 <Link key={item.to} to={item.to} className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm hover:bg-accent">
                   <item.icon className="size-4 text-primary" strokeWidth={1.5} />{item.label}
                 </Link>
@@ -109,7 +110,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </header>
 
       <header className="flex items-center justify-between border-b border-border px-6 py-4 lg:hidden">
-        <Wordmark className="text-2xl" />
+        <Link to="/home" aria-label="Oka home"><Wordmark className="text-2xl" /></Link>
         <Button
           variant="ghost"
           size="icon"
@@ -124,7 +125,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <main className="pb-28">{children}</main>
 
       <nav className="fixed inset-x-0 bottom-0 z-10 flex justify-between border-t border-border bg-sidebar px-2 py-2 lg:hidden">
-        {[...PRIMARY_ITEMS, { to: "/profile", label: "You", icon: User } as const].map((item) => {
+        {PRIMARY_ITEMS.map((item) => {
           const active = pathname.startsWith(item.to);
           return (
             <Link

@@ -60,7 +60,7 @@ function Landing() {
       if (active && data.session) {
         const back = takeReturnTo();
         if (back) window.location.replace(back);
-        else navigate({ to: "/events", replace: true });
+        else navigate({ to: "/home", replace: true });
       }
     });
     return () => {
@@ -81,7 +81,7 @@ function Landing() {
     }
     if (result.redirected) return;
 
-    navigate({ to: "/events", replace: true });
+    navigate({ to: "/home", replace: true });
   }
 
   return (

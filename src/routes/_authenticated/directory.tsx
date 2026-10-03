@@ -25,9 +25,9 @@ export const Route = createFileRoute("/_authenticated/directory")({
   validateSearch: zodValidator(searchSchema),
   head: () => ({
     meta: [
-      { title: "Directory — Oka" },
+      { title: "Members — Oka" },
       { name: "description", content: "Meet the people of the Oka family." },
-      { property: "og:title", content: "Directory — Oka" },
+      { property: "og:title", content: "Members — Oka" },
       { property: "og:description", content: "Meet the people of the Oka family." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -73,7 +73,7 @@ function DirectoryPage() {
 
   return (
     <div className="mx-auto max-w-[1180px] px-6 py-6 lg:px-10 lg:py-8">
-      {members.length > 0 && <DealtHand items={members} itemKey={(m) => m.id} label="Directory · dealt for you" title={<>Three people<br />to meet today</>} description="Chosen from shared intentions, places and the connections growing around you." secondaryAction={<Button variant="secondary" className="rounded-full px-6" onClick={() => document.getElementById("directory-search")?.focus()}><Search strokeWidth={1.5} />Search everyone</Button>} renderCard={fanCard} />}
+      {members.length > 0 && <DealtHand items={members} itemKey={(m) => m.id} label="Members · dealt for you" title={<>Three people<br />to meet today</>} description="Chosen from shared intentions, places and the connections growing around you." secondaryAction={<Button variant="secondary" className="rounded-full px-6" onClick={() => document.getElementById("directory-search")?.focus()}><Search strokeWidth={1.5} />Search everyone</Button>} renderCard={fanCard} />}
 
       <div className="mt-10 flex items-center gap-4"><p className="section-label">Everyone · {members.length}</p><span className="h-px flex-1 bg-border" /></div>
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
@@ -105,11 +105,11 @@ function DirectoryPage() {
       {query.isLoading ? (
         <div className="flex justify-center py-24"><Loader2 className="size-6 animate-spin text-primary" strokeWidth={1.5} /></div>
       ) : query.isError ? (
-        <p className="py-24 text-center text-muted-foreground">The directory couldn't load just now. Please try again.</p>
+        <p className="py-24 text-center text-muted-foreground">Members couldn't load just now. Please try again.</p>
       ) : members.length === 0 ? (
         <EmptyState
           icon={Users}
-          label={filtered ? "No matches" : "Directory"}
+          label={filtered ? "No matches" : "Members"}
           title={filtered ? "No one matches that just yet" : "The family is still gathering"}
           description={filtered ? "Try a different name, place or intention." : "As members join, their faces will appear here."}
         />

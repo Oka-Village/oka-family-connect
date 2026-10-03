@@ -116,7 +116,7 @@ function Onboarding() {
     await queryClient.invalidateQueries({ queryKey: ["profile"] });
     const back = takeReturnTo();
     if (back) window.location.replace(back);
-    else navigate({ to: "/events", replace: true });
+    else navigate({ to: "/home", replace: true });
   }
 
   const current = STEPS[step];
