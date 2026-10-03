@@ -49,7 +49,7 @@ export function AppreciationComposer({ currentUserId, senderFirstName, senderCit
     const observer = new ResizeObserver(resize);
     observer.observe(host);
     return () => observer.disconnect();
-  }, []);
+  }, [time > 0]);
 
   useEffect(() => {
     if (devMode.frozen !== null || (!demoRun && time <= 0)) return;
@@ -107,9 +107,6 @@ export function AppreciationComposer({ currentUserId, senderFirstName, senderCit
   function replay() { setTime(0.001); setDemoRun((value) => value + 1); }
   const activeRecipient = time > 0 ? payloadRef.current.recipient : recipient;
   const activeBody = time > 0 ? payloadRef.current.body : body;
-  const formProgress = Math.max(0, Math.min(1, time / 450));
-  const formEase = formProgress < 0.5 ? 4 * Math.pow(formProgress, 3) : 1 - Math.pow(-2 * formProgress + 2, 3) / 2;
-  const formOpacity = time > 0 ? 1 - formEase : 1;
 
   const recipientFirst = recipient?.display_name.split(/\s+/)[0];
 
