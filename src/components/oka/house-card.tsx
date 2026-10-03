@@ -7,7 +7,7 @@ import { PROPERTY_LABELS, type SignedHouse } from "@/lib/houses";
 export function HouseCard({ house }: { house: SignedHouse }) {
   const hero = house.photoUrls[0];
   return (
-    <Link to="/houses/$houseId" params={{ houseId: house.id }} className="surface-card group flex flex-col overflow-hidden transition-shadow hover:shadow-lifted">
+    <Link to="/houses/$houseId" params={{ houseId: house.id }} className="surface-card discovery-card group flex flex-col overflow-hidden">
       {hero ? (
         <img src={hero} alt="" className="aspect-[4/3] w-full object-cover" />
       ) : (

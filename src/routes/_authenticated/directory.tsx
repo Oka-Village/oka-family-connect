@@ -12,6 +12,8 @@ import { Input } from "@/components/ui/input";
 import { fetchDirectoryPage, type DirectoryCursor } from "@/lib/directory";
 import { INTENTIONS } from "@/lib/profile";
 import { cn } from "@/lib/utils";
+import { DealtHand } from "@/components/oka/dealt-hand";
+import type { DirectoryMember } from "@/lib/directory";
 
 const searchSchema = z.object({
   q: fallback(z.string(), "").default(""),
@@ -64,16 +66,20 @@ function DirectoryPage() {
   const members = query.data?.pages.flatMap((p) => p.members) ?? [];
   const filtered = Boolean(filters.q || filters.intention || filters.location);
 
-  return (
-    <div className="mx-auto max-w-6xl px-6 py-12 lg:py-16">
-      <p className="section-label">Directory</p>
-      <h1 className="mt-4 text-4xl text-foreground lg:text-5xl">Faces of the family</h1>
-      <p className="mt-3 max-w-xl text-muted-foreground">Find the people you haven't met yet — by name, by place, by what they're drawn to.</p>
+  const fanCard = (m: DirectoryMember, front: boolean) => <Link to="/members/$memberId" params={{ memberId: m.id }} className="flex h-full flex-col bg-card">
+    <MemberAvatar src={m.photo} name={m.display_name} className="h-[60%] w-full rounded-none" />
+    <div className="flex flex-1 flex-col p-5"><h3 className="text-2xl leading-none text-foreground">{m.display_name ?? "Oka member"}</h3><p className="mt-2 text-xs text-muted-foreground">{m.location ?? "Somewhere in the family"}</p>{front && <span className="mt-auto w-fit rounded-full bg-primary px-4 py-2 text-xs text-primary-foreground">Say hello</span>}</div>
+  </Link>;
 
-      <div className="mt-10 grid gap-3 sm:grid-cols-2">
+  return (
+    <div className="mx-auto max-w-[1180px] px-6 py-6 lg:px-10 lg:py-8">
+      {members.length > 0 && <DealtHand items={members} itemKey={(m) => m.id} label="Directory · dealt for you" title={<>Three people<br />to meet today</>} description="Chosen from shared intentions, places and the connections growing around you." secondaryAction={<Button variant="secondary" className="rounded-full px-6" onClick={() => document.getElementById("directory-search")?.focus()}><Search strokeWidth={1.5} />Search everyone</Button>} renderCard={fanCard} />}
+
+      <div className="mt-10 flex items-center gap-4"><p className="section-label">Everyone · {members.length}</p><span className="h-px flex-1 bg-border" /></div>
+      <div className="mt-6 grid gap-3 sm:grid-cols-2">
         <label className="relative">
           <Search className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-primary" strokeWidth={1.5} />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by name" className="rounded-full pl-11" />
+          <Input id="directory-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by name" className="rounded-full pl-11" />
         </label>
         <label className="relative">
           <MapPin className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-primary" strokeWidth={1.5} />
@@ -111,7 +117,7 @@ function DirectoryPage() {
         <>
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {members.map((m) => (
-              <Link key={m.id} to="/members/$memberId" params={{ memberId: m.id }} className="surface-card group flex flex-col items-center p-6 text-center transition-shadow hover:shadow-lifted">
+              <Link key={m.id} to="/members/$memberId" params={{ memberId: m.id }} className="surface-card discovery-card group flex flex-col items-center p-6 text-center">
                 <MemberAvatar src={m.photo} name={m.display_name} className="size-24" />
                 <p className="mt-4 font-serif text-2xl text-foreground group-hover:text-primary">{m.display_name ?? "Oka member"}</p>
                 {m.location && (

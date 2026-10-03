@@ -12,7 +12,7 @@ import {
   startOfMonth,
   startOfWeek,
 } from "date-fns";
-import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, List, Plus } from "lucide-react";
+import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Clock, List, MapPin, Plus, Users, Video } from "lucide-react";
 import { useState } from "react";
 import { z } from "zod";
 
@@ -31,6 +31,8 @@ import {
   type EventRow,
 } from "@/lib/events";
 import { cn } from "@/lib/utils";
+import { DealtHand } from "@/components/oka/dealt-hand";
+import { FORMAT_LABELS as EVENT_FORMAT_LABELS, hostName, spotsLeft } from "@/lib/events";
 
 const searchSchema = z.object({
   view: z.enum(["list", "calendar"]).optional().catch(undefined),
@@ -68,20 +70,8 @@ function EventsPage() {
     navigate({ search: (prev: Search) => ({ ...prev, ...patch }), replace: true });
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-10 lg:py-16">
-      <div className="flex flex-wrap items-end justify-between gap-6">
-        <div>
-          <p className="section-label">Events</p>
-          <h1 className="mt-3 text-4xl text-foreground lg:text-5xl">Gather with the family</h1>
-        </div>
-        <Button asChild className="rounded-full">
-          <Link to="/events/new">
-            <Plus className="size-4" strokeWidth={1.5} /> Propose an event
-          </Link>
-        </Button>
-      </div>
-
-      <div className="mt-10 flex flex-wrap items-center gap-3">
+    <div className="mx-auto max-w-[1180px] px-6 py-6 lg:px-10 lg:py-8">
+      <div className="flex flex-wrap items-center gap-3">
         <div className="flex rounded-full border border-border bg-card p-1">
           {(["list", "calendar"] as const).map((v) => {
             const Icon = v === "list" ? List : CalendarDays;
@@ -151,7 +141,7 @@ function EventsPage() {
 
       <MyProposals />
 
-      {view === "list" ? <ListView search={search} /> : <CalendarView search={search} onMonth={(m) => set({ month: m })} />}
+      {view === "list" ? <ListView search={search} onCalendar={() => set({ view: "calendar" })} /> : <CalendarView search={search} onMonth={(m) => set({ month: m })} />}
     </div>
   );
 }
@@ -177,7 +167,23 @@ function QuietCalendar() {
   );
 }
 
-function ListView({ search }: { search: Search }) {
+function EventFanCard({ event, front }: { event: EventRow; front: boolean }) {
+  const d = new Date(event.starts_at);
+  const FormatIcon = event.format === "virtual" ? Video : MapPin;
+  return <Link to="/events/$eventId" params={{ eventId: event.id }} className="flex h-full flex-col bg-card">
+    <div className={cn("flex h-[42%] items-center justify-center", event.event_type === "retreat" ? "bg-golden-tint" : event.event_type === "meditation" ? "bg-sage-light" : event.event_type === "pod_session" ? "bg-sand" : "bg-terracotta-tint")}>
+      <span className="font-serif text-6xl text-foreground">{d.toLocaleDateString(undefined, { day: "numeric" })}</span>
+    </div>
+    <div className="flex flex-1 flex-col p-5">
+      <p className="text-[0.65rem] uppercase tracking-[.2em] text-terracotta-ink">{d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}</p>
+      <h3 className="mt-2 text-2xl leading-[1.05] text-foreground">{event.title}</h3>
+      <p className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground"><FormatIcon className="size-3.5 text-primary" strokeWidth={1.5} />{EVENT_FORMAT_LABELS[event.format]} · {hostName(event.host)}</p>
+      {front && <span className="mt-auto inline-flex w-fit rounded-full bg-primary px-4 py-2 text-xs text-primary-foreground">{spotsLeft(event) === 0 ? "Join waitlist" : "Save me a seat"}</span>}
+    </div>
+  </Link>;
+}
+
+function ListView({ search, onCalendar }: { search: Search; onCalendar: () => void }) {
   const filters = { type: search.type, format: search.format, from: search.from, to: search.to };
   const [showPast, setShowPast] = useState(false);
   const upcoming = useQuery({ queryKey: ["events", "upcoming", filters], queryFn: () => fetchEvents(filters) });
@@ -188,10 +194,8 @@ function ListView({ search }: { search: Search }) {
   });
   const rsvps = useRsvpMap([...(upcoming.data ?? []), ...(past.data ?? [])]);
   const list = upcoming.data ?? [];
-  const featured = list.find((e) => e.status === "published");
   const groups: [string, EventRow[]][] = [];
   for (const e of list) {
-    if (e === featured) continue;
     const label = fmt(new Date(e.starts_at), "MMMM yyyy");
     const g = groups.at(-1);
     if (g && g[0] === label) g[1].push(e);
@@ -202,19 +206,28 @@ function ListView({ search }: { search: Search }) {
   if (upcoming.error) return <p className="mt-12 text-destructive">We couldn't load events. Please try again.</p>;
 
   return (
-    <div className="mt-10">
+    <div>
       {upcoming.data!.length === 0 ? (
         <QuietCalendar />
       ) : (
         <>
-          {featured && <FeaturedEvent event={featured} rsvp={rsvps.data?.[featured.id]} />}
+          <DealtHand
+            items={list}
+            itemKey={(event) => event.id}
+            label="Events · dealt for you"
+            title={<>Three gatherings<br />you might love</>}
+            description="Picked from what you're seeking, and the people already gathering around you."
+            secondaryAction={<Button variant="secondary" className="rounded-full px-6" onClick={onCalendar}><CalendarDays strokeWidth={1.5} />See calendar</Button>}
+            renderCard={(event, front) => <EventFanCard event={event} front={front} />}
+          />
+          <div className="flex justify-end"><Button asChild variant="outline" className="rounded-full"><Link to="/events/new"><Plus strokeWidth={1.5} />Propose an event</Link></Button></div>
           {groups.map(([label, items]) => (
             <section key={label} className="mt-14">
               <div className="flex items-center gap-4">
-                <h2 className="text-3xl text-foreground">{label}</h2>
+                <h2 className="section-label">All of {label}</h2>
                 <span className="h-px flex-1 bg-border" />
               </div>
-              <div className="mt-6 grid gap-5 md:grid-cols-2">
+              <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                 {items.map((e) => <EventCard key={e.id} event={e} rsvp={rsvps.data?.[e.id]} />)}
               </div>
             </section>

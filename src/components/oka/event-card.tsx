@@ -71,21 +71,20 @@ export function EventCard({ event, rsvp }: { event: EventRow; rsvp?: string | un
       to="/events/$eventId"
       params={{ eventId: event.id }}
       className={cn(
-        "group flex gap-5 rounded-2xl p-5 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lifted sm:p-6",
+        "discovery-card group flex min-h-44 flex-col rounded-2xl border border-border p-4",
         TYPE_TINT[event.event_type],
         cancelled && "opacity-60",
       )}
     >
-      <DateBlock iso={event.starts_at} tz={event.timezone} />
+      <div className="font-serif text-4xl leading-none text-foreground">{new Date(event.starts_at).toLocaleDateString(undefined, { day: "numeric" })}</div>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-[0.7rem] uppercase tracking-widest text-primary">{TYPE_LABELS[event.event_type]}</span>
           {cancelled && <span className="rounded-full bg-destructive/10 px-2.5 py-0.5 text-xs text-destructive">Cancelled</span>}
           <span className="ml-auto"><RsvpBadge status={rsvp} /></span>
         </div>
-        <h3 className={cn("mt-1 text-2xl leading-tight text-foreground sm:text-3xl", cancelled && "line-through")}>{event.title}</h3>
-        <div className="mt-3"><Meta event={event} /></div>
-        <p className="mt-3 text-xs uppercase tracking-widest text-muted-foreground">{spotsText(event)}</p>
+        <h3 className={cn("mt-2 text-xl leading-[1.08] text-foreground", cancelled && "line-through")}>{event.title}</h3>
+        <p className="mt-4 text-xs text-muted-foreground">{TYPE_LABELS[event.event_type]} · {spotsText(event)}</p>
       </div>
     </Link>
   );
