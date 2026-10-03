@@ -10,7 +10,7 @@ export function SkillCard({ skill }: { skill: SkillRow & { photo?: string | null
     <Link
       to="/skills/$skillId"
       params={{ skillId: skill.id }}
-      className="surface-card group flex flex-col overflow-hidden transition-shadow hover:shadow-lifted"
+      className="surface-card discovery-card group flex flex-col overflow-hidden"
     >
       {skill.photo ? (
         <img src={skill.photo} alt="" className="aspect-[4/3] w-full object-cover" />

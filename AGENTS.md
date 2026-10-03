@@ -10,3 +10,4 @@
 <!-- LOVABLE:END -->
 
 - In-app event calls use `@daily-co/daily-js` call-object mode with a custom Campfire UI; keep access, token, and expiry enforcement in `video.functions.ts` so presentation changes cannot weaken room security.
+- The four discovery pages share the reusable dealt-hand pattern; keep recommendation presentation client-side so visual shuffling never changes backend rules.

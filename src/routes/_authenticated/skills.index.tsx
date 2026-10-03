@@ -10,8 +10,10 @@ import { EmptyState } from "@/components/oka/empty-state";
 import { SkillCard } from "@/components/oka/skill-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SKILL_CATEGORIES, SKILL_FORMATS, SKILL_FORMAT_LABELS, fetchSkillsPage, useCredits, type SkillCursor } from "@/lib/skills";
+import { SKILL_CATEGORIES, SKILL_FORMATS, SKILL_FORMAT_LABELS, fetchSkillsPage, type SkillCursor } from "@/lib/skills";
 import { cn } from "@/lib/utils";
+import { DealtHand } from "@/components/oka/dealt-hand";
+import { formatDuration, type SkillRow } from "@/lib/skills";
 
 const searchSchema = z.object({
   q: fallback(z.string(), "").default(""),
@@ -56,20 +58,12 @@ function SkillsPage() {
   const skills = query.data?.pages.flatMap((p) => p.skills) ?? [];
   const filtered = Boolean(filters.q || filters.category || filters.format);
 
+  const fanCard = (s: SkillRow & { photo?: string | null; hostPhoto?: string | null }, front: boolean) => <Link to="/skills/$skillId" params={{ skillId: s.id }} className={cn("flex h-full flex-col p-6", s.category === "Wellbeing" || s.category === "Nature" ? "bg-sage-light" : s.category === "Music" || s.category === "Creative" ? "bg-golden-tint" : "bg-terracotta-tint")}><p className="text-[.65rem] uppercase tracking-[.2em] text-brown-label">{s.category ?? "Shared skill"} · {SKILL_FORMAT_LABELS[s.format]}</p><h3 className="mt-6 text-3xl leading-[1.05] text-foreground">{s.title}</h3><p className="mt-4 text-xs text-muted-foreground">{s.owner?.display_name ?? "Oka member"} · {formatDuration(s.duration_minutes)}</p>{front && <><p className="mt-5 line-clamp-2 text-sm leading-relaxed text-brown-muted">{s.description}</p><span className="mt-auto w-fit rounded-full bg-primary px-4 py-2 text-xs text-primary-foreground">Request a session</span></>}</Link>;
+
   return (
-    <div className="mx-auto max-w-6xl px-6 py-12 lg:py-16">
-      <div className="flex flex-wrap items-end justify-between gap-6">
-        <div>
-          <p className="section-label">Skills</p>
-          <h1 className="mt-4 text-4xl text-foreground lg:text-5xl">Gifts to give and receive</h1>
-          <p className="mt-3 max-w-xl text-muted-foreground">One hour of a shared skill is one credit. Ask for a session, or offer your own.</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <CreditPill />
-          <Button asChild variant="outline" className="rounded-full"><Link to="/sessions"><Inbox className="size-4 text-primary" strokeWidth={1.5} />Sessions</Link></Button>
-          <Button asChild className="rounded-full"><Link to="/skills/new"><Plus className="size-4" strokeWidth={1.5} />Offer a skill</Link></Button>
-        </div>
-      </div>
+    <div className="mx-auto max-w-[1180px] px-6 py-6 lg:px-10 lg:py-8">
+      {skills.length > 0 && <DealtHand items={skills} itemKey={(s) => s.id} label="Skills · dealt for you" title={<>Three things<br />to learn this week</>} description="One hour, one credit. Each one taught by someone in the family." secondaryAction={<Button asChild variant="secondary" className="rounded-full px-6"><Link to="/skills/new"><Plus strokeWidth={1.5} />Offer a skill</Link></Button>} renderCard={fanCard} />}
+      <div className="flex flex-wrap items-center justify-between gap-3"><p className="section-label">All skills</p><div className="flex items-center gap-3"><CreditPill /><Button asChild variant="outline" className="rounded-full"><Link to="/sessions"><Inbox strokeWidth={1.5} />Sessions</Link></Button></div></div>
 
       <label className="relative mt-10 block">
         <Search className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-primary" strokeWidth={1.5} />

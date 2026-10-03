@@ -12,6 +12,8 @@ import { Input } from "@/components/ui/input";
 import { PROPERTY_LABELS, PROPERTY_TYPES, fetchHousesPage, type HouseCursor } from "@/lib/houses";
 import { CreditPill } from "@/components/oka/credit-pill";
 import { cn } from "@/lib/utils";
+import { DealtHand } from "@/components/oka/dealt-hand";
+import type { SignedHouse } from "@/lib/houses";
 
 export const Route = createFileRoute("/_authenticated/houses/")({
   validateSearch: zodValidator(z.object({
@@ -53,20 +55,12 @@ function HousesPage() {
   const houses = query.data?.pages.flatMap((p) => p.houses) ?? [];
   const filtered = Boolean(filters.location || filters.type);
 
+  const fanCard = (h: SignedHouse, front: boolean) => <Link to="/houses/$houseId" params={{ houseId: h.id }} className="flex h-full flex-col bg-card">{h.photoUrls[0] ? <img src={h.photoUrls[0]} alt="" className="h-[60%] w-full object-cover" /> : <div className="flex h-[60%] items-center justify-center bg-secondary"><Home className="size-10 text-primary" strokeWidth={1.5} /></div>}<div className="flex flex-1 flex-col p-5"><h3 className="text-2xl leading-none text-foreground">{h.title}</h3><p className="mt-2 text-xs text-muted-foreground">{h.location_text ?? "Somewhere beautiful"} · {PROPERTY_LABELS[h.property_type]}</p>{front && <span className="mt-auto w-fit rounded-full bg-primary px-4 py-2 text-xs text-primary-foreground">Request a stay</span>}</div></Link>;
+
   return (
-    <div className="mx-auto max-w-6xl px-6 py-12 lg:py-16">
-      <div className="flex flex-wrap items-end justify-between gap-6">
-        <div>
-          <p className="section-label">Houses</p>
-          <h1 className="mt-4 text-4xl text-foreground lg:text-5xl">Doors open around the world</h1>
-          <p className="mt-3 max-w-xl text-muted-foreground">Stay with family you haven't met yet. One night is one credit.</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <CreditPill />
-          <Button asChild variant="outline" className="rounded-full"><Link to="/stays"><BedDouble className="size-4 text-primary" strokeWidth={1.5} />Stays</Link></Button>
-          <Button asChild className="rounded-full"><Link to="/houses/new"><Plus className="size-4" strokeWidth={1.5} />List my home</Link></Button>
-        </div>
-      </div>
+    <div className="mx-auto max-w-[1180px] px-6 py-6 lg:px-10 lg:py-8">
+      {houses.length > 0 && <DealtHand items={houses} itemKey={(h) => h.id} label="Houses · dealt for you" title={<>Three homes<br />waiting for you</>} description="Open doors in places the family calls home. One night is one credit." secondaryAction={<Button asChild variant="secondary" className="rounded-full px-6"><Link to="/houses/new"><Plus strokeWidth={1.5} />List my home</Link></Button>} renderCard={fanCard} />}
+      <div className="flex flex-wrap items-center justify-between gap-3"><p className="section-label">All homes · {houses.length}</p><div className="flex items-center gap-3"><CreditPill /><Button asChild variant="outline" className="rounded-full"><Link to="/stays"><BedDouble strokeWidth={1.5} />Stays</Link></Button></div></div>
 
       <div className="mt-10 flex flex-wrap items-center gap-3">
         <label className="relative min-w-64 flex-1">

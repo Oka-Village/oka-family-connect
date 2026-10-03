@@ -57,6 +57,15 @@
   --color-sage: var(--sage);
   --color-sand: var(--sand);
   --color-golden: var(--golden);
+  --color-cream-deep: var(--cream-deep);
+  --color-canvas: var(--canvas);
+  --color-brown-muted: var(--brown-muted);
+  --color-brown-label: var(--brown-label);
+  --color-terracotta-tint: var(--terracotta-tint);
+  --color-terracotta-ink: var(--terracotta-ink);
+  --color-sage-ink: var(--sage-ink);
+  --color-golden-tint: var(--golden-tint);
+  --color-golden-ink: var(--golden-ink);
   --color-on-terracotta: var(--on-terracotta);
   --color-fire: var(--fire);
   --color-ember: var(--ember);
@@ -84,6 +93,9 @@
   --shadow-lifted: 0 2px 4px oklch(0.3029 0.0214 57.84 / 0.05), 0 18px 40px oklch(0.3029 0.0214 57.84 / 0.1);
   --shadow-fire: 0 0 26px oklch(0.7752 0.1238 79.11 / 0.24);
   --shadow-fire-speaking: 0 0 0 4px oklch(0.7752 0.1238 79.11 / 0.18), 0 0 34px oklch(0.706 0.16 48 / 0.5);
+  --shadow-card: 0 14px 34px oklch(0.3029 0.0214 57.84 / 0.12);
+  --shadow-featured: 0 24px 50px oklch(0.3029 0.0214 57.84 / 0.2), 0 0 60px oklch(0.7752 0.1238 79.11 / 0.3);
+  --shadow-nav: 0 2px 8px oklch(0.3029 0.0214 57.84 / 0.08);
 }
 
 :root {
@@ -98,7 +110,16 @@
   --sage: oklch(0.6827 0.0775 158.15); /* #6FA887 */
   --sand: oklch(0.8928 0.0207 74.65); /* #E4DACD */
   --golden: oklch(0.7752 0.1238 79.11); /* #E0AC51 */
-  --on-terracotta: oklch(1 0 0); /* text on terracotta fills */
+  --cream-deep: oklch(0.956 0.013 79);
+  --canvas: oklch(0.928 0.014 81);
+  --brown-muted: oklch(0.454 0.032 57);
+  --brown-label: oklch(0.58 0.028 63);
+  --terracotta-tint: oklch(0.928 0.027 47);
+  --terracotta-ink: oklch(0.46 0.093 40);
+  --sage-ink: oklch(0.45 0.063 158);
+  --golden-tint: oklch(0.927 0.055 78);
+  --golden-ink: oklch(0.46 0.077 78);
+  --on-terracotta: var(--cream); /* never pure white */
   --fire: oklch(0.72 0.18 49);
   --ember: oklch(0.56 0.17 35);
   --firelight: oklch(0.82 0.14 75);
@@ -123,7 +144,7 @@
   --accent: var(--sand);
   --accent-foreground: var(--brown);
   --destructive: oklch(0.55 0.17 27);
-  --destructive-foreground: oklch(1 0 0);
+  --destructive-foreground: var(--cream);
   --border: oklch(0.8928 0.0207 74.65 / 0.75);
   --input: oklch(0.8928 0.0207 74.65);
   --ring: var(--terracotta);
@@ -162,7 +183,7 @@
   h4 {
     font-family: var(--font-serif);
     font-weight: 400;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
   }
 }
 
@@ -173,7 +194,7 @@
   letter-spacing: 0.2em;
   font-size: 0.6875rem;
   font-weight: 500;
-  color: var(--color-muted-foreground);
+  color: var(--color-brown-label);
 }
 
 /* The Oka wordmark */
@@ -189,7 +210,43 @@
   background-color: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-2xl);
-  box-shadow: var(--shadow-soft);
+  box-shadow: var(--shadow-card);
+}
+
+@utility shadow-nav { box-shadow: var(--shadow-nav); }
+
+.dealt-hero { max-width: 1180px; margin-inline: auto; display: grid; grid-template-columns: minmax(0, 1fr) 560px; gap: 1.5rem; align-items: center; padding: 2.25rem 0 1.25rem; }
+.dealt-copy { display: flex; flex-direction: column; align-items: flex-start; gap: 1.125rem; }
+.dealt-title { max-width: 34rem; font-size: clamp(3.25rem, 5.2vw, 4.125rem); line-height: .95; color: var(--color-foreground); }
+.dealt-description { max-width: 24rem; font-size: .9375rem; line-height: 1.65; color: var(--color-brown-muted); }
+.dealt-stage { position: relative; width: 560px; height: 380px; margin-inline: auto; }
+.dealt-card { position: absolute; width: 230px; height: 320px; overflow: hidden; border: 1px solid var(--color-border); border-radius: 1rem; background: var(--color-card); box-shadow: var(--shadow-card); transition: transform 450ms cubic-bezier(.2,.8,.2,1), opacity 300ms ease-out, box-shadow 300ms ease; }
+.dealt-card-0 { left: 30px; top: 30px; transform: rotate(-9deg); z-index: 1; cursor: pointer; }
+.dealt-card-1 { left: 160px; top: 6px; width: 240px; height: 350px; z-index: 3; box-shadow: var(--shadow-featured); }
+.dealt-card-2 { left: 300px; top: 30px; transform: rotate(9deg); z-index: 2; cursor: pointer; }
+.dealt-card-0:hover { transform: translateY(-6px) rotate(-11deg); }
+.dealt-card-2:hover { transform: translateY(-6px) rotate(11deg); }
+.dealt-stage.is-dealing .dealt-card { opacity: 0; transform: translateY(40px) scale(.96); }
+.dealt-count-1 .dealt-card-0 { left: 160px; top: 6px; width: 240px; height: 350px; transform: none; z-index: 3; cursor: default; box-shadow: var(--shadow-featured); }
+.dealt-count-1 .dealt-card-0:hover { transform: none; }
+.dealt-count-2 .dealt-card-0 { left: 78px; top: 28px; transform: rotate(-7deg); }
+.dealt-count-2 .dealt-card-1 { left: 258px; }
+.discovery-card { transition: transform 300ms ease, box-shadow 300ms ease; }
+.discovery-card:hover { transform: rotate(-1.5deg) translateY(-4px); box-shadow: var(--shadow-card); }
+
+@media (max-width: 1023px) {
+  .dealt-hero { grid-template-columns: 1fr; padding-top: 1.5rem; }
+}
+@media (max-width: 640px) {
+  .dealt-title { font-size: 3.25rem; }
+  .dealt-stage { width: 340px; height: 286px; }
+  .dealt-card { width: 170px; height: 240px; }
+  .dealt-card-0 { left: 2px; top: 30px; }
+  .dealt-card-1 { left: 80px; top: 5px; width: 180px; height: 260px; }
+  .dealt-card-2 { left: 168px; top: 30px; }
+  .dealt-count-1 .dealt-card-0 { left: 80px; width: 180px; height: 260px; }
+  .dealt-count-2 .dealt-card-0 { left: 20px; }
+  .dealt-count-2 .dealt-card-1 { left: 140px; }
 }
 
 @utility shadow-fire {
@@ -249,4 +306,5 @@
 
 @media (prefers-reduced-motion: reduce) {
   .campfire-glow, .campfire-flame { animation: none; }
+  .dealt-card, .discovery-card { transition-duration: 1ms; }
 }
