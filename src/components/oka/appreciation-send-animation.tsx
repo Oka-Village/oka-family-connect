@@ -53,7 +53,7 @@ function Envelope({ t }: { t: number }) {
   const ring = seg(t, 3000, 3400);
   return <div className="relative h-[230px] w-[380px] drop-shadow-envelope">
     <div className="absolute inset-0 z-[1] rounded-[10px] bg-envelope-back" />
-    {!closed && <svg className="absolute left-0 top-0 z-[2] h-[140px] w-[380px] overflow-visible" viewBox="0 0 380 140"><path className="fill-envelope-flap-open stroke-envelope-line" strokeWidth="1" strokeLinejoin="round" d="M0 0 L174 128 Q190 140 206 128 L380 0 Z" /></svg>}
+    {!closed && <svg className="absolute left-0 top-0 z-[2] h-[140px] w-[380px] overflow-visible" viewBox="0 0 380 140" style={{ transform: `scaleY(${Math.min(flapScale, -0.002)})`, transformOrigin: "50% 0%" }}><path className="fill-envelope-flap-open stroke-envelope-line" strokeWidth="1" strokeLinejoin="round" d="M0 0 L174 128 Q190 140 206 128 L380 0 Z" /></svg>}
     <div className="absolute left-5 z-[3] h-[140px] w-[340px] rounded-sm bg-letter-back" style={{ top: stripTop }} />
     <svg className="absolute inset-0 z-[4] h-[230px] w-[380px]" viewBox="0 0 380 230">
       <path className="fill-envelope-front stroke-envelope-pocket-line" strokeWidth="1" d="M0 4 L174 118 Q190 128 206 118 L380 4 L380 220 Q380 230 370 230 L10 230 Q0 230 0 220 Z" />
@@ -108,10 +108,10 @@ export function AppreciationSendAnimation({ t, recipientFullName, recipientFirst
   const envScale = lerp(1, targetScale, pc);
   const confirmation = io(seg(t, 6300, 7000));
   const letterBody = body.trim().replace(/^./u, (character) => character.toUpperCase());
-  const paperStyle: CSSProperties = t < 700 ? { left: lerp(52, 180, lift), top: lerp(190, 140, lift), width: lerp(596, 340, lift), height: lerp(300, 420, lift), borderRadius: lerp(28, 4, lift), opacity: seg(t, 0, 140), transform: `rotate(${lerp(0, -1.5, lift)}deg)`, boxShadow: `0 ${lerp(0, 24, lift)}px ${lerp(0, 50, lift)}px color-mix(in oklab, var(--brown) ${lerp(0, 16, lift)}%, transparent)` } : { left: 180, top: 140, width: 340, height: 420, borderRadius: 4, opacity: 1, transform: `rotate(${paperRotation}deg)` };
+  const paperStyle = (t < 700 ? { left: lerp(52, 180, lift), top: lerp(190, 140, lift), width: lerp(596, 340, lift), height: lerp(300, 420, lift), borderRadius: lerp(28, 4, lift), opacity: seg(t, 0, 140), transform: `rotate(${lerp(0, -1.5, lift)}deg)`, "--paper-shadow-y": `${lerp(0, 24, lift)}px`, "--paper-shadow-blur": `${lerp(0, 50, lift)}px`, "--paper-shadow-opacity": lerp(0, 0.16, lift) } : { left: 180, top: 140, width: 340, height: 420, borderRadius: 4, opacity: 1, transform: `rotate(${paperRotation}deg)`, "--paper-shadow-y": "24px", "--paper-shadow-blur": "50px", "--paper-shadow-opacity": 0.16 }) as CSSProperties;
 
   return <div className="pointer-events-none absolute inset-0">
-    {t > 0 && t < 2050 && <div className="absolute overflow-visible bg-letter-paper" style={paperStyle}>
+    {t > 0 && t < 2050 && <div className="appreciation-paper absolute overflow-visible bg-letter-paper" style={paperStyle}>
       {t < 1050 ? <div style={{ opacity: seg(t, 700, 950) }}><LetterContent recipientFirstName={recipientFirstName} body={letterBody} senderFirstName={senderFirstName} /></div> : <div className="absolute inset-0 drop-shadow-fold"><PaperPanel index={0} scaleY={topFold} recipientFirstName={recipientFirstName} body={letterBody} senderFirstName={senderFirstName} /><PaperPanel index={1} scaleY={1} recipientFirstName={recipientFirstName} body={letterBody} senderFirstName={senderFirstName} /><PaperPanel index={2} scaleY={bottomFold} recipientFirstName={recipientFirstName} body={letterBody} senderFirstName={senderFirstName} /></div>}
     </div>}
     {t >= 1650 && t <= 6550 && <div className="absolute left-0 top-0" style={{ opacity: envelopeIn, transformOrigin: "0 0", transform: `translate(${envX}px, ${envY}px) scale(${envScale})` }}><Envelope t={t} /></div>}
