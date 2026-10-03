@@ -74,6 +74,25 @@
   --color-room-surface: var(--room-surface);
   --color-room-control: var(--room-control);
   --color-room-foreground: var(--room-foreground);
+  --color-primary-disabled: var(--primary-disabled);
+  --color-appreciation-card-border: var(--appreciation-card-border);
+  --color-letter-paper: var(--letter-paper);
+  --color-letter-muted: var(--letter-muted);
+  --color-envelope-back: var(--envelope-back);
+  --color-envelope-flap-open: var(--envelope-flap-open);
+  --color-envelope-front: var(--envelope-front);
+  --color-envelope-flap-closed: var(--envelope-flap-closed);
+  --color-envelope-line: var(--envelope-line);
+  --color-envelope-pocket-line: var(--envelope-pocket-line);
+  --color-envelope-crease: var(--envelope-crease);
+  --color-wax-seal: var(--wax-seal);
+  --color-dove-line: var(--dove-line);
+  --color-dove-far: var(--dove-far);
+  --color-dove-tail: var(--dove-tail);
+  --color-dove-body: var(--dove-body);
+  --color-dove-near: var(--dove-near);
+  --color-dove-beak: var(--dove-beak);
+  --color-feather: var(--feather);
 
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
@@ -94,6 +113,8 @@
   --shadow-fire: 0 0 26px oklch(0.7752 0.1238 79.11 / 0.24);
   --shadow-fire-speaking: 0 0 0 4px oklch(0.7752 0.1238 79.11 / 0.18), 0 0 34px oklch(0.706 0.16 48 / 0.5);
   --shadow-card: 0 14px 34px oklch(0.3029 0.0214 57.84 / 0.12);
+  --shadow-appreciation: 0 30px 70px oklch(0.3029 0.0214 57.84 / 0.08);
+  --shadow-wax: 0 4px 10px oklch(0.3029 0.0214 57.84 / 0.25);
   --shadow-featured: 0 24px 50px oklch(0.3029 0.0214 57.84 / 0.2), 0 0 60px oklch(0.7752 0.1238 79.11 / 0.3);
   --shadow-nav: 0 2px 8px oklch(0.3029 0.0214 57.84 / 0.08);
 }
@@ -127,6 +148,26 @@
   --room-surface: oklch(0.29 0.025 55);
   --room-control: oklch(0.19 0.019 53);
   --room-foreground: oklch(0.95 0.02 85);
+  --primary-disabled: oklch(0.82 0.045 42);
+  --appreciation-card-border: oklch(0.91 0.015 83);
+  --letter-paper: oklch(0.95 0.02 80);
+  --letter-muted: oklch(0.56 0.03 63);
+  --letter-back: linear-gradient(to bottom, oklch(0.89 0.025 77), oklch(0.93 0.018 79));
+  --envelope-back: oklch(0.82 0.04 69);
+  --envelope-flap-open: oklch(0.79 0.045 67);
+  --envelope-front: oklch(0.89 0.027 73);
+  --envelope-flap-closed: oklch(0.86 0.033 70);
+  --envelope-line: oklch(0.3029 0.0214 57.84 / 0.18);
+  --envelope-pocket-line: oklch(0.3029 0.0214 57.84 / 0.15);
+  --envelope-crease: oklch(0.3029 0.0214 57.84 / 0.1);
+  --wax-seal: radial-gradient(circle at 35% 30%, var(--terracotta-light), var(--terracotta) 45%, var(--terracotta-ink));
+  --dove-line: var(--brown-label);
+  --dove-far: var(--sand);
+  --dove-tail: oklch(0.93 0.016 83);
+  --dove-body: oklch(0.96 0.013 84);
+  --dove-near: var(--cream);
+  --dove-beak: var(--terracotta-light);
+  --feather: oklch(0.95 0.012 84);
 
   /* Semantic mapping */
   --background: var(--cream);
@@ -242,6 +283,11 @@
 .dove-body, .dove-wing { fill: var(--color-cream); stroke: var(--color-golden); stroke-width: 2; }
 .dove-eye { fill: var(--color-brown); }.dove-beak { fill: var(--color-golden); }
 .dove-flight.is-flying .dove-wing-front { transform-origin: 95px 55px; animation: dove-wing 240ms ease-in-out infinite alternate; }
+.bg-letter-back { background: var(--letter-back); }
+.bg-wax-seal { background: var(--wax-seal); }
+.drop-shadow-fold { filter: drop-shadow(0 18px 26px oklch(0.3029 0.0214 57.84 / 0.14)); }
+.drop-shadow-envelope { filter: drop-shadow(0 14px 22px oklch(0.3029 0.0214 57.84 / 0.12)); }
+.drop-shadow-dove { filter: drop-shadow(0 10px 14px oklch(0.3029 0.0214 57.84 / 0.12)); }
 @keyframes home-panel-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 @keyframes dove-cross { from { transform: translate(-10%, 8%); } to { transform: translate(135%, -120%); opacity: 0; } }
 @keyframes dove-wing { from { transform: rotate(-10deg); } to { transform: rotate(18deg); } }

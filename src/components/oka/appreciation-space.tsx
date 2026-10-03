@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchLetters } from "@/lib/appreciation";
 import { markAppreciationRead } from "@/lib/appreciation.functions";
 
-export function AppreciationSpace({ currentUserId }: { currentUserId: string }) {
+export function AppreciationSpace({ currentUserId, senderFirstName }: { currentUserId: string; senderFirstName: string }) {
   const [tab, setTab] = useState<"received" | "sent">("received");
   const queryClient = useQueryClient();
   const markRead = useServerFn(markAppreciationRead);
@@ -35,7 +35,7 @@ export function AppreciationSpace({ currentUserId }: { currentUserId: string }) 
   return (
     <section aria-labelledby="appreciation-title" className="home-space-panel appreciation-panel">
       <div className="max-w-xl"><p className="section-label">Words that travel</p><h2 id="appreciation-title" className="mt-4 text-4xl text-foreground sm:text-5xl">Appreciation</h2><p className="mt-4 leading-relaxed text-muted-foreground">Send a small, sincere note to someone in the family.</p></div>
-      <AppreciationComposer currentUserId={currentUserId} onSent={async () => { setTab("sent"); await Promise.all([queryClient.invalidateQueries({ queryKey: ["appreciation-letters"] }), queryClient.invalidateQueries({ queryKey: ["appreciation-unread"] })]); }} />
+      <AppreciationComposer currentUserId={currentUserId} senderFirstName={senderFirstName} onSent={async () => { setTab("sent"); await Promise.all([queryClient.invalidateQueries({ queryKey: ["appreciation-letters"] }), queryClient.invalidateQueries({ queryKey: ["appreciation-unread"] })]); }} />
       <div className="lg:col-span-2">
         <Tabs value={tab} onValueChange={(value) => setTab(value as "received" | "sent")}>
           <TabsList className="h-auto rounded-full bg-cream-deep p-1"><TabsTrigger className="rounded-full px-5 py-2" value="received"><Inbox strokeWidth={1.5} />Received</TabsTrigger><TabsTrigger className="rounded-full px-5 py-2" value="sent"><Send strokeWidth={1.5} />Sent</TabsTrigger></TabsList>

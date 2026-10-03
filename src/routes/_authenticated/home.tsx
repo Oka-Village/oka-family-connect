@@ -55,7 +55,7 @@ function HomePage() {
         {!active && <div className="border-t border-border py-10 text-center"><p className="font-serif text-3xl text-foreground">Choose a space when you’re ready.</p></div>}
         {active === "reflection" && <ReflectionDeck />}
         {active === "inspiration" && <InspirationDeck />}
-        {active === "appreciation" && profile && <AppreciationSpace currentUserId={profile.id} />}
+        {active === "appreciation" && profile && <AppreciationSpace currentUserId={profile.id} senderFirstName={firstName ?? "A friend"} />}
         {active === "appreciation" && isLoading && <Skeleton className="h-96 rounded-2xl" />}
         {active === "appreciation" && isError && <p className="surface-card p-8 text-muted-foreground">Appreciation couldn't open just now. Please try again.</p>}
       </div>
