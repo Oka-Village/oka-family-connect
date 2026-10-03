@@ -215,6 +215,43 @@
 
 @utility shadow-nav { box-shadow: var(--shadow-nav); }
 
+.home-space-card { transition: transform 280ms ease, box-shadow 280ms ease, background-color 280ms ease; }
+.home-space-card:hover, .home-space-card.is-active { transform: translateY(-4px); box-shadow: var(--shadow-featured); background: var(--color-cream-deep); }
+.home-space-panel { display: grid; grid-template-columns: minmax(0, .8fr) minmax(320px, 1.2fr); gap: 2.5rem; align-items: center; border-top: 1px solid var(--color-border); padding-block: 2.5rem; animation: home-panel-in 360ms ease both; }
+.appreciation-panel { align-items: start; }
+.deck-scene { display: flex; min-height: 450px; flex-direction: column; align-items: center; justify-content: center; perspective: 1200px; }
+.deck-card { position: relative; display: block; border-radius: 1.25rem; border: 0; background: transparent; cursor: pointer; }
+.deck-card-inner { position: relative; display: block; width: 280px; height: 390px; transform-style: preserve-3d; transition: transform 700ms cubic-bezier(.2,.75,.2,1); }
+.deck-face { position: absolute; inset: 0; display: flex; overflow: hidden; flex-direction: column; align-items: center; justify-content: center; border: 1px solid var(--color-border); border-radius: 1.25rem; padding: 2rem; text-align: center; backface-visibility: hidden; box-shadow: var(--shadow-card); }
+.deck-back { background: linear-gradient(145deg, var(--color-brown), var(--color-terracotta-ink)); }
+.deck-back img { filter: brightness(0) invert(.93); }
+.deck-pattern { position: absolute; inset: .75rem; border: 1px solid color-mix(in oklab, var(--color-cream) 35%, transparent); border-radius: .85rem; background: repeating-radial-gradient(circle at center, transparent 0 17px, color-mix(in oklab, var(--color-cream) 12%, transparent) 18px 19px); }
+.deck-front { transform: rotateY(180deg); background: linear-gradient(150deg, var(--color-cream), var(--color-sage-light)); }
+.deck-card.is-revealed .deck-card-inner { transform: rotateY(180deg); }
+.deck-scene-inspiration .deck-card-inner { width: min(420px, 82vw); height: 270px; }
+.deck-scene-inspiration .deck-back { background: linear-gradient(135deg, var(--color-golden-tint), var(--color-terracotta-light)); }
+.deck-scene-inspiration .deck-pattern { background: repeating-linear-gradient(135deg, transparent 0 16px, color-mix(in oklab, var(--color-golden) 22%, transparent) 16px 18px); }
+.deck-scene-inspiration .deck-card-inner { transition-property: transform, opacity; transform-origin: 50% 100%; }
+.deck-scene-inspiration .deck-card.is-revealed .deck-card-inner { transform: translateY(-18px) rotateX(180deg) rotateZ(-1deg); }
+.deck-scene-inspiration .deck-front { transform: rotateX(180deg); background: linear-gradient(145deg, var(--color-golden-tint), var(--color-cream)); }
+.letter-fold { transform-origin: center bottom; transition: transform 700ms ease, opacity 700ms ease; }
+.letter-fold.is-sending { transform: perspective(800px) rotateX(72deg) scale(.72); opacity: .35; }
+.dove-flight { opacity: 0; }
+.dove-flight.is-flying { opacity: 1; animation: dove-cross 1.4s .25s ease-in forwards; }
+.dove { position: absolute; bottom: 8%; left: -9rem; width: 9rem; filter: drop-shadow(0 8px 10px color-mix(in oklab, var(--color-brown) 18%, transparent)); }
+.dove-body, .dove-wing { fill: var(--color-cream); stroke: var(--color-golden); stroke-width: 2; }
+.dove-eye { fill: var(--color-brown); }.dove-beak { fill: var(--color-golden); }
+.dove-flight.is-flying .dove-wing-front { transform-origin: 95px 55px; animation: dove-wing 240ms ease-in-out infinite alternate; }
+@keyframes home-panel-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes dove-cross { from { transform: translate(-10%, 8%); } to { transform: translate(135%, -120%); opacity: 0; } }
+@keyframes dove-wing { from { transform: rotate(-10deg); } to { transform: rotate(18deg); } }
+
+@media (max-width: 767px) {
+  .home-space-panel { grid-template-columns: 1fr; gap: 1.5rem; }
+  .deck-scene { min-height: 420px; }
+  .deck-card-inner { width: 245px; height: 345px; }
+}
+
 .dealt-hero { max-width: 1180px; margin-inline: auto; display: grid; grid-template-columns: minmax(0, 1fr) 560px; gap: 1.5rem; align-items: center; padding: 2.25rem 0 1.25rem; }
 .dealt-copy { display: flex; flex-direction: column; align-items: flex-start; gap: 1.125rem; }
 .dealt-title { max-width: 34rem; font-size: clamp(3.25rem, 5.2vw, 4.125rem); line-height: .95; color: var(--color-foreground); }
@@ -307,4 +344,6 @@
 @media (prefers-reduced-motion: reduce) {
   .campfire-glow, .campfire-flame { animation: none; }
   .dealt-card, .discovery-card { transition-duration: 1ms; }
+  .home-space-card, .home-space-panel, .deck-card-inner, .letter-fold, .dove-flight, .dove-wing { animation: none !important; transition-duration: 1ms !important; }
+  .dove-flight.is-flying { opacity: 0; }
 }
