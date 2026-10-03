@@ -18,7 +18,7 @@ export const longDate = (d = new Date()) => d.toLocaleDateString("en-GB", { week
 
 /** Paper card with grain and washi tape. Square corners, slight rotation. */
 export function Postcard({ rotate = 0, translateY = 0, tape, tapeRotate = 3, className, style, children }: {
-  rotate?: number; translateY?: number; tape?: TapeColor; tapeRotate?: number; className?: string; style?: CSSProperties; children: ReactNode;
+  rotate?: number | undefined; translateY?: number | undefined; tape?: TapeColor | undefined; tapeRotate?: number | undefined; className?: string | undefined; style?: CSSProperties | undefined; children: ReactNode;
 }) {
   return (
     <div className={cn("postcard", className)} style={{ "--r": `${rotate}deg`, "--ty": `${translateY}px`, ...style } as CSSProperties}>

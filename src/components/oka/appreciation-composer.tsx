@@ -8,7 +8,7 @@ import { sendAppreciation, type MentionMember } from "@/lib/appreciation";
 const SAMPLE_RECIPIENT: MentionMember = { id: "preview", display_name: "Maya Cohen", photo_url: null, photo: null };
 const SAMPLE_NOTE = "Thank you for sitting with me through that hard week.";
 
-type Props = { currentUserId: string; senderFirstName: string; senderCity?: string | null; waitingCount: number; onOpenLetterbox: () => void; onSent: () => Promise<void> | void };
+type Props = { currentUserId: string; senderFirstName: string; senderCity?: string | null | undefined; waitingCount: number; onOpenLetterbox: () => void; onSent: () => Promise<void> | void };
 
 export function AppreciationComposer({ currentUserId, senderFirstName, senderCity, waitingCount, onOpenLetterbox, onSent }: Props) {
   const [body, setBody] = useState("");
