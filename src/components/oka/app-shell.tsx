@@ -34,6 +34,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { data: profile, isLoading } = useProfile();
   useClaimInvite(Boolean(profile));
   const { data: isAdmin } = useIsStaff();
+  const photoQuery = useQuery({
+    queryKey: ["profile-photo", profile?.photo_url ?? null],
+    queryFn: () => resolvePhotoUrl(profile?.photo_url ?? null),
+    enabled: Boolean(profile?.photo_url),
+    staleTime: 60_000,
+  });
+  const photo = photoQuery.data ?? null;
   const items = isAdmin
     ? [...NAV_ITEMS, { to: "/admin", label: "Admin", icon: ShieldCheck } as const]
     : NAV_ITEMS;
