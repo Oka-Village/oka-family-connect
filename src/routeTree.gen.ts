@@ -37,6 +37,7 @@ import { Route as AuthenticatedSkillsIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedSkillsSkillIdRouteImport } from './routes/_authenticated/skills.$skillId'
 import { Route as AuthenticatedSkillsNewRouteImport } from './routes/_authenticated/skills.new'
 import { Route as AuthenticatedEventsEditEventIdRouteImport } from './routes/_authenticated/events.edit.$eventId'
+import { Route as AuthenticatedHomeReflectionPastRouteImport } from './routes/_authenticated/home.reflection_.past'
 import { Route as AuthenticatedHousesEditHouseIdRouteImport } from './routes/_authenticated/houses.edit.$houseId'
 import { Route as AuthenticatedSkillsEditSkillIdRouteImport } from './routes/_authenticated/skills.edit.$skillId'
 
@@ -191,6 +192,12 @@ const AuthenticatedEventsEditEventIdRoute =
     path: '/events/edit/$eventId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedHomeReflectionPastRoute =
+  AuthenticatedHomeReflectionPastRouteImport.update({
+    id: '/home/reflection_/past',
+    path: '/home/reflection/past',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedHousesEditHouseIdRoute =
   AuthenticatedHousesEditHouseIdRouteImport.update({
     id: '/houses/edit/$houseId',
@@ -232,6 +239,7 @@ export interface FileRoutesByFullPath {
   '/houses/': typeof AuthenticatedHousesIndexRoute
   '/skills/': typeof AuthenticatedSkillsIndexRoute
   '/events/edit/$eventId': typeof AuthenticatedEventsEditEventIdRoute
+  '/home/reflection/past': typeof AuthenticatedHomeReflectionPastRoute
   '/houses/edit/$houseId': typeof AuthenticatedHousesEditHouseIdRoute
   '/skills/edit/$skillId': typeof AuthenticatedSkillsEditSkillIdRoute
 }
@@ -263,6 +271,7 @@ export interface FileRoutesByTo {
   '/houses': typeof AuthenticatedHousesIndexRoute
   '/skills': typeof AuthenticatedSkillsIndexRoute
   '/events/edit/$eventId': typeof AuthenticatedEventsEditEventIdRoute
+  '/home/reflection/past': typeof AuthenticatedHomeReflectionPastRoute
   '/houses/edit/$houseId': typeof AuthenticatedHousesEditHouseIdRoute
   '/skills/edit/$skillId': typeof AuthenticatedSkillsEditSkillIdRoute
 }
@@ -296,6 +305,7 @@ export interface FileRoutesById {
   '/_authenticated/houses/': typeof AuthenticatedHousesIndexRoute
   '/_authenticated/skills/': typeof AuthenticatedSkillsIndexRoute
   '/_authenticated/events/edit/$eventId': typeof AuthenticatedEventsEditEventIdRoute
+  '/_authenticated/home/reflection_/past': typeof AuthenticatedHomeReflectionPastRoute
   '/_authenticated/houses/edit/$houseId': typeof AuthenticatedHousesEditHouseIdRoute
   '/_authenticated/skills/edit/$skillId': typeof AuthenticatedSkillsEditSkillIdRoute
 }
@@ -329,6 +339,7 @@ export interface FileRouteTypes {
     | '/houses/'
     | '/skills/'
     | '/events/edit/$eventId'
+    | '/home/reflection/past'
     | '/houses/edit/$houseId'
     | '/skills/edit/$skillId'
   fileRoutesByTo: FileRoutesByTo
@@ -360,6 +371,7 @@ export interface FileRouteTypes {
     | '/houses'
     | '/skills'
     | '/events/edit/$eventId'
+    | '/home/reflection/past'
     | '/houses/edit/$houseId'
     | '/skills/edit/$skillId'
   id:
@@ -392,6 +404,7 @@ export interface FileRouteTypes {
     | '/_authenticated/houses/'
     | '/_authenticated/skills/'
     | '/_authenticated/events/edit/$eventId'
+    | '/_authenticated/home/reflection_/past'
     | '/_authenticated/houses/edit/$houseId'
     | '/_authenticated/skills/edit/$skillId'
   fileRoutesById: FileRoutesById
@@ -601,6 +614,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEventsEditEventIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/home/reflection_/past': {
+      id: '/_authenticated/home/reflection_/past'
+      path: '/home/reflection/past'
+      fullPath: '/home/reflection/past'
+      preLoaderRoute: typeof AuthenticatedHomeReflectionPastRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/houses/edit/$houseId': {
       id: '/_authenticated/houses/edit/$houseId'
       path: '/houses/edit/$houseId'
@@ -643,6 +663,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedHousesIndexRoute: typeof AuthenticatedHousesIndexRoute
   AuthenticatedSkillsIndexRoute: typeof AuthenticatedSkillsIndexRoute
   AuthenticatedEventsEditEventIdRoute: typeof AuthenticatedEventsEditEventIdRoute
+  AuthenticatedHomeReflectionPastRoute: typeof AuthenticatedHomeReflectionPastRoute
   AuthenticatedHousesEditHouseIdRoute: typeof AuthenticatedHousesEditHouseIdRoute
   AuthenticatedSkillsEditSkillIdRoute: typeof AuthenticatedSkillsEditSkillIdRoute
 }
@@ -672,6 +693,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedHousesIndexRoute: AuthenticatedHousesIndexRoute,
   AuthenticatedSkillsIndexRoute: AuthenticatedSkillsIndexRoute,
   AuthenticatedEventsEditEventIdRoute: AuthenticatedEventsEditEventIdRoute,
+  AuthenticatedHomeReflectionPastRoute: AuthenticatedHomeReflectionPastRoute,
   AuthenticatedHousesEditHouseIdRoute: AuthenticatedHousesEditHouseIdRoute,
   AuthenticatedSkillsEditSkillIdRoute: AuthenticatedSkillsEditSkillIdRoute,
 }
