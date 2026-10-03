@@ -288,6 +288,7 @@
 .drop-shadow-fold { filter: drop-shadow(0 18px 26px oklch(0.3029 0.0214 57.84 / 0.14)); }
 .drop-shadow-envelope { filter: drop-shadow(0 14px 22px oklch(0.3029 0.0214 57.84 / 0.12)); }
 .drop-shadow-dove { filter: drop-shadow(0 10px 14px oklch(0.3029 0.0214 57.84 / 0.12)); }
+.appreciation-paper { box-shadow: 0 var(--paper-shadow-y, 0) var(--paper-shadow-blur, 0) oklch(0.3029 0.0214 57.84 / var(--paper-shadow-opacity, 0)); }
 @keyframes home-panel-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 @keyframes dove-cross { from { transform: translate(-10%, 8%); } to { transform: translate(135%, -120%); opacity: 0; } }
 @keyframes dove-wing { from { transform: rotate(-10deg); } to { transform: rotate(18deg); } }

@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Send, X } from "lucide-react";
-import { toast } from "sonner";
-
 import { AppreciationSendAnimation } from "@/components/oka/appreciation-send-animation";
 import { MentionPicker } from "@/components/oka/mention-picker";
 import { MemberAvatar } from "@/components/oka/profile-sections";
@@ -9,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { sendAppreciation, type MentionMember } from "@/lib/appreciation";
 
-const SAMPLE_RECIPIENT = { id: "preview", display_name: "Maya Cohen", photo_url: null, photo: null };
+const SAMPLE_RECIPIENT: MentionMember = { id: "preview", display_name: "Maya Cohen", photo_url: null, photo: null };
 const SAMPLE_NOTE = "Thank you for sitting with me through that hard week.";
 
 export function AppreciationComposer({ currentUserId, senderFirstName, onSent }: { currentUserId: string; senderFirstName: string; onSent: () => Promise<void> | void }) {
@@ -99,10 +97,9 @@ export function AppreciationComposer({ currentUserId, senderFirstName, onSent }:
       await onSent();
     } catch (caught) {
       setFailed(true);
-      const message = caught instanceof Error && caught.message.includes("APPRECIATION_DAILY_LIMIT")
-        ? "You've sent ten notes today. More can take flight tomorrow."
-        : "We couldn't send it just now. Your words are saved; try again?";
-      toast.error(message);
+      if (caught instanceof Error && caught.message.includes("APPRECIATION_DAILY_LIMIT")) {
+        setError("You've sent ten notes today. More can take flight tomorrow.");
+      }
     }
   }
 
@@ -110,7 +107,9 @@ export function AppreciationComposer({ currentUserId, senderFirstName, onSent }:
   function replay() { setTime(0.001); setDemoRun((value) => value + 1); }
   const activeRecipient = time > 0 ? payloadRef.current.recipient : recipient;
   const activeBody = time > 0 ? payloadRef.current.body : body;
-  const formOpacity = time > 0 ? 1 - (time < 450 ? 4 * Math.pow(time / 450, 3) : 1) : 1;
+  const formProgress = Math.max(0, Math.min(1, time / 450));
+  const formEase = formProgress < 0.5 ? 4 * Math.pow(formProgress, 3) : 1 - Math.pow(-2 * formProgress + 2, 3) / 2;
+  const formOpacity = time > 0 ? 1 - formEase : 1;
 
   return (
     <div ref={stageHostRef} className="relative w-full" style={{ height: 740 * scale }}>
@@ -124,7 +123,7 @@ export function AppreciationComposer({ currentUserId, senderFirstName, onSent }:
             {pickerOpen && time === 0 && <MentionPicker query={mentionQuery} currentUserId={currentUserId} onSelect={selectRecipient} onClose={() => setPickerOpen(false)} />}
           </div>
           <span className="absolute left-[52px] top-[518px] text-[17px] text-muted-foreground" aria-live="polite">{body.length}/280</span>
-          <Button className="absolute right-[52px] top-[500px] h-[60px] rounded-full px-[30px] text-lg font-medium disabled:bg-primary-disabled disabled:text-primary-foreground" disabled={time > 0 || !recipient || !body.trim()} onClick={() => void send()}><Send className="size-[22px]" strokeWidth={1.5} />Send</Button>
+          <Button className="absolute right-[52px] top-[500px] h-[60px] rounded-full px-[30px] text-lg font-medium disabled:bg-primary-disabled disabled:text-primary-foreground" disabled={devMode.frozen !== null || time > 0 || !recipient || !body.trim()} onClick={() => void send()}><Send className="size-[22px]" strokeWidth={1.5} />Send</Button>
           {error && <p role="alert" className="absolute left-[52px] top-[570px] text-sm text-destructive">{error}</p>}
         </div>
         {time > 0 && activeRecipient && <AppreciationSendAnimation t={time} recipientFullName={activeRecipient.display_name} recipientFirstName={activeRecipient.display_name.split(/\s+/)[0] ?? activeRecipient.display_name} senderFirstName={senderFirstName} body={activeBody} failed={failed} onReset={reset} onRetry={() => void send()} demo={devMode.demo} onReplay={replay} />}
