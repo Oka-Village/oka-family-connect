@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Archive, ArchiveRestore, ArrowLeft, Clock, Coins, Loader2, MapPin, Pencil, Sparkles, Video } from "lucide-react";
 import { toast } from "sonner";
 
+import { FavoriteButton } from "@/components/oka/favorite-button";
 import { MemberAvatar } from "@/components/oka/profile-sections";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -83,7 +84,7 @@ function SkillDetail() {
             <span className="flex items-center gap-1 rounded-full border border-border px-3 py-1 text-xs text-muted-foreground"><FormatIcon className="size-3 text-primary" strokeWidth={1.5} />{SKILL_FORMAT_LABELS[skill.format]}</span>
             {skill.duration_minutes && <span className="flex items-center gap-1 rounded-full border border-border px-3 py-1 text-xs text-muted-foreground"><Clock className="size-3 text-primary" strokeWidth={1.5} />{formatDuration(skill.duration_minutes)}</span>}
           </div>
-          <h1 className="mt-5 text-4xl leading-tight text-foreground lg:text-5xl">{skill.title}</h1>
+          <div className="mt-5 flex items-start justify-between gap-4"><h1 className="text-4xl leading-tight text-foreground lg:text-5xl">{skill.title}</h1><FavoriteButton type="skill" itemRef={skill.id} /></div>
           <p className="section-label mt-10">About this offering</p>
           <p className="mt-4 whitespace-pre-line leading-relaxed text-foreground">{skill.description || "The host hasn't written a description yet."}</p>
         </div>

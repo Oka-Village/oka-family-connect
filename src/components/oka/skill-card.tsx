@@ -1,16 +1,18 @@
 import { Link } from "@tanstack/react-router";
 import { Clock, MapPin, Sparkles, Video } from "lucide-react";
 
+import { FavoriteButton } from "@/components/oka/favorite-button";
 import { MemberAvatar } from "@/components/oka/profile-sections";
 import { SKILL_FORMAT_LABELS, formatDuration, type SkillRow } from "@/lib/skills";
 
 export function SkillCard({ skill }: { skill: SkillRow & { photo?: string | null; hostPhoto?: string | null } }) {
   const FormatIcon = skill.format === "virtual" ? Video : MapPin;
   return (
+    <div className="relative h-full">
     <Link
       to="/skills/$skillId"
       params={{ skillId: skill.id }}
-      className="surface-card discovery-card group flex flex-col overflow-hidden"
+      className="surface-card discovery-card group flex h-full flex-col overflow-hidden"
     >
       {skill.photo ? (
         <img src={skill.photo} alt="" className="aspect-[4/3] w-full object-cover" />
@@ -40,5 +42,7 @@ export function SkillCard({ skill }: { skill: SkillRow & { photo?: string | null
         </div>
       </div>
     </Link>
+    <FavoriteButton type="skill" itemRef={skill.id} className="absolute right-3 top-3" />
+    </div>
   );
 }
