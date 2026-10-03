@@ -1,6 +1,9 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
+} from "@tanstack/react-router";
+import { LittleMomentFooter } from "@/components/oka/little-moment-footer";
+import {
   Link,
   createRootRouteWithContext,
   useRouter,
@@ -149,6 +152,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
+      <LittleMomentFooter />
       <Toaster />
     </QueryClientProvider>
   );
