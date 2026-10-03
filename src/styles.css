@@ -62,6 +62,11 @@
   --color-brown-muted: var(--brown-muted);
   --color-brown-label: var(--brown-label);
   --color-terracotta-tint: var(--terracotta-tint);
+  --color-postcard: var(--postcard-paper);
+  --color-postcard-inner: var(--postcard-inner);
+  --color-postcard-label: var(--moment-label);
+  --color-postcard-muted: var(--moment-muted);
+  --color-postcard-rule: var(--postcard-rule);
   --color-terracotta-ink: var(--terracotta-ink);
   --color-sage-ink: var(--sage-ink);
   --color-golden-tint: var(--golden-tint);
@@ -137,6 +142,18 @@
   --moment-inset: inset 0 0 90px rgb(140 106 82 / 0.22);
   --moment-rule: rgb(140 106 82 / 0.4);
   --moment-stain: radial-gradient(ellipse, rgb(209 164 147 / 0.18), transparent 70%);
+  /* Postcards (Home spaces) — one-off paper shades derived from the brand palette */
+  --postcard-paper: var(--moment-paper);
+  --postcard-inner: #f3ebdd;
+  --postcard-rule: rgb(140 106 82 / 0.35);
+  --postcard-ink-line: rgb(140 106 82 / 0.32);
+  --postcard-shadow: 0 18px 40px rgb(55 44 36 / 0.16);
+  --postcard-shadow-lift: 0 26px 50px rgb(55 44 36 / 0.2);
+  --postcard-shadow-big: 0 22px 50px rgb(55 44 36 / 0.16);
+  --tape-sand: rgb(224 212 196 / 0.85);
+  --tape-sage: rgb(209 224 215 / 0.85);
+  --tape-terracotta: rgb(209 164 147 / 0.55);
+  --wax-badge: radial-gradient(circle at 35% 30%, #d1a493, #bb6a4d 45%, #8a4630);
   --cream-deep: oklch(0.956 0.013 79);
   --canvas: oklch(0.928 0.014 81);
   --brown-muted: oklch(0.454 0.032 57);
