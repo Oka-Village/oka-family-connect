@@ -1,13 +1,15 @@
 import { Link } from "@tanstack/react-router";
 import { Home, MapPin } from "lucide-react";
 
+import { FavoriteButton } from "@/components/oka/favorite-button";
 import { MemberAvatar } from "@/components/oka/profile-sections";
 import { PROPERTY_LABELS, type SignedHouse } from "@/lib/houses";
 
 export function HouseCard({ house }: { house: SignedHouse }) {
   const hero = house.photoUrls[0];
   return (
-    <Link to="/houses/$houseId" params={{ houseId: house.id }} className="surface-card discovery-card group flex flex-col overflow-hidden">
+    <div className="relative h-full">
+    <Link to="/houses/$houseId" params={{ houseId: house.id }} className="surface-card discovery-card group flex h-full flex-col overflow-hidden">
       {hero ? (
         <img src={hero} alt="" className="aspect-[4/3] w-full object-cover" />
       ) : (
@@ -25,5 +27,7 @@ export function HouseCard({ house }: { house: SignedHouse }) {
         </div>
       </div>
     </Link>
+    <FavoriteButton type="house" itemRef={house.id} className="absolute right-3 top-3" />
+    </div>
   );
 }

@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Archive, ArchiveRestore, ArrowLeft, CalendarDays, Coins, Home, Loader2, MapPin, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
+import { FavoriteButton } from "@/components/oka/favorite-button";
 import { MemberAvatar } from "@/components/oka/profile-sections";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -81,7 +82,7 @@ function HouseDetail() {
             <span className="rounded-full bg-accent px-3 py-0.5 text-xs uppercase tracking-widest text-accent-foreground">{PROPERTY_LABELS[h.property_type]}</span>
             {h.status !== "published" && <span className="rounded-full bg-muted px-3 py-0.5 text-xs uppercase tracking-widest text-muted-foreground">Unlisted</span>}
           </div>
-          <h1 className="mt-4 text-4xl text-foreground lg:text-5xl">{h.title}</h1>
+          <div className="mt-4 flex items-start justify-between gap-4"><h1 className="text-4xl text-foreground lg:text-5xl">{h.title}</h1><FavoriteButton type="house" itemRef={h.id} /></div>
           {h.location_text && <p className="mt-3 flex items-center gap-2 text-muted-foreground"><MapPin className="size-4 text-primary" strokeWidth={1.5} />{h.location_text}</p>}
           {h.description && <p className="mt-8 whitespace-pre-line leading-relaxed text-foreground">{h.description}</p>}
           {h.house_rules && (
