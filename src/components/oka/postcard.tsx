@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { Heart } from "lucide-react";
 import type { CSSProperties, ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
@@ -87,3 +88,13 @@ export function SpaceShell({ label, children }: { label: string; children: React
 export const pillPrimary = "pill bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
 export const pillSecondary = "pill bg-secondary text-secondary-foreground hover:bg-secondary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
 export const pillOutline = "pill border border-sand text-foreground hover:bg-sand/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
+
+/** Shared favorite action used on Reflection and Inspiration so wording and styling stay identical. */
+export function CollectionButton({ saved, disabled, onClick }: { saved: boolean; disabled?: boolean; onClick: () => void }) {
+  return (
+    <button type="button" className={cn(pillOutline, "inline-flex items-center justify-center gap-2")} disabled={disabled} aria-pressed={saved} onClick={onClick}>
+      <Heart className={cn("h-4 w-4 text-primary transition-transform motion-safe:duration-200", saved && "fill-primary motion-safe:scale-110")} strokeWidth={1.5} aria-hidden="true" />
+      {saved ? "Remove from my collection" : "Save to my collection"}
+    </button>
+  );
+}
