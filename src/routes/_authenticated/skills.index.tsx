@@ -10,7 +10,7 @@ import { EmptyState } from "@/components/oka/empty-state";
 import { SkillCard } from "@/components/oka/skill-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SKILL_CATEGORIES, SKILL_FORMATS, SKILL_FORMAT_LABELS, fetchSkillsPage, useCredits, type SkillCursor } from "@/lib/skills";
+import { SKILL_CATEGORIES, SKILL_FORMATS, SKILL_FORMAT_LABELS, fetchSkillsPage, type SkillCursor } from "@/lib/skills";
 import { cn } from "@/lib/utils";
 import { DealtHand } from "@/components/oka/dealt-hand";
 import { formatDuration, type SkillRow } from "@/lib/skills";

@@ -12,11 +12,11 @@ import {
   startOfMonth,
   startOfWeek,
 } from "date-fns";
-import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Clock, List, MapPin, Plus, Users, Video } from "lucide-react";
+import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, List, MapPin, Plus, Video } from "lucide-react";
 import { useState } from "react";
 import { z } from "zod";
 
-import { EventCard, FeaturedEvent } from "@/components/oka/event-card";
+import { EventCard } from "@/components/oka/event-card";
 import { Button } from "@/components/ui/button";
 import { useCurrentUserId } from "@/hooks/use-is-admin";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,7 +32,7 @@ import {
 } from "@/lib/events";
 import { cn } from "@/lib/utils";
 import { DealtHand } from "@/components/oka/dealt-hand";
-import { FORMAT_LABELS as EVENT_FORMAT_LABELS, hostName, spotsLeft } from "@/lib/events";
+import { hostName, spotsLeft } from "@/lib/events";
 
 const searchSchema = z.object({
   view: z.enum(["list", "calendar"]).optional().catch(undefined),
@@ -177,7 +177,7 @@ function EventFanCard({ event, front }: { event: EventRow; front: boolean }) {
     <div className="flex flex-1 flex-col p-5">
       <p className="text-[0.65rem] uppercase tracking-[.2em] text-terracotta-ink">{d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}</p>
       <h3 className="mt-2 text-2xl leading-[1.05] text-foreground">{event.title}</h3>
-      <p className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground"><FormatIcon className="size-3.5 text-primary" strokeWidth={1.5} />{EVENT_FORMAT_LABELS[event.format]} · {hostName(event.host)}</p>
+      <p className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground"><FormatIcon className="size-3.5 text-primary" strokeWidth={1.5} />{FORMAT_LABELS[event.format]} · {hostName(event.host)}</p>
       {front && <span className="mt-auto inline-flex w-fit rounded-full bg-primary px-4 py-2 text-xs text-primary-foreground">{spotsLeft(event) === 0 ? "Join waitlist" : "Save me a seat"}</span>}
     </div>
   </Link>;
