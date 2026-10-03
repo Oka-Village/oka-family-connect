@@ -1,6 +1,9 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
+} from "@tanstack/react-router";
+import { LittleMomentFooter } from "@/components/oka/little-moment-footer";
+import {
   Link,
   createRootRouteWithContext,
   useRouter,
