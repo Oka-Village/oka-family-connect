@@ -42,6 +42,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     staleTime: 60_000,
   });
   const photo = photoQuery.data ?? null;
+  const unreadQuery = useQuery({
+    queryKey: ["appreciation-unread", profile?.id ?? null],
+    queryFn: async () => {
+      if (!profile) return 0;
+      const { count, error } = await supabase.from("appreciation_letters").select("id", { count: "exact", head: true }).eq("recipient_id", profile.id).is("read_at", null);
+      if (error) throw error;
+      return count ?? 0;
+    },
+    enabled: Boolean(profile),
+    refetchOnWindowFocus: true,
+  });
+  const unreadCount = unreadQuery.data ?? 0;
   const items = isAdmin
     ? [...NAV_ITEMS, { to: "/admin", label: "Admin", icon: ShieldCheck } as const]
     : NAV_ITEMS;
@@ -77,7 +89,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   active ? "bg-card text-foreground shadow-nav" : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                {item.label}
+                <span className="relative">{item.label}{item.to === "/home" && unreadCount > 0 && <span className="absolute -right-3 -top-1 size-2 rounded-full bg-primary" aria-label={`${unreadCount} unread appreciation letters`} />}</span>
               </Link>
             );
           })}
@@ -134,7 +146,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               className={cn("flex flex-1 flex-col items-center gap-1 px-1 py-2 text-[0.625rem] transition-colors", active ? "text-primary" : "text-muted-foreground")}
             >
               <item.icon className={cn("size-5", active && "text-primary")} strokeWidth={1.5} />
-              {item.label}
+              <span className="relative">{item.label}{item.to === "/home" && unreadCount > 0 && <span className="absolute -right-3 -top-1 flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[0.55rem] leading-4 text-primary-foreground" aria-label={`${unreadCount} unread appreciation letters`}>{unreadCount > 9 ? "9+" : unreadCount}</span>}</span>
             </Link>
           );
         })}
