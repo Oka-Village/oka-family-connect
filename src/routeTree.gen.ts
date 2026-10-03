@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAffiliateRouteImport } from './routes/_authenticated/affiliate'
+import { Route as AuthenticatedCollectionsRouteImport } from './routes/_authenticated/collections'
 import { Route as AuthenticatedCreditsRouteImport } from './routes/_authenticated/credits'
 import { Route as AuthenticatedDirectoryRouteImport } from './routes/_authenticated/directory'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
@@ -55,6 +56,12 @@ const AuthenticatedAffiliateRoute = AuthenticatedAffiliateRouteImport.update({
   path: '/affiliate',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCollectionsRoute =
+  AuthenticatedCollectionsRouteImport.update({
+    id: '/collections',
+    path: '/collections',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCreditsRoute = AuthenticatedCreditsRouteImport.update({
   id: '/credits',
   path: '/credits',
@@ -180,6 +187,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/affiliate': typeof AuthenticatedAffiliateRoute
+  '/collections': typeof AuthenticatedCollectionsRoute
   '/credits': typeof AuthenticatedCreditsRoute
   '/directory': typeof AuthenticatedDirectoryRoute
   '/home': typeof AuthenticatedHomeRoute
@@ -207,6 +215,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/affiliate': typeof AuthenticatedAffiliateRoute
+  '/collections': typeof AuthenticatedCollectionsRoute
   '/credits': typeof AuthenticatedCreditsRoute
   '/directory': typeof AuthenticatedDirectoryRoute
   '/home': typeof AuthenticatedHomeRoute
@@ -236,6 +245,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/affiliate': typeof AuthenticatedAffiliateRoute
+  '/_authenticated/collections': typeof AuthenticatedCollectionsRoute
   '/_authenticated/credits': typeof AuthenticatedCreditsRoute
   '/_authenticated/directory': typeof AuthenticatedDirectoryRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
@@ -265,6 +275,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/affiliate'
+    | '/collections'
     | '/credits'
     | '/directory'
     | '/home'
@@ -292,6 +303,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/affiliate'
+    | '/collections'
     | '/credits'
     | '/directory'
     | '/home'
@@ -320,6 +332,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/_authenticated/admin'
     | '/_authenticated/affiliate'
+    | '/_authenticated/collections'
     | '/_authenticated/credits'
     | '/_authenticated/directory'
     | '/_authenticated/home'
@@ -379,6 +392,13 @@ declare module '@tanstack/react-router' {
       path: '/affiliate'
       fullPath: '/affiliate'
       preLoaderRoute: typeof AuthenticatedAffiliateRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/collections': {
+      id: '/_authenticated/collections'
+      path: '/collections'
+      fullPath: '/collections'
+      preLoaderRoute: typeof AuthenticatedCollectionsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/credits': {
@@ -541,6 +561,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedAffiliateRoute: typeof AuthenticatedAffiliateRoute
+  AuthenticatedCollectionsRoute: typeof AuthenticatedCollectionsRoute
   AuthenticatedCreditsRoute: typeof AuthenticatedCreditsRoute
   AuthenticatedDirectoryRoute: typeof AuthenticatedDirectoryRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
@@ -566,6 +587,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedAffiliateRoute: AuthenticatedAffiliateRoute,
+  AuthenticatedCollectionsRoute: AuthenticatedCollectionsRoute,
   AuthenticatedCreditsRoute: AuthenticatedCreditsRoute,
   AuthenticatedDirectoryRoute: AuthenticatedDirectoryRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
