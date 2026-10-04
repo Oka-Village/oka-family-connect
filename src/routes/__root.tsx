@@ -41,10 +41,24 @@ function NotFoundComponent() {
   );
 }
 
+const STALE_CHUNK_RE = /Failed to fetch dynamically imported module|Importing a module script failed|error loading dynamically imported module/i;
+
+/** After a new deploy, old hashed chunks disappear; reload once to fetch the fresh build. */
+function reloadOnceForStaleChunk(message: string): boolean {
+  if (typeof window === "undefined" || !STALE_CHUNK_RE.test(message)) return false;
+  const key = "oka:chunk-reload";
+  const last = Number(sessionStorage.getItem(key) ?? 0);
+  if (Date.now() - last < 10_000) return false;
+  sessionStorage.setItem(key, String(Date.now()));
+  window.location.reload();
+  return true;
+}
+
 function ErrorComponent({ error, reset }: ErrorComponentProps) {
-  console.error(error);
   const router = useRouter();
   useEffect(() => {
+    if (reloadOnceForStaleChunk(error instanceof Error ? error.message : String(error))) return;
+    console.error(error);
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
 
@@ -141,6 +155,15 @@ function RootComponent() {
 
   // Single app-wide auth subscriber: keeps router and cache in step with the
   // Supabase session without thrashing on token refreshes.
+  useEffect(() => {
+    const onPreloadError = (e: Event) => {
+      const msg = String((e as Event & { payload?: Error }).payload?.message ?? "Failed to fetch dynamically imported module");
+      if (reloadOnceForStaleChunk(msg)) e.preventDefault();
+    };
+    window.addEventListener("vite:preloadError", onPreloadError);
+    return () => window.removeEventListener("vite:preloadError", onPreloadError);
+  }, []);
+
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((event) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
