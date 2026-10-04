@@ -57,7 +57,7 @@ function reloadOnceForStaleChunk(message: string): boolean {
 function ErrorComponent({ error, reset }: ErrorComponentProps) {
   const router = useRouter();
   useEffect(() => {
-    if (reloadOnceForStaleChunk(String(error?.message ?? error))) return;
+    if (reloadOnceForStaleChunk(error instanceof Error ? error.message : String(error))) return;
     console.error(error);
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
