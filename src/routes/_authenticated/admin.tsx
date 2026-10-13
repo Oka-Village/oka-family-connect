@@ -174,7 +174,11 @@ function MembersSection() {
         : { data: [] as { user_id: string; role: string }[] };
       const byUser = new Map<string, Set<string>>();
       for (const r of roles ?? []) byUser.set(r.user_id, (byUser.get(r.user_id) ?? new Set()).add(r.role));
-      return (people ?? []).map((p) => ({ ...p, roles: byUser.get(p.id) ?? new Set<string>() }));
+      const { data: affs } = ids.length
+        ? await supabase.from("affiliates").select("user_id,status").in("user_id", ids)
+        : { data: [] as { user_id: string; status: string }[] };
+      const affBy = new Map((affs ?? []).map((a) => [a.user_id, a.status]));
+      return (people ?? []).map((p) => ({ ...p, roles: byUser.get(p.id) ?? new Set<string>(), affiliate: affBy.get(p.id) ?? null }));
     },
   });
 
@@ -186,6 +190,21 @@ function MembersSection() {
       if (res.error) throw res.error;
     },
     onSuccess: () => { toast.success("Role updated"); qc.invalidateQueries({ queryKey: ["admin", "members"] }); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const affiliate = useMutation({
+    mutationFn: async ({ userId, name, status }: { userId: string; name: string | null; status: string | null }) => {
+      const res = status === null
+        ? await supabase.from("affiliates").insert({ user_id: userId, display_name: name })
+        : await supabase.from("affiliates").update({ status: status === "active" ? "paused" : "active" }).eq("user_id", userId);
+      if (res.error) throw res.error;
+    },
+    onSuccess: () => {
+      toast.success("Affiliate updated");
+      qc.invalidateQueries({ queryKey: ["admin", "members"] });
+      qc.invalidateQueries({ queryKey: ["admin", "affiliates"] });
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -209,6 +228,7 @@ function MembersSection() {
                 <div className="mt-2 flex gap-2">
                   {isAdmin && <span className="rounded-full bg-primary/15 px-3 py-0.5 text-xs text-primary">Admin</span>}
                   {isMod && <span className="rounded-full bg-secondary px-3 py-0.5 text-xs text-secondary-foreground">Moderator</span>}
+                  {p.affiliate === "active" && <span className="rounded-full bg-sage-light px-3 py-0.5 text-xs text-foreground">Affiliate</span>}
                   {!isAdmin && !isMod && <span className="rounded-full bg-accent px-3 py-0.5 text-xs text-muted-foreground">Member</span>}
                 </div>
               </div>
@@ -221,6 +241,10 @@ function MembersSection() {
                   title={self && isAdmin ? "You can't remove your own admin role" : undefined}
                   onClick={() => confirm(isAdmin ? "Revoke admin?" : "Grant full admin access?") && toggle.mutate({ userId: p.id, role: "admin", grant: !isAdmin })}>
                   {isAdmin ? "Revoke admin" : "Grant admin"}
+                </Button>
+                <Button size="sm" variant="outline" className="rounded-full" disabled={affiliate.isPending}
+                  onClick={() => affiliate.mutate({ userId: p.id, name: p.display_name, status: p.affiliate })}>
+                  {p.affiliate === "active" ? "Pause affiliate" : p.affiliate ? "Resume affiliate" : "Make affiliate"}
                 </Button>
                 <Button size="sm" variant="outline" className="rounded-full" onClick={() => setAdjusting(adjusting === p.id ? null : p.id)}>Adjust credits</Button>
               </div>
