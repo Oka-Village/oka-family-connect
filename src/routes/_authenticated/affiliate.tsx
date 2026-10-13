@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 import { MemberAvatar } from "@/components/oka/profile-sections";
 import { Button } from "@/components/ui/button";
-import { useCurrentUserId } from "@/hooks/use-is-admin";
+import { useCurrentUserId, useRoles } from "@/hooks/use-is-admin";
 import { supabase } from "@/integrations/supabase/client";
 import { formatCents } from "@/lib/affiliates";
 import { signPaths } from "@/lib/skills";
@@ -71,6 +71,7 @@ function AffiliatePage() {
       <p className="section-label">Invite & earn</p>
       <h1 className="mt-4 text-4xl text-foreground lg:text-5xl">Grow the family</h1>
       <p className="mt-3 max-w-2xl text-muted-foreground">Share your personal link. When someone you invite becomes a full member, you receive a share of their membership.</p>
+      <ProgramTotals />
 
       {aff.isLoading || !uid ? (
         <Loader2 className="mt-10 size-6 animate-spin text-primary" strokeWidth={1.5} />
@@ -138,5 +139,47 @@ function Stat({ label, value }: { label: string; value: string }) {
       <p className="section-label">{label}</p>
       <p className="mt-3 font-serif text-4xl text-foreground">{value}</p>
     </div>
+  );
+}
+
+/** Admin-only: totals across every affiliate. Uses the admin branch of affiliate_referral_stats. */
+function ProgramTotals() {
+  const roles = useRoles();
+  const isAdmin = Boolean(roles.data?.isAdmin);
+  const q = useQuery({
+    queryKey: ["affiliate", "program-totals"],
+    enabled: isAdmin,
+    queryFn: async () => {
+      const { data: affs, error } = await supabase.from("affiliates").select("id");
+      if (error) throw error;
+      const all = await Promise.all((affs ?? []).map(async (a) => {
+        const { data, error: e } = await supabase.rpc("affiliate_referral_stats", { _affiliate_id: a.id });
+        if (e) throw e;
+        return (data ?? []) as Stat[];
+      }));
+      const rows = all.flat();
+      return {
+        affiliates: affs?.length ?? 0,
+        members: new Set(rows.map((r) => r.referred_user_id)).size,
+        paid: rows.reduce((s, r) => s + Number(r.paid_cents), 0),
+        earned: rows.reduce((s, r) => s + Number(r.earned_cents), 0),
+      };
+    },
+  });
+  if (!isAdmin) return null;
+  return (
+    <section className="surface-card mt-8 p-6" aria-label="Program totals">
+      <p className="section-label">All affiliates · Admin only</p>
+      {q.isLoading ? <Loader2 className="mt-4 size-5 animate-spin text-primary" strokeWidth={1.5} /> : q.isError ? (
+        <p className="mt-3 text-sm text-destructive">Couldn't load totals. <button type="button" className="underline" onClick={() => void q.refetch()}>Try again</button></p>
+      ) : q.data && (
+        <div className="mt-4 grid gap-4 sm:grid-cols-4">
+          <Stat label="Affiliates" value={String(q.data.affiliates)} />
+          <Stat label="Members joined" value={String(q.data.members)} />
+          <Stat label="Paid memberships" value={formatCents(q.data.paid)} />
+          <Stat label="Affiliates earned" value={formatCents(q.data.earned)} />
+        </div>
+      )}
+    </section>
   );
 }
