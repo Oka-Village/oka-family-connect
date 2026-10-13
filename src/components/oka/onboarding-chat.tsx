@@ -155,7 +155,7 @@ function Guide({ children }: { children: ReactNode }) {
   return (
     <div className="flex items-end gap-2 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-1 motion-safe:duration-300">
       <span className="flex size-8 shrink-0 items-center justify-center rounded-full border border-border bg-card" aria-hidden>
-        <img src={okaLogo} alt="" className="h-2.5 w-auto" />
+        <img src={okaLogo} alt="" className="w-5 object-contain" />
       </span>
       <div className="max-w-[85%] rounded-2xl rounded-bl-md bg-card px-4 py-3 font-serif text-[21px] leading-snug text-foreground shadow-sm">
         <span className="sr-only">Oka: </span>{children}
