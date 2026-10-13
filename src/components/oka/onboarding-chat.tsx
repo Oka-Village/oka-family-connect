@@ -91,7 +91,6 @@ export function OnboardingChat() {
   }
 
   const countedDone = cursor === DONE ? TOTAL : list.slice(0, curIdx + 1).filter((s) => s.counted).length || 1;
-  const current = list[curIdx];
 
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-[560px] flex-col bg-background">
@@ -146,7 +145,6 @@ export function OnboardingChat() {
             <Summary answers={answers} onEdit={(id) => setEditing(id)} onStartOver={restart} />
           </>
         ))}
-        {current === undefined && cursor !== DONE && null}
         <div ref={endRef} />
       </div>
     </div>
