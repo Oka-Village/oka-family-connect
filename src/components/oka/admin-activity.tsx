@@ -17,11 +17,11 @@ export function ActivitySection() {
     queryKey: ["admin", "activity"],
     initialPageParam: null as string | null,
     queryFn: async ({ pageParam }) => {
-      const { data, error } = await supabase.rpc("admin_activity_log", { _before: pageParam ?? undefined, _limit: PAGE });
+      const { data, error } = await supabase.rpc("admin_activity_log", pageParam ? { _before: pageParam, _limit: PAGE } : { _limit: PAGE });
       if (error) throw error;
       return (data ?? []) as Activity[];
     },
-    getNextPageParam: (last) => (last.length === PAGE ? last[last.length - 1].occurred_at : undefined),
+    getNextPageParam: (last) => (last.length === PAGE ? last[last.length - 1]?.occurred_at : undefined),
   });
 
   const rows = useMemo(() => {
