@@ -764,6 +764,16 @@ export type Database = {
     }
     Functions: {
       activate_affiliate: { Args: never; Returns: string }
+      admin_activity_log: {
+        Args: { _before?: string; _limit?: number }
+        Returns: {
+          action: string
+          actor_id: string
+          actor_name: string
+          detail: string
+          occurred_at: string
+        }[]
+      }
       affiliate_invite_info: {
         Args: { _code: string }
         Returns: {
