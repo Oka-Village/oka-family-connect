@@ -1,8 +1,7 @@
 # Roadmap
 
-- [ ] Add authenticated Home page with three deep-linkable spaces.
-- [ ] Add reflection and inspiration decks with editable content libraries.
-- [ ] Add secure appreciation letters schema, sending, mentions, inbox, sent list, unread state, and realtime refresh.
-- [ ] Add Home-first navigation, logo links, and post-auth/onboarding Home redirects.
-- [ ] Rename all user-facing Directory copy to Members while preserving `/directory`.
-- [ ] Verify desktop/mobile accessibility, card interactions, letter flows, cleanup, and preview health.
+- [x] Add Home spaces, decks, appreciation letters and Home-first navigation.
+- [x] Rename user-facing Directory copy to Members while preserving `/directory`.
+- [x] Verify Home changes in preview; prior verification limits are recorded in chat.
+- [x] Add three skippable Oka introduction screens before the prototype chat, with session-only progress and replay.
+- [x] Verify introduction navigation, refresh, skip and restart at 390px and desktop; preview reports no errors.
