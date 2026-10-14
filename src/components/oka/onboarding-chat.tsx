@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ArrowLeft, Check, Search } from "lucide-react";
 
 import okaLogo from "@/assets/oka-logo.png";
+import { INTRO_SCREEN_COUNT, OnboardingIntro } from "@/components/oka/onboarding-intro";
 import { pillOutline, pillPrimary } from "@/components/oka/postcard";
 import {
   CLOSING, DEFERRED, SKIPPED, STEPS, TOTAL, activeSteps, formatAnswer,
@@ -11,7 +12,7 @@ import { cn } from "@/lib/utils";
 
 const STORAGE_KEY = "oka:onboarding-chat";
 const DONE = "done";
-type Saved = { answers: Answers; cursor: string };
+type Saved = { answers: Answers; cursor: string; intro?: number | null };
 
 const reducedMotion = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
@@ -28,7 +29,8 @@ function settleCursor(answers: Answers, cursor: string) {
 
 export function OnboardingChat() {
   const [answers, setAnswers] = useState<Answers>({});
-  const [cursor, setCursor] = useState<string>(STEPS[0]!.id);
+  const [cursor, setCursor] = useState<string>(STEPS[0]?.id ?? DONE);
+  const [intro, setIntro] = useState<number | null>(0);
   const [editing, setEditing] = useState<string | null>(null);
   const [typing, setTyping] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -43,22 +45,28 @@ export function OnboardingChat() {
   useEffect(() => {
     try {
       const raw = sessionStorage.getItem(STORAGE_KEY);
-      if (raw) { const s = JSON.parse(raw) as Saved; setAnswers(s.answers ?? {}); setCursor(s.cursor ?? STEPS[0]!.id); }
+      if (raw) {
+        const s = JSON.parse(raw) as Saved;
+        setAnswers(s.answers ?? {});
+        setCursor(s.cursor ?? STEPS[0]?.id ?? DONE);
+        setIntro(s.intro === null || (s.intro === undefined && Object.keys(s.answers ?? {}).length > 0)
+          ? null : typeof s.intro === "number" ? Math.max(0, Math.min(INTRO_SCREEN_COUNT - 1, s.intro)) : 0);
+      }
     } catch { /* ignore corrupt state */ }
     setHydrated(true);
   }, []);
 
   useEffect(() => {
-    if (hydrated) sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ answers, cursor } satisfies Saved));
-  }, [answers, cursor, hydrated]);
+    if (hydrated) sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ answers, cursor, intro } satisfies Saved));
+  }, [answers, cursor, intro, hydrated]);
 
   // Gentle typing dots before each new guide message.
   useEffect(() => {
-    if (!hydrated || reducedMotion()) return;
+    if (!hydrated || intro !== null || reducedMotion()) return;
     setTyping(true);
     const t = window.setTimeout(() => setTyping(false), 500);
     return () => window.clearTimeout(t);
-  }, [cursor, hydrated]);
+  }, [cursor, hydrated, intro]);
 
   useEffect(() => {
     if (editing) return;
@@ -81,22 +89,27 @@ export function OnboardingChat() {
 
   function back() {
     setEditing(null);
-    if (curIdx > 0) setCursor(list[curIdx - 1]!.id);
+    const previous = list[curIdx - 1];
+    if (previous) setCursor(previous.id);
+    else setIntro(INTRO_SCREEN_COUNT - 1);
   }
 
   function restart() {
     sessionStorage.removeItem(STORAGE_KEY);
-    setAnswers({}); setEditing(null); setConfirming(false); setCursor(STEPS[0]!.id);
+    setAnswers({}); setEditing(null); setConfirming(false); setCursor(STEPS[0]?.id ?? DONE); setIntro(0);
     window.scrollTo({ top: 0 });
   }
 
   const countedDone = cursor === DONE ? TOTAL : list.slice(0, curIdx + 1).filter((s) => s.counted).length || 1;
 
+  if (!hydrated) return <div className="min-h-screen bg-background" />;
+  if (intro !== null) return <OnboardingIntro index={intro} onChange={setIntro} onFinish={() => setIntro(null)} />;
+
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-[560px] flex-col bg-background">
       <header className="sticky top-0 z-20 border-b border-border bg-background/95 px-4 pb-3 pt-3 backdrop-blur">
         <div className="flex items-center justify-between gap-2">
-          <button type="button" onClick={back} disabled={curIdx === 0} aria-label="Back to previous question"
+          <button type="button" onClick={back} aria-label={curIdx === 0 ? "Back to introduction" : "Back to previous question"}
             className={cn("-ml-2 inline-flex size-11 items-center justify-center rounded-full text-foreground hover:bg-secondary disabled:opacity-40", focusRing)}>
             <ArrowLeft className="size-5 text-primary" strokeWidth={1.5} />
           </button>
