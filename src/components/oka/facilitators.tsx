@@ -184,7 +184,18 @@ export function FacilitatorsPage() {
             onBack={() => goTo(1)}
           />
         )}
-        {step > 2 && <ComingNext step={step} onBack={() => goTo(step - 1)} />}
+        {step === 3 && (
+          <StepAgreement
+            checks={agreementChecks}
+            onToggle={(i) => setAgreementChecks((c) => c.map((v, j) => (j === i ? !v : v)))}
+            acceptanceName={acceptanceName}
+            onAcceptanceName={setAcceptanceName}
+            newsOptIn={newsOptIn}
+            onNewsOptIn={() => setNewsOptIn((v) => !v)}
+            onSubmit={() => setSubmitted(true)}
+            onBack={() => goTo(2)}
+          />
+        )}
       </div>
     </div>
   );
