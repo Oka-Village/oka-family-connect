@@ -1,6 +1,6 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Activity, CalendarDays, Gift, Home, Plus, Search, ShieldCheck, Sparkles, Users } from "lucide-react";
+import { Activity, CalendarDays, Palette, Gift, Home, Plus, Search, ShieldCheck, Sparkles, Users } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -15,9 +15,10 @@ import { EVENT_SELECT, TYPE_LABELS, formatEventDate, formatEventTime, hostName, 
 import { CopyJoinLink } from "@/components/oka/copy-join-link";
 import { AffiliatesSection } from "@/components/oka/admin-affiliates";
 import { ActivitySection } from "@/components/oka/admin-activity";
+import { ThemesSection } from "@/components/oka/admin-themes";
 import { cn } from "@/lib/utils";
 
-const TABS = ["events", "members", "listings", "affiliates", "activity"] as const;
+const TABS = ["events", "members", "listings", "affiliates", "activity", "themes"] as const;
 type Tab = (typeof TABS)[number];
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -55,6 +56,7 @@ function AdminPage() {
     { id: "listings", label: "Houses & skills", icon: Home },
     ...(roles.isAdmin ? [{ id: "affiliates" as const, label: "Affiliates", icon: Gift }] : []),
     ...(roles.isAdmin ? [{ id: "activity" as const, label: "Activity log", icon: Activity }] : []),
+    ...(roles.isAdmin ? [{ id: "themes" as const, label: "Themes", icon: Palette }] : []),
   ];
   const active: Tab = tab && tabs.some((t) => t.id === tab) ? tab : "events";
 
@@ -81,6 +83,7 @@ function AdminPage() {
       {active === "listings" && <ListingsSection />}
       {active === "affiliates" && roles.isAdmin && <AffiliatesSection />}
       {active === "activity" && roles.isAdmin && <ActivitySection />}
+      {active === "themes" && roles.isAdmin && <ThemesSection />}
     </div>
   );
 }
