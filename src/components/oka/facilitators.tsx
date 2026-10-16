@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
-  ArrowLeft, ArrowRight, BadgeCheck, CalendarDays, FileText, HandHeart, Landmark,
+  ArrowLeft, ArrowRight, BadgeCheck, CalendarDays, Check, FileText, HandHeart, Landmark,
   ListChecks, PhoneCall, Receipt, Sparkles, UserRoundCheck, Video, Wallet,
 } from "lucide-react";
 
@@ -11,7 +11,8 @@ import { cn } from "@/lib/utils";
 const STORAGE_KEY = "oka:facilitators";
 const STEPS = ["Join", "Your practice", "Payments", "Agreement"] as const;
 
-type Saved = { step: number; checks: boolean[] };
+type FormValues = Record<string, string | string[]>;
+type Saved = { step: number; checks: boolean[]; form?: FormValues };
 
 const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
 
