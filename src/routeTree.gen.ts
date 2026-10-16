@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as FacilitatorsRouteImport } from './routes/facilitators'
 import { Route as OnboardingChatRouteImport } from './routes/onboarding-chat'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAffiliateRouteImport } from './routes/_authenticated/affiliate'
@@ -49,6 +50,11 @@ const IndexRoute = IndexRouteImport.update({
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FacilitatorsRoute = FacilitatorsRouteImport.update({
+  id: '/facilitators',
+  path: '/facilitators',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OnboardingChatRoute = OnboardingChatRouteImport.update({
@@ -219,6 +225,7 @@ const AuthenticatedSkillsEditSkillIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/facilitators': typeof FacilitatorsRoute
   '/onboarding-chat': typeof OnboardingChatRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/affiliate': typeof AuthenticatedAffiliateRoute
@@ -252,6 +259,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/facilitators': typeof FacilitatorsRoute
   '/onboarding-chat': typeof OnboardingChatRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/affiliate': typeof AuthenticatedAffiliateRoute
@@ -287,6 +295,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/facilitators': typeof FacilitatorsRoute
   '/onboarding-chat': typeof OnboardingChatRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/affiliate': typeof AuthenticatedAffiliateRoute
@@ -322,6 +331,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/facilitators'
     | '/onboarding-chat'
     | '/admin'
     | '/affiliate'
@@ -355,6 +365,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/facilitators'
     | '/onboarding-chat'
     | '/admin'
     | '/affiliate'
@@ -389,6 +400,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/facilitators'
     | '/onboarding-chat'
     | '/_authenticated/admin'
     | '/_authenticated/affiliate'
@@ -424,6 +436,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  FacilitatorsRoute: typeof FacilitatorsRoute
   OnboardingChatRoute: typeof OnboardingChatRoute
   InviteCodeRoute: typeof InviteCodeRoute
   JoinSlugRoute: typeof JoinSlugRoute
@@ -443,6 +456,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/facilitators': {
+      id: '/facilitators'
+      path: '/facilitators'
+      fullPath: '/facilitators'
+      preLoaderRoute: typeof FacilitatorsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/onboarding-chat': {
@@ -724,6 +744,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  FacilitatorsRoute: FacilitatorsRoute,
   OnboardingChatRoute: OnboardingChatRoute,
   InviteCodeRoute: InviteCodeRoute,
   JoinSlugRoute: JoinSlugRoute,
