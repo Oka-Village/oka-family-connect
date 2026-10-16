@@ -723,6 +723,39 @@ export type Database = {
           },
         ]
       }
+      themes: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          image_path: string | null
+          kind: string
+          period_key: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          image_path?: string | null
+          kind: string
+          period_key: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          image_path?: string | null
+          kind?: string
+          period_key?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
