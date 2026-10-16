@@ -113,6 +113,8 @@ function HomePage() {
       <HomeThemes />
 
       <HomeEvents />
+
+      <HomeFeatured />
     </div>
   );
 }
