@@ -135,7 +135,15 @@ export function FacilitatorsPage() {
             onContinue={() => (allChecked ? goTo(1) : setTriedContinue(true))}
           />
         )}
-        {step > 0 && <ComingNext step={step} onBack={() => goTo(step - 1)} />}
+        {step === 1 && (
+          <StepPractice
+            values={form}
+            onChange={(key, value) => setForm((f) => ({ ...f, [key]: value }))}
+            onContinue={() => goTo(2)}
+            onBack={() => goTo(0)}
+          />
+        )}
+        {step > 1 && <ComingNext step={step} onBack={() => goTo(step - 1)} />}
       </div>
     </div>
   );
@@ -174,13 +182,10 @@ function StepJoin({ beginRef, checks, triedContinue, allChecked, onToggle, onCon
           >
             Apply to facilitate <ArrowRight className="size-4" strokeWidth={1.5} aria-hidden />
           </button>
-          <span className="inline-flex flex-wrap items-center gap-2">
-            <a href="#" aria-disabled="true" onClick={(e) => e.preventDefault()}
-              className={cn(pillOutline, "inline-flex items-center gap-2 opacity-80")}>
-              <PhoneCall className="size-4 text-primary" strokeWidth={1.5} aria-hidden /> Book a call
-            </a>
-            <DraftChip>book-a-call link</DraftChip>
-          </span>
+          <a href="https://cal.com/liran-rosenfeld-bex504/30min" target="_blank" rel="noopener noreferrer"
+            className={cn(pillOutline, "inline-flex items-center gap-2")}>
+            <PhoneCall className="size-4 text-primary" strokeWidth={1.5} aria-hidden /> Book a call
+          </a>
           <a href="https://luma.com/okaoneworldfamily" target="_blank" rel="noopener noreferrer"
             className={cn("inline-flex min-h-11 items-center gap-2 rounded-full px-2 text-sm text-primary underline-offset-4 hover:underline", focusRing)}>
             <Video className="size-4" strokeWidth={1.5} aria-hidden /> Join a webinar (3 times a week)
