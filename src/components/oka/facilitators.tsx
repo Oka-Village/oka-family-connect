@@ -112,6 +112,16 @@ export function FacilitatorsPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  if (submitted) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="mx-auto w-full max-w-[860px] px-4 pb-24 pt-10 sm:px-6">
+          <ConfirmationScreen form={form} acceptanceName={acceptanceName} />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto w-full max-w-[860px] px-4 pb-24 pt-10 sm:px-6">
