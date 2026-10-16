@@ -59,6 +59,7 @@ const CONFIRMATIONS = [
 export function FacilitatorsPage() {
   const [step, setStep] = useState(0);
   const [checks, setChecks] = useState<boolean[]>(() => CONFIRMATIONS.map(() => false));
+  const [paymentChecks, setPaymentChecks] = useState<boolean[]>([false, false]);
   const [form, setForm] = useState<FormValues>({});
   const [triedContinue, setTriedContinue] = useState(false);
   const [hydrated, setHydrated] = useState(false);
