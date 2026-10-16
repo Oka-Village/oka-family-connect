@@ -1,0 +1,1 @@
+CREATE POLICY "Signed-in members read theme images" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'theme-images');
