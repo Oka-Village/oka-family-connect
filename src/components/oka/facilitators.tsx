@@ -373,7 +373,7 @@ function StepPractice({ values, onChange, onContinue, onBack }: {
   const [savedAt, setSavedAt] = useState<number | null>(null);
 
   const str = (key: string) => (typeof values[key] === "string" ? (values[key] as string) : "");
-  const roles = Array.isArray(values.roles) ? (values.roles as string[]) : [];
+  const roles = Array.isArray(values["roles"]) ? (values["roles"] as string[]) : [];
 
   function fieldError(f: FieldDef): string | null {
     if (!f.required) return null;
