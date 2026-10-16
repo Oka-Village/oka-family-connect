@@ -31,7 +31,7 @@ export function HomeFeatured() {
       // Newest published homes whose owner has a completed (public) profile.
       const homesRes = supabase
         .from("houses")
-        .select(`${HOUSE_SELECT.replace("owner:profiles!houses_owner_id_fkey(id,display_name,photo_url)", "owner:profiles!houses_owner_id_fkey(id,display_name,photo_url,profile_completed)")}, created_at`)
+        .select(`${HOUSE_SELECT.replace("owner:profiles!houses_owner_id_fkey(id,display_name,photo_url)", "owner:profiles!houses_owner_id_fkey(id,display_name,photo_url,profile_completed)")}`)
         .eq("status", "published")
         .order("created_at", { ascending: false })
         .order("id", { ascending: false })
