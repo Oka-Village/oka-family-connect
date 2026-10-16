@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
-  ArrowLeft, ArrowRight, BadgeCheck, CalendarDays, Check, FileText, HandHeart, Landmark,
-  ListChecks, PhoneCall, Receipt, Sparkles, UserRoundCheck, Video, Wallet,
+  ArrowLeft, ArrowRight, BadgeCheck, Calculator, CalendarDays, Check, FileText, HandHeart, Landmark,
+  ListChecks, PhoneCall, Receipt, Scale, Sparkles, UserRoundCheck, Users, Video, Wallet,
 } from "lucide-react";
 
 import heroImage from "@/assets/facilitators-hero.jpg";
@@ -12,7 +12,7 @@ const STORAGE_KEY = "oka:facilitators";
 const STEPS = ["Join", "Your practice", "Payments", "Agreement"] as const;
 
 type FormValues = Record<string, string | string[]>;
-type Saved = { step: number; checks: boolean[]; form?: FormValues };
+type Saved = { step: number; checks: boolean[]; form?: FormValues; paymentChecks?: boolean[] };
 
 const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
 
