@@ -12,7 +12,16 @@ const STORAGE_KEY = "oka:facilitators";
 const STEPS = ["Join", "Your practice", "Payments", "Agreement"] as const;
 
 type FormValues = Record<string, string | string[]>;
-type Saved = { step: number; checks: boolean[]; form?: FormValues; paymentChecks?: boolean[] };
+type Saved = {
+  step: number;
+  checks: boolean[];
+  form?: FormValues;
+  paymentChecks?: boolean[];
+  agreementChecks?: boolean[];
+  acceptanceName?: string;
+  newsOptIn?: boolean;
+  submitted?: boolean;
+};
 
 const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
 
@@ -60,6 +69,10 @@ export function FacilitatorsPage() {
   const [step, setStep] = useState(0);
   const [checks, setChecks] = useState<boolean[]>(() => CONFIRMATIONS.map(() => false));
   const [paymentChecks, setPaymentChecks] = useState<boolean[]>([false, false]);
+  const [agreementChecks, setAgreementChecks] = useState<boolean[]>([false, false, false, false]);
+  const [acceptanceName, setAcceptanceName] = useState("");
+  const [newsOptIn, setNewsOptIn] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [form, setForm] = useState<FormValues>({});
   const [triedContinue, setTriedContinue] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -73,6 +86,10 @@ export function FacilitatorsPage() {
         if (typeof s.step === "number") setStep(Math.max(0, Math.min(STEPS.length - 1, s.step)));
         if (Array.isArray(s.checks)) setChecks(CONFIRMATIONS.map((_, i) => Boolean(s.checks?.[i])));
         if (Array.isArray(s.paymentChecks)) setPaymentChecks([Boolean(s.paymentChecks[0]), Boolean(s.paymentChecks[1])]);
+        if (Array.isArray(s.agreementChecks)) setAgreementChecks([0, 1, 2, 3].map((i) => Boolean(s.agreementChecks?.[i])));
+        if (typeof s.acceptanceName === "string") setAcceptanceName(s.acceptanceName);
+        if (typeof s.newsOptIn === "boolean") setNewsOptIn(s.newsOptIn);
+        if (s.submitted === true) setSubmitted(true);
         if (s.form && typeof s.form === "object") setForm(s.form);
       }
     } catch { /* ignore corrupt state */ }
@@ -80,8 +97,12 @@ export function FacilitatorsPage() {
   }, []);
 
   useEffect(() => {
-    if (hydrated) localStorage.setItem(STORAGE_KEY, JSON.stringify({ step, checks, form, paymentChecks } satisfies Saved));
-  }, [step, checks, form, paymentChecks, hydrated]);
+    if (hydrated) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        step, checks, form, paymentChecks, agreementChecks, acceptanceName, newsOptIn, submitted,
+      } satisfies Saved));
+    }
+  }, [step, checks, form, paymentChecks, agreementChecks, acceptanceName, newsOptIn, submitted, hydrated]);
 
   const allChecked = checks.every(Boolean);
 
@@ -89,6 +110,16 @@ export function FacilitatorsPage() {
     setStep(next);
     setTriedContinue(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  if (submitted) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="mx-auto w-full max-w-[860px] px-4 pb-24 pt-10 sm:px-6">
+          <ConfirmationScreen form={form} acceptanceName={acceptanceName} />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -153,7 +184,18 @@ export function FacilitatorsPage() {
             onBack={() => goTo(1)}
           />
         )}
-        {step > 2 && <ComingNext step={step} onBack={() => goTo(step - 1)} />}
+        {step === 3 && (
+          <StepAgreement
+            checks={agreementChecks}
+            onToggle={(i) => setAgreementChecks((c) => c.map((v, j) => (j === i ? !v : v)))}
+            acceptanceName={acceptanceName}
+            onAcceptanceName={setAcceptanceName}
+            newsOptIn={newsOptIn}
+            onNewsOptIn={() => setNewsOptIn((v) => !v)}
+            onSubmit={() => setSubmitted(true)}
+            onBack={() => goTo(2)}
+          />
+        )}
       </div>
     </div>
   );
@@ -282,20 +324,6 @@ function StepJoin({ beginRef, checks, triedContinue, allChecked, onToggle, onCon
   );
 }
 
-function ComingNext({ step, onBack }: { step: number; onBack: () => void }) {
-  return (
-    <div className="surface-card flex flex-col items-start gap-4 p-8 sm:p-10">
-      <p className="section-label">{STEPS[step]}</p>
-      <h1 className="font-serif text-3xl text-foreground sm:text-4xl">Coming next</h1>
-      <p className="max-w-[56ch] text-[15px] leading-relaxed text-muted-foreground">
-        This step is being written. Your progress so far is saved on this device, and you can go back at any time.
-      </p>
-      <button type="button" onClick={onBack} className={cn(pillOutline, "inline-flex items-center gap-2")}>
-        <ArrowLeft className="size-4 text-primary" strokeWidth={1.5} aria-hidden /> Back to {STEPS[step - 1]}
-      </button>
-    </div>
-  );
-}
 
 /* ---------------- Step 2: Your practice ---------------- */
 
@@ -778,4 +806,257 @@ function StepPayments({ checks, onToggle, onContinue, onBack }: {
       </section>
     </div>
   );
+}
+
+/* ---------------- Step 4: Agreement ---------------- */
+
+const AGREEMENT_SECTIONS = [
+  {
+    title: "Review your responsibilities",
+    body: <>This Facilitator Agreement is between you and <DraftChip>operating legal entity, registration number, registered address</DraftChip>, operating One World Family. It incorporates the Contribution Policy <DraftChip>contribution policy link</DraftChip> and the payment provisions presented above, and identifies the law and dispute process that apply.</>,
+  },
+  {
+    title: "Professional standards and participant care",
+    body: "Accurate credentials; deliver within your competence and the law; disclose participation requirements and risks; no misleading claims or guaranteed outcomes; no medical, psychological, legal or financial advice unless qualified, authorised and approved for that purpose.",
+  },
+  {
+    title: "Independent participation",
+    body: "You participate as an independent service provider, not an employee, agent or legal partner; mandatory rights under applicable law remain unaffected.",
+  },
+  {
+    title: "Your content and permissions",
+    body: "You keep ownership of your materials and confirm you have the rights to use them; the operator gets a non-exclusive permission to display your approved public profile and event descriptions, promote approved events, and provide the agreed live session to members; recording or reuse beyond that needs separate express agreement; private participant disclosures are never promotional material without permission.",
+  },
+  {
+    title: "Confidentiality and privacy",
+    body: "Protect member information; do not record, publish or disclose participant information without permission or another lawful basis; collect only what your approved session needs.",
+  },
+  {
+    title: "Scheduling and technical delivery",
+    body: "Accurate event descriptions; attend on time; notify promptly about cancellations or technical issues; only eligible sessions and attendance count under the Contribution Policy; you are responsible for your own equipment and connection.",
+  },
+  {
+    title: "No guaranteed commercial outcome",
+    body: "No guarantee of approval, publication, attendance, referral conversions, scores or minimum earnings; the operator remains responsible for calculating and paying amounts earned.",
+  },
+  {
+    title: "Responsibility for claims",
+    body: "To the extent permitted by law, you are responsible for direct, documented losses and third-party claims caused by your breach, unlawful conduct, negligence or IP infringement — not for losses caused by the operator's own fault; the operator must notify you promptly, allow reasonable participation in defence, mitigate loss, and not settle with an admission or non-monetary obligation on you without your consent.",
+  },
+  {
+    title: "Limits of liability",
+    body: "Neither party is liable for indirect or consequential loss or lost profits, to the extent permitted by law; this never excludes earned payment obligations, fraud, wilful misconduct, death or personal injury caused by negligence, or any liability that cannot lawfully be excluded; any monetary cap will be specified in the final approved agreement.",
+  },
+  {
+    title: "Ending participation",
+    body: "You may stop proposing events and request account closure; honour existing bookings; the operator may suspend or end participation for safety, fraud or material breaches, with notice where reasonable and lawful; valid earnings from delivered sessions are not forfeited and only affected amounts may be withheld for a documented dispute.",
+  },
+  {
+    title: "Questions and disputes",
+    body: <>Contact <DraftChip>support email</DraftChip> with a statement, event, or agreement concern. Good-faith review first; the agreement's governing law and dispute process apply; nothing prevents access to rights or remedies that cannot legally be waived.</>,
+  },
+] as const;
+
+function StepAgreement({ checks, onToggle, acceptanceName, onAcceptanceName, newsOptIn, onNewsOptIn, onSubmit, onBack }: {
+  checks: boolean[];
+  onToggle: (i: number) => void;
+  acceptanceName: string;
+  onAcceptanceName: (v: string) => void;
+  newsOptIn: boolean;
+  onNewsOptIn: () => void;
+  onSubmit: () => void;
+  onBack: () => void;
+}) {
+  const [tried, setTried] = useState(false);
+  const allChecked = checks.every(Boolean);
+  const nameOk = acceptanceName.trim().length > 0;
+  const ready = allChecked && nameOk;
+
+  return (
+    <div className="flex flex-col gap-8">
+      <p role="note" className="rounded-2xl border border-golden bg-golden-tint p-4 text-sm leading-relaxed text-golden-ink">
+        Draft agreement preview — the details marked DRAFT are still being confirmed. Submitting now is a non-binding
+        expression of interest; you will be asked to review and accept the final agreement before your facilitator
+        account is activated.
+      </p>
+
+      <header className="flex flex-col gap-3">
+        <p className="section-label">Agreement</p>
+        <h1 className="font-serif text-3xl leading-tight text-foreground sm:text-4xl">Facilitator Agreement and acceptance</h1>
+      </header>
+
+      <div className="flex flex-col gap-3">
+        {AGREEMENT_SECTIONS.map((s, i) => (
+          <details key={s.title} className="surface-card group p-5">
+            <summary className={cn("flex cursor-pointer list-none items-center gap-3 font-semibold text-foreground", focusRing)}>
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-sage-light font-serif text-sm text-sage-ink">{i + 1}</span>
+              <span className="flex-1">{s.title}</span>
+              <ArrowRight className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-90" strokeWidth={1.5} aria-hidden />
+            </summary>
+            <p className="mt-3 text-[14px] leading-relaxed text-muted-foreground">{s.body}</p>
+          </details>
+        ))}
+      </div>
+
+      <section aria-labelledby="fac-acks">
+        <h2 id="fac-acks" className="section-label">Final acknowledgments</h2>
+        <div className="mt-4 flex flex-col gap-3" role="group" aria-label="Required acknowledgments">
+          {[
+            <>I confirm that my application information is accurate and that I am authorised to accept this agreement for the invoicing entity identified in my application.</>,
+            <>I have read and agree to the Facilitator Agreement, the quarterly payment terms, and the current Contribution Policy <DraftChip>contribution policy link</DraftChip>.</>,
+            <>I understand that submitting this application does not guarantee approval or earnings.</>,
+            <>I acknowledge the Privacy Notice <DraftChip>privacy notice link</DraftChip> and understand how my application information will be used.</>,
+          ].map((text, i) => (
+            <label key={i}
+              className={cn(
+                "surface-card flex cursor-pointer items-start gap-4 p-5 transition-colors",
+                checks[i] && "border-primary/50 bg-terracotta-tint/40",
+              )}>
+              <input
+                type="checkbox"
+                checked={checks[i] ?? false}
+                onChange={() => onToggle(i)}
+                className="mt-1 size-5 shrink-0 accent-[var(--color-primary)]"
+              />
+              <span className="flex-1 text-[14px] leading-relaxed text-muted-foreground">{text}</span>
+            </label>
+          ))}
+        </div>
+
+        <div className="surface-card mt-4 p-5">
+          <label htmlFor="fac-acceptance-name" className="font-semibold text-foreground">
+            Acceptance name <span className="text-primary" aria-hidden>*</span>
+          </label>
+          <input
+            id="fac-acceptance-name"
+            type="text"
+            value={acceptanceName}
+            onChange={(e) => onAcceptanceName(e.target.value)}
+            placeholder="Full legal name"
+            aria-invalid={tried && !nameOk ? true : undefined}
+            className={fieldInput}
+          />
+          {tried && !nameOk && (
+            <p role="alert" className="mt-2 text-sm font-medium text-destructive">This field is required.</p>
+          )}
+        </div>
+
+        <label className="surface-card mt-4 flex cursor-pointer items-start gap-4 p-5">
+          <input
+            type="checkbox"
+            checked={newsOptIn}
+            onChange={onNewsOptIn}
+            className="mt-1 size-5 shrink-0 accent-[var(--color-primary)]"
+          />
+          <span className="flex-1 text-[14px] leading-relaxed text-muted-foreground">
+            Send me optional news and promotional updates about One World Family. I can unsubscribe at any time.
+          </span>
+        </label>
+
+        <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+          By selecting "Submit application", you register your non-binding interest while the final agreement is being
+          confirmed. Participation and event publication remain subject to approval.
+        </p>
+
+        {tried && !ready && (
+          <p role="alert" className="mt-4 rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-sm leading-relaxed text-foreground">
+            Please complete each required acknowledgment and your acceptance name before submitting.
+          </p>
+        )}
+
+        <div className="mt-6 flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={() => (ready ? onSubmit() : setTried(true))}
+            className={cn(pillPrimary, "inline-flex items-center gap-2")}
+          >
+            Submit application (non-binding) <ArrowRight className="size-4" strokeWidth={1.5} aria-hidden />
+          </button>
+          <button type="button" onClick={onBack} className={cn(pillOutline, "inline-flex items-center gap-2")}>
+            <ArrowLeft className="size-4 text-primary" strokeWidth={1.5} aria-hidden /> Go back and review
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+/* ---------------- Confirmation ---------------- */
+
+function SummaryValue({ v }: { v: string | string[] | undefined }) {
+  const text = Array.isArray(v) ? v.join(", ") : (v ?? "");
+  return <span className="text-foreground">{text.trim() || "—"}</span>;
+}
+
+function ConfirmationScreen({ form, acceptanceName }: { form: FormValues; acceptanceName: string }) {
+  const [showSummary, setShowSummary] = useState(false);
+  const publicFields = PRACTICE_FIELDS.filter((f) => f.isPublic);
+  const privateFields = PRACTICE_FIELDS.filter((f) => !f.isPublic);
+
+  return (
+    <div className="flex flex-col gap-8">
+      <header className="flex flex-col gap-4">
+        <span className="flex size-12 items-center justify-center rounded-full bg-sage-light">
+          <Check className="size-6 text-sage-ink" strokeWidth={1.5} aria-hidden />
+        </span>
+        <h1 className="font-serif text-3xl leading-tight text-foreground sm:text-4xl">Thank you for offering your gifts.</h1>
+        <p className="max-w-[56ch] text-[15px] leading-relaxed text-muted-foreground">
+          Your application has been received. We will review your background and proposed session and contact you
+          about the next steps.
+        </p>
+        <p className="rounded-2xl border border-border bg-secondary/60 p-4 text-sm leading-relaxed text-muted-foreground">
+          Applications are currently stored only in this browser while the submission backend is being set up.
+        </p>
+      </header>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={() => setShowSummary((v) => !v)}
+          aria-expanded={showSummary}
+          className={cn(pillPrimary, "inline-flex items-center gap-2")}
+        >
+          View application summary
+        </button>
+        <a href="https://cal.com/liran-rosenfeld-bex504/30min" target="_blank" rel="noopener noreferrer"
+          className={cn(pillOutline, "inline-flex items-center gap-2")}>
+          <PhoneCall className="size-4 text-primary" strokeWidth={1.5} aria-hidden /> Book a call
+        </a>
+        <a href="https://luma.com/okaoneworldfamily" target="_blank" rel="noopener noreferrer"
+          className={cn("inline-flex min-h-11 items-center gap-2 rounded-full px-2 text-sm text-primary underline-offset-4 hover:underline", focusRing)}>
+          <Video className="size-4" strokeWidth={1.5} aria-hidden /> Join a webinar (3 times a week)
+        </a>
+      </div>
+
+      {showSummary && (
+        <div className="flex flex-col gap-6">
+          {([["Public profile", publicFields], ["Private", privateFields]] as const).map(([group, fields]) => (
+            <section key={group} aria-label={`${group} answers`} className="surface-card p-6">
+              <h2 className="section-label">{group}</h2>
+              <dl className="mt-4 flex flex-col gap-3">
+                {fields.map((f) => (
+                  <div key={f.key} className="text-sm leading-relaxed">
+                    <dt className="font-semibold text-foreground">{f.label}</dt>
+                    <dd className="mt-0.5">
+                      <SummaryValue v={f.kind === "roles" ? [...(Array.isArray(form["roles"]) ? form["roles"] as string[] : []), strOr(form["rolesOther"])].filter(Boolean) : form[f.key]} />
+                    </dd>
+                  </div>
+                ))}
+                {group === "Private" && (
+                  <div className="text-sm leading-relaxed">
+                    <dt className="font-semibold text-foreground">Acceptance name</dt>
+                    <dd className="mt-0.5 text-foreground">{acceptanceName || "—"}</dd>
+                  </div>
+                )}
+              </dl>
+            </section>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function strOr(v: string | string[] | undefined): string {
+  return typeof v === "string" ? v.trim() : "";
 }
