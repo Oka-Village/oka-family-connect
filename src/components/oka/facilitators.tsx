@@ -145,7 +145,15 @@ export function FacilitatorsPage() {
             onBack={() => goTo(0)}
           />
         )}
-        {step > 1 && <ComingNext step={step} onBack={() => goTo(step - 1)} />}
+        {step === 2 && (
+          <StepPayments
+            checks={paymentChecks}
+            onToggle={(i) => setPaymentChecks((c) => c.map((v, j) => (j === i ? !v : v)))}
+            onContinue={() => goTo(3)}
+            onBack={() => goTo(1)}
+          />
+        )}
+        {step > 2 && <ComingNext step={step} onBack={() => goTo(step - 1)} />}
       </div>
     </div>
   );
