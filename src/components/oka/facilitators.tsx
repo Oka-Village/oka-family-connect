@@ -12,7 +12,16 @@ const STORAGE_KEY = "oka:facilitators";
 const STEPS = ["Join", "Your practice", "Payments", "Agreement"] as const;
 
 type FormValues = Record<string, string | string[]>;
-type Saved = { step: number; checks: boolean[]; form?: FormValues; paymentChecks?: boolean[] };
+type Saved = {
+  step: number;
+  checks: boolean[];
+  form?: FormValues;
+  paymentChecks?: boolean[];
+  agreementChecks?: boolean[];
+  acceptanceName?: string;
+  newsOptIn?: boolean;
+  submitted?: boolean;
+};
 
 const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
 
@@ -60,6 +69,10 @@ export function FacilitatorsPage() {
   const [step, setStep] = useState(0);
   const [checks, setChecks] = useState<boolean[]>(() => CONFIRMATIONS.map(() => false));
   const [paymentChecks, setPaymentChecks] = useState<boolean[]>([false, false]);
+  const [agreementChecks, setAgreementChecks] = useState<boolean[]>([false, false, false, false]);
+  const [acceptanceName, setAcceptanceName] = useState("");
+  const [newsOptIn, setNewsOptIn] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [form, setForm] = useState<FormValues>({});
   const [triedContinue, setTriedContinue] = useState(false);
   const [hydrated, setHydrated] = useState(false);
