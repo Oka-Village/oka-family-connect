@@ -72,6 +72,7 @@ export function FacilitatorsPage() {
         const s = JSON.parse(raw) as Partial<Saved>;
         if (typeof s.step === "number") setStep(Math.max(0, Math.min(STEPS.length - 1, s.step)));
         if (Array.isArray(s.checks)) setChecks(CONFIRMATIONS.map((_, i) => Boolean(s.checks?.[i])));
+        if (Array.isArray(s.paymentChecks)) setPaymentChecks([Boolean(s.paymentChecks[0]), Boolean(s.paymentChecks[1])]);
         if (s.form && typeof s.form === "object") setForm(s.form);
       }
     } catch { /* ignore corrupt state */ }
@@ -79,8 +80,8 @@ export function FacilitatorsPage() {
   }, []);
 
   useEffect(() => {
-    if (hydrated) localStorage.setItem(STORAGE_KEY, JSON.stringify({ step, checks, form } satisfies Saved));
-  }, [step, checks, form, hydrated]);
+    if (hydrated) localStorage.setItem(STORAGE_KEY, JSON.stringify({ step, checks, form, paymentChecks } satisfies Saved));
+  }, [step, checks, form, paymentChecks, hydrated]);
 
   const allChecked = checks.every(Boolean);
 
