@@ -59,6 +59,7 @@ const CONFIRMATIONS = [
 export function FacilitatorsPage() {
   const [step, setStep] = useState(0);
   const [checks, setChecks] = useState<boolean[]>(() => CONFIRMATIONS.map(() => false));
+  const [form, setForm] = useState<FormValues>({});
   const [triedContinue, setTriedContinue] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const beginRef = useRef<HTMLDivElement>(null);
@@ -70,14 +71,15 @@ export function FacilitatorsPage() {
         const s = JSON.parse(raw) as Partial<Saved>;
         if (typeof s.step === "number") setStep(Math.max(0, Math.min(STEPS.length - 1, s.step)));
         if (Array.isArray(s.checks)) setChecks(CONFIRMATIONS.map((_, i) => Boolean(s.checks?.[i])));
+        if (s.form && typeof s.form === "object") setForm(s.form);
       }
     } catch { /* ignore corrupt state */ }
     setHydrated(true);
   }, []);
 
   useEffect(() => {
-    if (hydrated) localStorage.setItem(STORAGE_KEY, JSON.stringify({ step, checks } satisfies Saved));
-  }, [step, checks, hydrated]);
+    if (hydrated) localStorage.setItem(STORAGE_KEY, JSON.stringify({ step, checks, form } satisfies Saved));
+  }, [step, checks, form, hydrated]);
 
   const allChecked = checks.every(Boolean);
 
