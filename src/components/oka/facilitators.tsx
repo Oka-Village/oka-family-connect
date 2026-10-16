@@ -86,6 +86,10 @@ export function FacilitatorsPage() {
         if (typeof s.step === "number") setStep(Math.max(0, Math.min(STEPS.length - 1, s.step)));
         if (Array.isArray(s.checks)) setChecks(CONFIRMATIONS.map((_, i) => Boolean(s.checks?.[i])));
         if (Array.isArray(s.paymentChecks)) setPaymentChecks([Boolean(s.paymentChecks[0]), Boolean(s.paymentChecks[1])]);
+        if (Array.isArray(s.agreementChecks)) setAgreementChecks([0, 1, 2, 3].map((i) => Boolean(s.agreementChecks?.[i])));
+        if (typeof s.acceptanceName === "string") setAcceptanceName(s.acceptanceName);
+        if (typeof s.newsOptIn === "boolean") setNewsOptIn(s.newsOptIn);
+        if (s.submitted === true) setSubmitted(true);
         if (s.form && typeof s.form === "object") setForm(s.form);
       }
     } catch { /* ignore corrupt state */ }
@@ -93,8 +97,12 @@ export function FacilitatorsPage() {
   }, []);
 
   useEffect(() => {
-    if (hydrated) localStorage.setItem(STORAGE_KEY, JSON.stringify({ step, checks, form, paymentChecks } satisfies Saved));
-  }, [step, checks, form, paymentChecks, hydrated]);
+    if (hydrated) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        step, checks, form, paymentChecks, agreementChecks, acceptanceName, newsOptIn, submitted,
+      } satisfies Saved));
+    }
+  }, [step, checks, form, paymentChecks, agreementChecks, acceptanceName, newsOptIn, submitted, hydrated]);
 
   const allChecked = checks.every(Boolean);
 
