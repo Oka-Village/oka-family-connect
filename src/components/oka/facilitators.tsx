@@ -558,3 +558,224 @@ function StepPractice({ values, onChange, onContinue, onBack }: {
     </div>
   );
 }
+
+/* ---------------- Step 3: Payments ---------------- */
+
+const POOL_FORMULAS = [
+  "Eligible subscription revenue = subscription receipts − refunds and chargebacks − payment-processing fees − transaction taxes",
+  "Facilitator pool = 50% × max(0, eligible subscription revenue − eligible affiliate commissions)",
+  "Your monthly allocation = monthly pool × your eligible contribution score ÷ total eligible facilitator scores",
+  "Your quarterly allocation = the sum of your monthly allocations, with separately disclosed corrections and any legally required withholding",
+] as const;
+
+const CONTRIBUTION_SIGNALS = [
+  "Verified delivery time for approved live sessions.",
+  "Verified participant attendance and meaningful participation.",
+  "Participant satisfaction, using the disclosed feedback methodology.",
+  "Continued attendance at later sessions.",
+  "Growth in verified attendance across comparable events.",
+] as const;
+
+const QUARTERS = [
+  ["January through March", "March 31"],
+  ["April through June", "June 30"],
+  ["July through September", "September 30"],
+  ["October through December", "December 31"],
+] as const;
+
+const PAYMENT_CONFIRMATIONS = [
+  "I understand how the facilitator pool and my variable allocation are calculated, including the permitted deductions and the absence of guaranteed earnings.",
+  "I have read the current Contribution Policy, including its scoring methodology and rules for changes, corrections, and statement queries.",
+] as const;
+
+function SectionCard({ icon: Icon, id, title, children }: {
+  icon: typeof HandHeart; id: string; title: string; children: ReactNode;
+}) {
+  return (
+    <section aria-labelledby={id} className="surface-card p-6 sm:p-8">
+      <div className="flex items-center gap-3">
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-terracotta-tint">
+          <Icon className="size-5 text-primary" strokeWidth={1.5} aria-hidden />
+        </span>
+        <h2 id={id} className="font-serif text-2xl text-foreground">{title}</h2>
+      </div>
+      <div className="mt-4 flex flex-col gap-3 text-[15px] leading-relaxed text-muted-foreground">{children}</div>
+    </section>
+  );
+}
+
+function StepPayments({ checks, onToggle, onContinue, onBack }: {
+  checks: boolean[];
+  onToggle: (i: number) => void;
+  onContinue: () => void;
+  onBack: () => void;
+}) {
+  const [tried, setTried] = useState(false);
+  const allChecked = checks.every(Boolean);
+
+  return (
+    <div className="flex flex-col gap-8">
+      <header className="flex flex-col gap-3">
+        <p className="section-label">Payments</p>
+        <h1 className="font-serif text-3xl leading-tight text-foreground sm:text-4xl">Understand your contribution and payments</h1>
+      </header>
+
+      <SectionCard icon={HandHeart} id="fac-shared" title="A shared contribution model">
+        <p>
+          One World Family shares part of its eligible subscription revenue with the facilitators who contribute
+          approved live sessions to the community. Your earnings depend on the available facilitator pool and your
+          share of eligible contributions. This is a variable revenue-sharing arrangement, not a fixed hourly rate
+          or guaranteed payment per event.
+        </p>
+      </SectionCard>
+
+      <SectionCard icon={Calculator} id="fac-pool" title="How the facilitator pool is calculated">
+        <p>
+          Each month we take the subscription revenue actually received, remove refunds, chargebacks,
+          payment-processing fees and transaction taxes, then deduct eligible affiliate commissions. Half of what
+          remains becomes the facilitator pool. The operator's general overhead, salaries, rent and income taxes
+          are not deducted.
+        </p>
+        <div className="rounded-2xl border border-border bg-secondary/60 p-4 sm:p-5">
+          <ul className="flex flex-col gap-2.5">
+            {POOL_FORMULAS.map((line) => (
+              <li key={line} className="font-mono text-[13px] leading-relaxed text-foreground">{line}</li>
+            ))}
+          </ul>
+        </div>
+      </SectionCard>
+
+      <SectionCard icon={Sparkles} id="fac-example" title="A simple example">
+        <p>
+          If a month has $10,000 in subscription receipts, $1,000 in permitted deductions, and $3,000 in eligible
+          affiliate commissions, $6,000 remains. The facilitator pool is $3,000. A facilitator with 10% of the total
+          eligible contribution score receives $300 before any legally required personal withholding.
+        </p>
+        <p className="rounded-2xl border border-border bg-secondary/60 p-4 text-sm">
+          These figures illustrate the calculation; they are not an earnings forecast or a statement of the
+          platform's reporting currency.
+        </p>
+      </SectionCard>
+
+      <SectionCard icon={ListChecks} id="fac-contributions" title="How contributions are recognised">
+        <p>
+          The published Contribution Policy <DraftChip>contribution policy link</DraftChip> explains how we measure and weight:
+        </p>
+        <ul className="flex flex-col gap-2">
+          {CONTRIBUTION_SIGNALS.map((s) => (
+            <li key={s} className="flex items-start gap-2.5">
+              <Check className="mt-1 size-4 shrink-0 text-sage-ink" strokeWidth={1.5} aria-hidden />
+              <span>{s}</span>
+            </li>
+          ))}
+        </ul>
+        <p>
+          A score is a measure for allocating the pool. It does not promise a fixed value per hour, attendee, or
+          rating. If no eligible revenue remains, the pool can be zero.
+        </p>
+      </SectionCard>
+
+      <SectionCard icon={Scale} id="fac-fair" title="Keeping the model fair">
+        <p>
+          Material changes to the Contribution Policy <DraftChip>contribution policy link</DraftChip> will be communicated at least 30 calendar days before
+          taking effect and apply prospectively. We will not retrospectively reduce previously earned allocations
+          merely by changing the algorithm. Corrections for genuine errors, refunds, chargebacks or verified abuse
+          will be itemised and explained.
+        </p>
+      </SectionCard>
+
+      <SectionCard icon={Receipt} id="fac-quarterly" title="Quarterly statements and invoices">
+        <div className="overflow-hidden rounded-2xl border border-border">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-border bg-secondary/60">
+                <th scope="col" className="px-4 py-2.5 font-semibold text-foreground">Earnings period</th>
+                <th scope="col" className="px-4 py-2.5 font-semibold text-foreground">Quarter end and reporting trigger</th>
+              </tr>
+            </thead>
+            <tbody>
+              {QUARTERS.map(([period, end]) => (
+                <tr key={end} className="border-b border-border last:border-0">
+                  <td className="px-4 py-2.5 text-foreground">{period}</td>
+                  <td className="px-4 py-2.5">{end}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p>
+          After the quarter closes we will provide your statement and request a matching invoice. We will initiate
+          payment within 30 calendar days after receiving and validating a correct invoice and all required payment
+          information. Bank or network settlement time may be additional.
+        </p>
+        <p>
+          Please raise statement questions within 30 calendar days of receipt. This review window does not remove
+          rights that cannot legally be waived.
+        </p>
+      </SectionCard>
+
+      <SectionCard icon={Wallet} id="fac-receiving" title="Receiving your payment">
+        <p>
+          Payments use the supported methods and currencies shown in your account. Crypto payments are available only
+          where supported and approved. Never submit a wallet recovery phrase or private key. Any transfer or
+          conversion charges borne by you will be disclosed before payment approval. You remain responsible for your
+          tax affairs and invoice requirements.
+        </p>
+      </SectionCard>
+
+      <SectionCard icon={Users} id="fac-affiliate" title="Affiliate participation is separate">
+        <p>
+          Facilitator earnings and referral commissions are different programmes. Applying to facilitate does not
+          automatically enrol you as an affiliate.
+        </p>
+      </SectionCard>
+
+      {/* Confirmations */}
+      <section aria-labelledby="fac-pay-confirm">
+        <h2 id="fac-pay-confirm" className="section-label">Before you continue</h2>
+        <div className="mt-4 flex flex-col gap-3" role="group" aria-label="Required payment confirmations">
+          {PAYMENT_CONFIRMATIONS.map((text, i) => (
+            <label key={text}
+              className={cn(
+                "surface-card flex cursor-pointer items-start gap-4 p-5 transition-colors",
+                checks[i] && "border-primary/50 bg-terracotta-tint/40",
+              )}>
+              <input
+                type="checkbox"
+                checked={checks[i] ?? false}
+                onChange={() => onToggle(i)}
+                className="mt-1 size-5 shrink-0 accent-[var(--color-primary)]"
+              />
+              <span className="flex-1 text-[14px] leading-relaxed text-muted-foreground">
+                {i === 1 ? (
+                  <>
+                    I have read the current Contribution Policy <DraftChip>contribution policy link</DraftChip>, including its scoring
+                    methodology and rules for changes, corrections, and statement queries.
+                  </>
+                ) : text}
+              </span>
+            </label>
+          ))}
+        </div>
+        {tried && !allChecked && (
+          <p role="alert" className="mt-4 rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-sm leading-relaxed text-foreground">
+            Please complete each required confirmation to continue.
+          </p>
+        )}
+        <div className="mt-6 flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={() => (allChecked ? onContinue() : setTried(true))}
+            className={cn(pillPrimary, "inline-flex items-center gap-2")}
+          >
+            Review and accept your agreement <ArrowRight className="size-4" strokeWidth={1.5} aria-hidden />
+          </button>
+          <button type="button" onClick={onBack}
+            className={cn("inline-flex min-h-11 items-center gap-2 rounded-full px-2 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline", focusRing)}>
+            <ArrowLeft className="size-4" strokeWidth={1.5} aria-hidden /> Back
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
