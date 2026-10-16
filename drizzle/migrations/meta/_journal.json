@@ -15,6 +15,13 @@
       "when": 1792145881931,
       "tag": "0001_create_themes",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792145898180,
+      "tag": "0002_theme_images_read",
+      "breakpoints": true
     }
   ]
 }
