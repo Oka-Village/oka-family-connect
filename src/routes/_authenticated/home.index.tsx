@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { Postcard, SPACE_ART, type SpaceId, type TapeColor } from "@/components/oka/postcard";
 import { HomeThemes } from "@/components/oka/home-themes";
+import { HomeEvents } from "@/components/oka/home-events";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useProfile } from "@/hooks/use-profile";
 import { supabase } from "@/integrations/supabase/client";
@@ -109,6 +110,8 @@ function HomePage() {
       <p className="border-t border-sand pt-8 text-center font-serif text-[28px] text-foreground md:text-4xl">Choose a space when you’re ready.</p>
 
       <HomeThemes />
+
+      <HomeEvents />
     </div>
   );
 }
