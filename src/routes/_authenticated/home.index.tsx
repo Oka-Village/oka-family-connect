@@ -7,6 +7,7 @@ import { z } from "zod";
 import { Postcard, SPACE_ART, type SpaceId, type TapeColor } from "@/components/oka/postcard";
 import { HomeThemes } from "@/components/oka/home-themes";
 import { HomeEvents } from "@/components/oka/home-events";
+import { HomeFeatured } from "@/components/oka/home-featured";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useProfile } from "@/hooks/use-profile";
 import { supabase } from "@/integrations/supabase/client";
@@ -112,6 +113,8 @@ function HomePage() {
       <HomeThemes />
 
       <HomeEvents />
+
+      <HomeFeatured />
     </div>
   );
 }
