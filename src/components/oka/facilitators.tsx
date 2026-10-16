@@ -324,20 +324,6 @@ function StepJoin({ beginRef, checks, triedContinue, allChecked, onToggle, onCon
   );
 }
 
-function ComingNext({ step, onBack }: { step: number; onBack: () => void }) {
-  return (
-    <div className="surface-card flex flex-col items-start gap-4 p-8 sm:p-10">
-      <p className="section-label">{STEPS[step]}</p>
-      <h1 className="font-serif text-3xl text-foreground sm:text-4xl">Coming next</h1>
-      <p className="max-w-[56ch] text-[15px] leading-relaxed text-muted-foreground">
-        This step is being written. Your progress so far is saved on this device, and you can go back at any time.
-      </p>
-      <button type="button" onClick={onBack} className={cn(pillOutline, "inline-flex items-center gap-2")}>
-        <ArrowLeft className="size-4 text-primary" strokeWidth={1.5} aria-hidden /> Back to {STEPS[step - 1]}
-      </button>
-    </div>
-  );
-}
 
 /* ---------------- Step 2: Your practice ---------------- */
 
