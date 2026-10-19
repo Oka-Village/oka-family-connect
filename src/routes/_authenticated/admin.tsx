@@ -106,6 +106,7 @@ function EventsSection() {
   const qc = useQueryClient();
   const pending = useQuery({ queryKey: ["admin", "pending"], queryFn: () => loadEvents(["pending_approval"], false) });
   const live = useQuery({ queryKey: ["admin", "live"], queryFn: () => loadEvents(["published"], true) });
+  const cancelled = useQuery({ queryKey: ["admin", "cancelled"], queryFn: () => loadEvents(["cancelled"], false) });
   const act = useMutation({
     mutationFn: ({ id, status }: { id: string; status: "published" | "rejected" | "cancelled" }) => setEventStatus(id, status),
     onSuccess: () => { toast.success("Event updated"); qc.invalidateQueries(); },
@@ -177,6 +178,19 @@ function EventsSection() {
           </Row>
         ))}
       </ul>
+      {(cancelled.data?.length ?? 0) > 0 && (
+        <>
+          <p className="section-label mt-12">Cancelled</p>
+          <p className="mt-2 text-sm text-muted-foreground">Off the schedule, but still visible to the people who signed up. Deleting takes it away for good.</p>
+          <ul className="mt-4 grid gap-4">
+            {cancelled.data?.map((e) => (
+              <Row key={e.id} e={e}>
+                <DeleteButton e={e} />
+              </Row>
+            ))}
+          </ul>
+        </>
+      )}
     </section>
   );
 }
