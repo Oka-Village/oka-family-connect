@@ -47,13 +47,20 @@ export type EventFilters = {
   to?: string | undefined;
 };
 
-/** Events visible on the schedule: published, plus cancelled ones the member RSVPd to (RLS). */
+/**
+ * Events on the schedule: published only, so a cancelled event drops off the
+ * schedule for everyone. Pass includeCancelled (Home does) to also get the
+ * cancelled ones a member signed up for, so they can still see it was called off.
+ */
 export async function fetchEvents(
   filters: EventFilters,
-  opts: { past?: boolean; rangeStart?: string; rangeEnd?: string; limit?: number } = {},
+  opts: { past?: boolean; rangeStart?: string; rangeEnd?: string; limit?: number; includeCancelled?: boolean } = {},
 ): Promise<EventRow[]> {
   const nowIso = new Date().toISOString();
-  let q = supabase.from("events").select(EVENT_SELECT).in("status", ["published", "cancelled"]);
+  let q = supabase
+    .from("events")
+    .select(EVENT_SELECT)
+    .in("status", opts.includeCancelled ? ["published", "cancelled"] : ["published"]);
   if (filters.type) q = q.eq("event_type", filters.type);
   if (filters.format) q = q.eq("format", filters.format);
 

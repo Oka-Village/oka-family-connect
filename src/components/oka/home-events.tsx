@@ -3,17 +3,22 @@ import { useQuery } from "@tanstack/react-query";
 import { EventCard } from "@/components/oka/event-card";
 import { fetchEvents, fetchMyRsvps } from "@/lib/events";
 
-/** Home: the member's upcoming RSVPs, or 3 soonest unregistered events; hidden when nothing is upcoming. */
+/**
+ * Home: the member's upcoming RSVPs — including ones since called off, so they
+ * are not left wondering — or 3 soonest unregistered events; hidden when nothing
+ * is upcoming.
+ */
 export function HomeEvents() {
   const q = useQuery({
     queryKey: ["home-next-events"],
     queryFn: async () => {
-      const upcoming = (await fetchEvents({}, { limit: 100 })).filter((e) => e.status === "published");
-      const rsvps = await fetchMyRsvps(upcoming.map((e) => e.id));
-      const mine = upcoming.filter((e) => rsvps[e.id] === "going" || rsvps[e.id] === "waitlist");
+      const all = await fetchEvents({}, { limit: 100, includeCancelled: true });
+      const rsvps = await fetchMyRsvps(all.map((e) => e.id));
+      const mine = all.filter((e) => rsvps[e.id] === "going" || rsvps[e.id] === "waitlist");
+      const open = all.filter((e) => e.status === "published");
       return mine.length
         ? { title: "My next events", items: mine, rsvps }
-        : { title: "Events you might like", items: upcoming.filter((e) => !rsvps[e.id] || rsvps[e.id] === "cancelled").slice(0, 3), rsvps };
+        : { title: "Events you might like", items: open.filter((e) => !rsvps[e.id] || rsvps[e.id] === "cancelled").slice(0, 3), rsvps };
     },
   });
   if (!q.data || q.data.items.length === 0) return null;
