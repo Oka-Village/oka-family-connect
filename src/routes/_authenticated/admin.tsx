@@ -111,6 +111,23 @@ function EventsSection() {
     onSuccess: () => { toast.success("Event updated"); qc.invalidateQueries(); },
     onError: (e: Error) => toast.error(e.message),
   });
+  const del = useMutation({
+    mutationFn: (id: string) => deleteEvent(id),
+    onSuccess: () => { toast.success("Event deleted"); qc.invalidateQueries(); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const DeleteButton = ({ e }: { e: EventRow }) => (
+    <Button
+      size="sm"
+      variant="outline"
+      className="rounded-full text-destructive"
+      disabled={del.isPending && del.variables === e.id}
+      onClick={() => confirm(`Delete "${e.title}" for good? It disappears from the schedule for everyone, along with its sign-ups and its private location. This cannot be undone.`) && del.mutate(e.id)}
+    >
+      <Trash2 className="size-4" strokeWidth={1.5} /> Delete
+    </Button>
+  );
 
   const Row = ({ e, children }: { e: EventRow; children: React.ReactNode }) => (
     <Card>
@@ -145,6 +162,7 @@ function EventsSection() {
           <Row key={e.id} e={e}>
             <Button size="sm" className="rounded-full" onClick={() => act.mutate({ id: e.id, status: "published" })}>Approve</Button>
             <Button size="sm" variant="outline" className="rounded-full" onClick={() => act.mutate({ id: e.id, status: "rejected" })}>Reject</Button>
+            <DeleteButton e={e} />
           </Row>
         ))}
       </ul>
@@ -155,6 +173,7 @@ function EventsSection() {
           <Row key={e.id} e={e}>
             {e.format === "virtual" && <CopyJoinLink slug={e.join_slug} />}
             <Button size="sm" variant="outline" className="rounded-full text-destructive" onClick={() => confirm("Cancel this event for everyone?") && act.mutate({ id: e.id, status: "cancelled" })}>Cancel</Button>
+            <DeleteButton e={e} />
           </Row>
         ))}
       </ul>
