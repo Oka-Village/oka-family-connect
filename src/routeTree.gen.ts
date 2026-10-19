@@ -13,6 +13,8 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as FacilitatorsRouteImport } from './routes/facilitators'
 import { Route as OnboardingChatRouteImport } from './routes/onboarding-chat'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAffiliateRouteImport } from './routes/_authenticated/affiliate'
 import { Route as AuthenticatedCollectionsRouteImport } from './routes/_authenticated/collections'
@@ -60,6 +62,16 @@ const FacilitatorsRoute = FacilitatorsRouteImport.update({
 const OnboardingChatRoute = OnboardingChatRouteImport.update({
   id: '/onboarding-chat',
   path: '/onboarding-chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
@@ -227,6 +239,8 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/facilitators': typeof FacilitatorsRoute
   '/onboarding-chat': typeof OnboardingChatRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/affiliate': typeof AuthenticatedAffiliateRoute
   '/collections': typeof AuthenticatedCollectionsRoute
@@ -261,6 +275,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/facilitators': typeof FacilitatorsRoute
   '/onboarding-chat': typeof OnboardingChatRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/affiliate': typeof AuthenticatedAffiliateRoute
   '/collections': typeof AuthenticatedCollectionsRoute
@@ -297,6 +313,8 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/facilitators': typeof FacilitatorsRoute
   '/onboarding-chat': typeof OnboardingChatRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/affiliate': typeof AuthenticatedAffiliateRoute
   '/_authenticated/collections': typeof AuthenticatedCollectionsRoute
@@ -333,6 +351,8 @@ export interface FileRouteTypes {
     | '/'
     | '/facilitators'
     | '/onboarding-chat'
+    | '/privacy'
+    | '/terms'
     | '/admin'
     | '/affiliate'
     | '/collections'
@@ -367,6 +387,8 @@ export interface FileRouteTypes {
     | '/'
     | '/facilitators'
     | '/onboarding-chat'
+    | '/privacy'
+    | '/terms'
     | '/admin'
     | '/affiliate'
     | '/collections'
@@ -402,6 +424,8 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/facilitators'
     | '/onboarding-chat'
+    | '/privacy'
+    | '/terms'
     | '/_authenticated/admin'
     | '/_authenticated/affiliate'
     | '/_authenticated/collections'
@@ -438,6 +462,8 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   FacilitatorsRoute: typeof FacilitatorsRoute
   OnboardingChatRoute: typeof OnboardingChatRoute
+  PrivacyRoute: typeof PrivacyRoute
+  TermsRoute: typeof TermsRoute
   InviteCodeRoute: typeof InviteCodeRoute
   JoinSlugRoute: typeof JoinSlugRoute
 }
@@ -470,6 +496,20 @@ declare module '@tanstack/react-router' {
       path: '/onboarding-chat'
       fullPath: '/onboarding-chat'
       preLoaderRoute: typeof OnboardingChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin': {
@@ -746,6 +786,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   FacilitatorsRoute: FacilitatorsRoute,
   OnboardingChatRoute: OnboardingChatRoute,
+  PrivacyRoute: PrivacyRoute,
+  TermsRoute: TermsRoute,
   InviteCodeRoute: InviteCodeRoute,
   JoinSlugRoute: JoinSlugRoute,
 }
