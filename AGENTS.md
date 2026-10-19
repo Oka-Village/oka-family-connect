@@ -17,3 +17,4 @@
 - Written reflections live in the owner-only reflections table (RLS member_id = auth.uid() for all operations, no staff read); question text is stored on the row so entries survive deck changes.
 - The /onboarding-chat prototype keeps answers only in component state plus sessionStorage; it must never write to the backend or a member's profile.
 - The chat prototype's introduction is isolated in onboarding-intro and shares session-only progress with the conversation so restarting replays both without changing live onboarding.
+- Facilitator draft validation rules live in a browser-safe module with focused tests; keep submission local-only so prototype acknowledgments never create binding acceptance.
