@@ -133,6 +133,24 @@ export type Database = {
           },
         ]
       }
+      blocked_emails: {
+        Row: {
+          created_at: string
+          email: string
+          note: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          note?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          note?: string | null
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           check_in: string
@@ -466,6 +484,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      member_suspensions: {
+        Row: {
+          created_at: string
+          reason: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          reason?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          reason?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       payments: {
         Row: {
