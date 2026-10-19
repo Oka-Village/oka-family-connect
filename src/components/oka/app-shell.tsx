@@ -14,6 +14,8 @@ import { useClaimInvite } from "@/lib/affiliates";
 import { cn } from "@/lib/utils";
 import { CreditPill } from "@/components/oka/credit-pill";
 
+const SUPPORT_EMAIL = "daniel@zoe.garden";
+
 const NAV_ITEMS = [
   { to: "/home", label: "Home", icon: Heart },
   { to: "/events", label: "Events", icon: CalendarDays },
@@ -55,6 +57,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     refetchOnWindowFocus: true,
   });
   const unreadCount = unreadQuery.data ?? 0;
+  const { data: suspended } = useQuery({
+    queryKey: ["my-suspension", profile?.id ?? null],
+    queryFn: async () => {
+      const { data } = await supabase.from("member_suspensions").select("user_id").eq("user_id", profile!.id).maybeSingle();
+      return Boolean(data);
+    },
+    enabled: Boolean(profile),
+    refetchOnWindowFocus: true,
+  });
   const items = isAdmin
     ? [...NAV_ITEMS, { to: "/admin", label: "Admin", icon: ShieldCheck } as const]
     : NAV_ITEMS;
@@ -71,6 +82,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     queryClient.clear();
     await supabase.auth.signOut();
     navigate({ to: "/", replace: true });
+  }
+
+  if (suspended) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background px-6">
+        <div className="max-w-md rounded-2xl border border-border bg-card p-10 text-center shadow-soft">
+          <Wordmark />
+          <p className="section-label mt-8">Account suspended</p>
+          <h1 className="mt-3 text-3xl text-foreground">Your account is on pause</h1>
+          <p className="mt-4 text-muted-foreground">Your access to Oka has been suspended. If you think this is a mistake or want to talk about it, please write to us.</p>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <Button asChild className="rounded-full px-6"><a href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("My Oka account is suspended")}`}>Contact us</a></Button>
+            <Button variant="outline" className="rounded-full px-6" onClick={handleSignOut}><LogOut className="size-4" strokeWidth={1.5} /> Sign out</Button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
