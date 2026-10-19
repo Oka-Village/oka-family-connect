@@ -1,6 +1,6 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Activity, CalendarDays, Palette, Gift, Home, Plus, Search, ShieldCheck, Sparkles, Users } from "lucide-react";
+import { Activity, CalendarDays, Palette, Gift, Home, Plus, Search, ShieldCheck, Sparkles, Trash2, Users } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCurrentUserId, useRoles } from "@/hooks/use-is-admin";
 import { supabase } from "@/integrations/supabase/client";
-import { setEventStatus } from "@/lib/event-admin";
+import { deleteEvent, setEventStatus } from "@/lib/event-admin";
 import { EVENT_SELECT, TYPE_LABELS, formatEventDate, formatEventTime, hostName, type EventRow } from "@/lib/events";
 import { CopyJoinLink } from "@/components/oka/copy-join-link";
 import { AffiliatesSection } from "@/components/oka/admin-affiliates";
