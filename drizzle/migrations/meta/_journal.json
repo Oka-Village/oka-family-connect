@@ -29,6 +29,13 @@
       "when": 1792398986797,
       "tag": "0003_admin_update_profiles",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792399091647,
+      "tag": "0004_blocked_emails_and_suspensions",
+      "breakpoints": true
     }
   ]
 }

@@ -13,6 +13,13 @@ export const adminDeleteMember = createServerFn({ method: "POST" })
     if (error || !isAdmin) throw new Error("Only admins can delete members.");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Block the email from signing up again until an admin unblocks it.
+    const found = await supabaseAdmin.auth.admin.getUserById(data.userId);
+    const email = found.data.user?.email?.toLowerCase();
+    if (email) {
+      const block = await supabaseAdmin.from("blocked_emails").upsert({ email, note: "Deleted by admin" });
+      if (block.error) throw new Error("Couldn't block this member's email.");
+    }
     // Letters block profile removal, so clear the member's sent and received letters first.
     const letters = await supabaseAdmin.from("appreciation_letters").delete().or(`sender_id.eq.${data.userId},recipient_id.eq.${data.userId}`);
     if (letters.error) throw new Error("Couldn't remove this member's letters.");
