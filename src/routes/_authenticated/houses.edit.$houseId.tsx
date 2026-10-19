@@ -3,7 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Loader2 } from "lucide-react";
 
 import { HouseForm } from "@/components/oka/house-form";
-import { useCurrentUserId } from "@/hooks/use-is-admin";
+import { useCurrentUserId, useRoles } from "@/hooks/use-is-admin";
+import { canEditListing } from "@/lib/direct-edit";
 import { supabase } from "@/integrations/supabase/client";
 import { HOUSE_SELECT, type HouseRow } from "@/lib/houses";
 
@@ -24,6 +25,7 @@ export const Route = createFileRoute("/_authenticated/houses/edit/$houseId")({
 function EditHouse() {
   const { houseId } = Route.useParams();
   const { data: uid } = useCurrentUserId();
+  const roles = useRoles();
   const q = useQuery({
     queryKey: ["house", houseId, "edit"],
     queryFn: async () => {
@@ -35,12 +37,12 @@ function EditHouse() {
   return (
     <div className="mx-auto max-w-2xl px-6 py-12 lg:py-16">
       <Link to="/houses/$houseId" params={{ houseId }} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4 text-primary" strokeWidth={1.5} /> Back to home</Link>
-      <p className="section-label mt-8">My offerings</p>
-      <h1 className="mt-3 text-4xl text-foreground">Edit your home</h1>
+      <p className="section-label mt-8">{roles.data?.isAdmin ? "Edit home" : "My offerings"}</p>
+      <h1 className="mt-3 text-4xl text-foreground">Edit home</h1>
       <div className="mt-8">
-        {q.isLoading || !uid ? <Loader2 className="size-6 animate-spin text-primary" strokeWidth={1.5} />
-          : q.data && q.data.owner_id === uid ? <HouseForm userId={uid} initial={q.data} />
-          : <p className="text-muted-foreground">Only the host can edit this home.</p>}
+        {q.isLoading || roles.isLoading || !uid ? <Loader2 className="size-6 animate-spin text-primary" strokeWidth={1.5} />
+          : q.data && canEditListing(uid, q.data.owner_id, roles.data?.isAdmin) ? <HouseForm userId={uid} initial={q.data} />
+          : <p className="text-muted-foreground">Only the host or an admin can edit this home.</p>}
       </div>
     </div>
   );

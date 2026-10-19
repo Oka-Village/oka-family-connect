@@ -9,7 +9,8 @@ import { MemberAvatar } from "@/components/oka/profile-sections";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useCurrentUserId } from "@/hooks/use-is-admin";
+import { useCurrentUserId, useRoles } from "@/hooks/use-is-admin";
+import { canEditListing } from "@/lib/direct-edit";
 import { supabase } from "@/integrations/supabase/client";
 import { SKILL_FORMAT_LABELS, SKILL_SELECT, formatDuration, sessionErrorMessage, signPaths, useCredits, type SkillRow } from "@/lib/skills";
 
@@ -30,6 +31,7 @@ export const Route = createFileRoute("/_authenticated/skills/$skillId")({
 function SkillDetail() {
   const { skillId } = Route.useParams();
   const { data: uid } = useCurrentUserId();
+  const roles = useRoles();
   const qc = useQueryClient();
   const q = useQuery({
     queryKey: ["skill", skillId],
@@ -97,6 +99,9 @@ function SkillDetail() {
               <span className="font-serif text-xl">{skill.owner?.display_name ?? "Oka member"}</span>
             </Link>
           </div>
+          {!mine && canEditListing(uid, skill.owner_id, roles.data?.isAdmin) && (
+            <Button asChild variant="outline" className="w-full rounded-full"><Link to="/skills/edit/$skillId" params={{ skillId: skill.id }}><Pencil className="size-4 text-primary" strokeWidth={1.5} />Edit skill</Link></Button>
+          )}
           {mine ? (
             <div className="rounded-2xl border border-border bg-card p-6 shadow-soft">
               <p className="section-label">Your offering</p>

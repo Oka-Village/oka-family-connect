@@ -3,7 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Loader2 } from "lucide-react";
 
 import { SkillForm } from "@/components/oka/skill-form";
-import { useCurrentUserId } from "@/hooks/use-is-admin";
+import { useCurrentUserId, useRoles } from "@/hooks/use-is-admin";
+import { canEditListing } from "@/lib/direct-edit";
 import { supabase } from "@/integrations/supabase/client";
 import { SKILL_SELECT, type SkillRow } from "@/lib/skills";
 
@@ -24,6 +25,7 @@ export const Route = createFileRoute("/_authenticated/skills/edit/$skillId")({
 function EditSkill() {
   const { skillId } = Route.useParams();
   const { data: uid } = useCurrentUserId();
+  const roles = useRoles();
   const q = useQuery({
     queryKey: ["skill", skillId, "edit"],
     queryFn: async () => {
@@ -37,15 +39,15 @@ function EditSkill() {
       <Link to="/skills/$skillId" params={{ skillId }} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeft className="size-4 text-primary" strokeWidth={1.5} /> Back to offering
       </Link>
-      <p className="section-label mt-8">My offerings</p>
+      <p className="section-label mt-8">{roles.data?.isAdmin ? "Edit offering" : "My offerings"}</p>
       <h1 className="mt-3 text-4xl text-foreground">Edit offering</h1>
       <div className="mt-8">
-        {q.isLoading || !uid ? (
+        {q.isLoading || roles.isLoading || !uid ? (
           <Loader2 className="size-6 animate-spin text-primary" strokeWidth={1.5} />
-        ) : q.data && q.data.owner_id === uid ? (
+        ) : q.data && canEditListing(uid, q.data.owner_id, roles.data?.isAdmin) ? (
           <SkillForm userId={uid} initial={q.data} />
         ) : (
-          <p className="text-muted-foreground">Only the person offering this skill can edit it.</p>
+          <p className="text-muted-foreground">Only the person offering this skill or an admin can edit it.</p>
         )}
       </div>
     </div>
