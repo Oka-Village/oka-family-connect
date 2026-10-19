@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test } from "vitest";
 import {
   AGREEMENT_CONFIRMATION_COUNT, defaultConfirmations, ELIGIBILITY_CONFIRMATION_COUNT,
   MINIMUM_FACILITATOR_SESSIONS, PAYMENT_CONFIRMATION_COUNT, requiredConfirmationsComplete,

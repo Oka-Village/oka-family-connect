@@ -7,6 +7,11 @@ import {
 import heroImage from "@/assets/facilitators-hero.jpg";
 import { pillOutline, pillPrimary } from "@/components/oka/postcard";
 import { cn } from "@/lib/utils";
+import {
+  AGREEMENT_CONFIRMATION_COUNT, defaultConfirmations, ELIGIBILITY_CONFIRMATION_COUNT,
+  MINIMUM_FACILITATOR_SESSIONS, PAYMENT_CONFIRMATION_COUNT, requiredConfirmationsComplete,
+  validMinimumParticipants,
+} from "@/lib/facilitator-rules";
 
 const STORAGE_KEY = "oka:facilitators";
 const STEPS = ["Join", "Your practice", "Payments", "Agreement"] as const;
@@ -42,6 +47,9 @@ const HOW_IT_WORKS = [
   { icon: Sparkles, text: "Once approved, create your facilitator profile and propose your first event." },
 ] as const;
 
+const MEMBERSHIP_REQUIREMENT = `You need to be a member to facilitate - the membership fee can be deducted from your future earnings. Commitment to at least ${MINIMUM_FACILITATOR_SESSIONS} sessions to be an OKA facilitator.`;
+const FACILITATOR_TERMS = `Membership is required and the membership fee can be deducted from future earnings. I commit to at least ${MINIMUM_FACILITATOR_SESSIONS} sessions. If signups are below my chosen minimum participants, I may reschedule and must notify registered participants. If a facilitator or participant is sick, the session can be rescheduled with notice to registered participants.`;
+
 const CONFIRMATIONS = [
   {
     icon: BadgeCheck, label: "Professional competence",
@@ -67,9 +75,9 @@ const CONFIRMATIONS = [
 
 export function FacilitatorsPage() {
   const [step, setStep] = useState(0);
-  const [checks, setChecks] = useState<boolean[]>(() => CONFIRMATIONS.map(() => false));
-  const [paymentChecks, setPaymentChecks] = useState<boolean[]>([false, false]);
-  const [agreementChecks, setAgreementChecks] = useState<boolean[]>([false, false, false, false]);
+  const [checks, setChecks] = useState<boolean[]>(() => defaultConfirmations(ELIGIBILITY_CONFIRMATION_COUNT));
+  const [paymentChecks, setPaymentChecks] = useState<boolean[]>(() => defaultConfirmations(PAYMENT_CONFIRMATION_COUNT));
+  const [agreementChecks, setAgreementChecks] = useState<boolean[]>(() => defaultConfirmations(AGREEMENT_CONFIRMATION_COUNT));
   const [acceptanceName, setAcceptanceName] = useState("");
   const [newsOptIn, setNewsOptIn] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -84,9 +92,9 @@ export function FacilitatorsPage() {
       if (raw) {
         const s = JSON.parse(raw) as Partial<Saved>;
         if (typeof s.step === "number") setStep(Math.max(0, Math.min(STEPS.length - 1, s.step)));
-        if (Array.isArray(s.checks)) setChecks(CONFIRMATIONS.map((_, i) => Boolean(s.checks?.[i])));
-        if (Array.isArray(s.paymentChecks)) setPaymentChecks([Boolean(s.paymentChecks[0]), Boolean(s.paymentChecks[1])]);
-        if (Array.isArray(s.agreementChecks)) setAgreementChecks([0, 1, 2, 3].map((i) => Boolean(s.agreementChecks?.[i])));
+        if (Array.isArray(s.checks)) setChecks(defaultConfirmations(ELIGIBILITY_CONFIRMATION_COUNT, s.checks));
+        if (Array.isArray(s.paymentChecks)) setPaymentChecks(defaultConfirmations(PAYMENT_CONFIRMATION_COUNT, s.paymentChecks));
+        if (Array.isArray(s.agreementChecks)) setAgreementChecks(defaultConfirmations(AGREEMENT_CONFIRMATION_COUNT, s.agreementChecks));
         if (typeof s.acceptanceName === "string") setAcceptanceName(s.acceptanceName);
         if (typeof s.newsOptIn === "boolean") setNewsOptIn(s.newsOptIn);
         if (s.submitted === true) setSubmitted(true);
@@ -104,7 +112,7 @@ export function FacilitatorsPage() {
     }
   }, [step, checks, form, paymentChecks, agreementChecks, acceptanceName, newsOptIn, submitted, hydrated]);
 
-  const allChecked = checks.every(Boolean);
+  const allChecked = requiredConfirmationsComplete(checks, ELIGIBILITY_CONFIRMATION_COUNT);
 
   function goTo(next: number) {
     setStep(next);
@@ -276,6 +284,9 @@ function StepJoin({ beginRef, checks, triedContinue, allChecked, onToggle, onCon
             </li>
           ))}
         </ol>
+        <ul className="mt-4 list-disc pl-5 text-[15px] leading-relaxed text-foreground">
+          <li>{MEMBERSHIP_REQUIREMENT}</li>
+        </ul>
         <p className="mt-4 rounded-2xl border border-border bg-secondary/60 p-4 text-sm leading-relaxed text-muted-foreground">
           Applying does not guarantee approval, a published event, attendance, or earnings. We review applications for
           relevant training, experience, community fit, and safe professional practice.
@@ -351,13 +362,21 @@ const TIMEZONES = [
 const PAYMENT_METHODS = [
   "Bank transfer",
   "Crypto (only if supported for your country and approved by the operator)",
+  "Wise", "PayPal", "Venmo",
+] as const;
+
+const MONTHLY_THEMES = [
+  "Presence", "Appreciation", "Challenges and courage", "Habits and consistency", "Health and rest",
+  "Reflection and self awareness", "Growth and learning", "Connection and community",
+  "Creativity and contribution", "Purpose and meaningful work", "Acceptance and letting go",
+  "Hope and renewal", "Other / suggest another topic",
 ] as const;
 
 type FieldDef = {
   key: string;
   label: string;
   required: boolean;
-  kind: "text" | "email" | "select" | "textarea" | "roles";
+  kind: "text" | "email" | "select" | "textarea" | "roles" | "number";
   helper: string;
   isPublic: boolean;
   options?: readonly string[];
@@ -371,15 +390,14 @@ const PRACTICE_FIELDS: FieldDef[] = [
   { key: "timezone", label: "Timezone", required: true, kind: "select", isPublic: false, options: TIMEZONES, helper: "Used to schedule your live sessions." },
   { key: "roles", label: "Professional role", required: true, kind: "roles", isPublic: true, helper: "Facilitator, teacher, space holder, coach, expert, wisdom partner, or describe your role. Multiple selections permitted." },
   { key: "expertise", label: "Areas of expertise", required: true, kind: "textarea", isPublic: true, helper: "What subjects or practices do you professionally facilitate?" },
-  { key: "training", label: "Relevant training and qualifications", required: true, kind: "textarea", isPublic: false, helper: "Tell us where you trained, what you studied, and any relevant certifications or licences." },
+  { key: "training", label: "Relevant training and qualifications", required: true, kind: "textarea", isPublic: false, helper: "Tell us where you trained, what you studied, and any relevant certifications or licences. Any viable experience counts; formal training is not required." },
   { key: "experience", label: "Relevant facilitation experience", required: true, kind: "textarea", isPublic: false, helper: "Describe your experience leading sessions, including online sessions." },
   { key: "links", label: "Supporting links or documents", required: false, kind: "text", isPublic: false, helper: "Share your website, professional profile, training evidence, or sample session. Avoid unnecessary personal information." },
-  { key: "languages", label: "Session languages", required: true, kind: "text", isPublic: true, helper: "Which languages can you comfortably facilitate in?" },
-  { key: "session", label: "Your proposed session", required: true, kind: "textarea", isPublic: true, helper: "What would you like to offer, who is it for, and what can participants reasonably expect?" },
-  { key: "format", label: "Session format and duration", required: true, kind: "text", isPublic: true, helper: "Describe the format and approximate length." },
-  { key: "themes", label: "Connection to community themes", required: false, kind: "text", isPublic: true, helper: "Which monthly theme or weekly focus would your session support?" },
-  { key: "safety", label: "Participant requirements and safety", required: true, kind: "textarea", isPublic: false, helper: 'Describe prerequisites, suitability limits, adaptations, or reasons someone should not participate. Enter "None identified" if appropriate.' },
+  { key: "session", label: "Your proposed sessions", required: true, kind: "textarea", isPublic: true, helper: "What would you like to offer, who is it for, what can participants reasonably expect, how often would it run (frequency), and is it part of a multi-session workshop?" },
+  { key: "format", label: "Duration", required: true, kind: "text", isPublic: true, helper: "Approximate length of each session." },
   { key: "availability", label: "Availability", required: true, kind: "text", isPublic: true, helper: "How often would you like to offer sessions, and at what times?" },
+  { key: "minimumParticipants", label: "Minimum participants", required: true, kind: "number", isPublic: true, helper: "Choose the minimum number of registered participants for the session to take place." },
+  { key: "themes", label: "Connection to community themes", required: false, kind: "select", isPublic: true, options: MONTHLY_THEMES, helper: "Which monthly theme or weekly focus would your session support?" },
   { key: "invoicingName", label: "Invoicing name or business", required: true, kind: "text", isPublic: false, helper: "Who will issue your invoices?" },
   { key: "paymentMethod", label: "Preferred payment method", required: true, kind: "select", isPublic: false, options: PAYMENT_METHODS, helper: "Bank transfer, or crypto only if supported for your country and approved by the operator." },
   { key: "why", label: "Why One World Family", required: true, kind: "textarea", isPublic: false, helper: "What draws you to this community, and what would you like to contribute?" },
@@ -419,6 +437,7 @@ function StepPractice({ values, onChange, onContinue, onBack }: {
     const v = str(f.key).trim();
     if (!v) return "This field is required.";
     if (f.kind === "email" && !EMAIL_RE.test(v)) return "Please enter a valid email address.";
+    if (f.kind === "number" && !validMinimumParticipants(v)) return "Please enter a whole number of at least 1.";
     return null;
   }
 
@@ -450,12 +469,12 @@ function StepPractice({ values, onChange, onContinue, onBack }: {
         </p>
       </header>
 
-      <div className="flex flex-col gap-5">
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
         {PRACTICE_FIELDS.map((f) => {
           const error = tried ? fieldError(f) : null;
           const describedBy = `fac-help-${f.key}${error ? ` fac-err-${f.key}` : ""}`;
           return (
-            <div key={f.key} id={`fac-field-${f.key}`} className="surface-card scroll-mt-6 p-5 sm:p-6">
+            <div key={f.key} id={`fac-field-${f.key}`} className={cn("surface-card min-w-0 scroll-mt-6 p-5 sm:p-6", f.key !== "format" && f.key !== "availability" && "md:col-span-2")}>
               <div className="flex flex-wrap items-center gap-2">
                 <label htmlFor={`fac-input-${f.key}`} className="font-semibold text-foreground">
                   {f.label}
@@ -525,7 +544,9 @@ function StepPractice({ values, onChange, onContinue, onBack }: {
               ) : (
                 <input
                   id={`fac-input-${f.key}`}
-                  type={f.kind === "email" ? "email" : "text"}
+                  type={f.kind === "number" ? "number" : f.kind === "email" ? "email" : "text"}
+                  min={f.kind === "number" ? 1 : undefined}
+                  step={f.kind === "number" ? 1 : undefined}
                   value={str(f.key)}
                   onChange={(e) => onChange(f.key, e.target.value)}
                   aria-describedby={describedBy}
@@ -639,7 +660,7 @@ function StepPayments({ checks, onToggle, onContinue, onBack }: {
   onBack: () => void;
 }) {
   const [tried, setTried] = useState(false);
-  const allChecked = checks.every(Boolean);
+  const allChecked = requiredConfirmationsComplete(checks, PAYMENT_CONFIRMATION_COUNT);
 
   return (
     <div className="flex flex-col gap-8">
@@ -833,7 +854,11 @@ const AGREEMENT_SECTIONS = [
   },
   {
     title: "Scheduling and technical delivery",
-    body: "Accurate event descriptions; attend on time; notify promptly about cancellations or technical issues; only eligible sessions and attendance count under the Contribution Policy; you are responsible for your own equipment and connection.",
+    body: "Accurate event descriptions; attend on time; notify promptly about cancellations or technical issues; only eligible sessions and attendance count under the Contribution Policy; you are responsible for your own equipment and connection. If signups are below your chosen minimum participants (for example, only 1–2 people), you may reschedule and must send a notification to registered participants about the change. If a facilitator or participant is sick, the session can be rescheduled with notice to registered participants.",
+  },
+  {
+    title: "Membership and session commitment",
+    body: MEMBERSHIP_REQUIREMENT,
   },
   {
     title: "No guaranteed commercial outcome",
@@ -868,7 +893,7 @@ function StepAgreement({ checks, onToggle, acceptanceName, onAcceptanceName, new
   onBack: () => void;
 }) {
   const [tried, setTried] = useState(false);
-  const allChecked = checks.every(Boolean);
+  const allChecked = requiredConfirmationsComplete(checks, AGREEMENT_CONFIRMATION_COUNT);
   const nameOk = acceptanceName.trim().length > 0;
   const ready = allChecked && nameOk;
 
@@ -906,6 +931,7 @@ function StepAgreement({ checks, onToggle, acceptanceName, onAcceptanceName, new
             <>I have read and agree to the Facilitator Agreement, the quarterly payment terms, and the current Contribution Policy <DraftChip>contribution policy link</DraftChip>.</>,
             <>I understand that submitting this application does not guarantee approval or earnings.</>,
             <>I acknowledge the Privacy Notice <DraftChip>privacy notice link</DraftChip> and understand how my application information will be used.</>,
+            <>I agree to these facilitator terms: {FACILITATOR_TERMS}</>,
           ].map((text, i) => (
             <label key={i}
               className={cn(
@@ -1030,6 +1056,10 @@ function ConfirmationScreen({ form, acceptanceName }: { form: FormValues; accept
 
       {showSummary && (
         <div className="flex flex-col gap-6">
+          <section aria-label="Draft facilitator terms" className="surface-card p-6">
+            <h2 className="section-label">Draft facilitator terms</h2>
+            <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{FACILITATOR_TERMS}</p>
+          </section>
           {([["Public profile", publicFields], ["Private", privateFields]] as const).map(([group, fields]) => (
             <section key={group} aria-label={`${group} answers`} className="surface-card p-6">
               <h2 className="section-label">{group}</h2>
