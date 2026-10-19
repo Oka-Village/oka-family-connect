@@ -125,3 +125,64 @@ export function AdminDeleteMember({ userId, name }: { userId: string; name: stri
   }
   return <Button size="sm" variant="outline" className="rounded-full text-destructive" disabled={busy} onClick={run}>Delete member</Button>;
 }
+
+export function useSuspendedIds() {
+  return useQuery({
+    queryKey: ["admin", "suspensions"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("member_suspensions").select("user_id");
+      if (error) throw error;
+      return new Set((data ?? []).map((r) => r.user_id));
+    },
+  });
+}
+
+export function AdminSuspendMember({ userId, suspended }: { userId: string; suspended: boolean }) {
+  const qc = useQueryClient();
+  const [busy, setBusy] = useState(false);
+  async function run() {
+    if (!suspended && !confirm("Suspend this member? They won't be able to use Oka until you lift it.")) return;
+    setBusy(true);
+    const { error } = suspended
+      ? await supabase.from("member_suspensions").delete().eq("user_id", userId)
+      : await supabase.from("member_suspensions").insert({ user_id: userId });
+    setBusy(false);
+    if (error) return void toast.error(error.message);
+    toast.success(suspended ? "Suspension lifted" : "Member suspended");
+    qc.invalidateQueries({ queryKey: ["admin", "suspensions"] });
+  }
+  return <Button size="sm" variant="outline" className="rounded-full" disabled={busy} onClick={run}>{suspended ? "Lift suspension" : "Suspend"}</Button>;
+}
+
+export function BlockedEmails() {
+  const qc = useQueryClient();
+  const q = useQuery({
+    queryKey: ["admin", "blocked-emails"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("blocked_emails").select("email,created_at").order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  async function unblock(email: string) {
+    if (!confirm(`Allow ${email} to join again?`)) return;
+    const { error } = await supabase.from("blocked_emails").delete().eq("email", email);
+    if (error) return void toast.error(error.message);
+    toast.success("Email unblocked");
+    qc.invalidateQueries({ queryKey: ["admin", "blocked-emails"] });
+  }
+  if (!q.data?.length) return null;
+  return (
+    <div className="mt-12">
+      <p className="section-label">Blocked emails (deleted members)</p>
+      <ul className="mt-4 grid gap-2">
+        {q.data.map((b) => (
+          <li key={b.email} className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-card px-5 py-3 shadow-soft">
+            <span className="text-sm text-foreground">{b.email}</span>
+            <Button size="sm" variant="outline" className="rounded-full" onClick={() => unblock(b.email)}>Unblock</Button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
