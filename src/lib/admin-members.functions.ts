@@ -13,6 +13,9 @@ export const adminDeleteMember = createServerFn({ method: "POST" })
     if (error || !isAdmin) throw new Error("Only admins can delete members.");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Letters block profile removal, so clear the member's sent and received letters first.
+    const letters = await supabaseAdmin.from("appreciation_letters").delete().or(`sender_id.eq.${data.userId},recipient_id.eq.${data.userId}`);
+    if (letters.error) throw new Error("Couldn't remove this member's letters.");
     const res = await supabaseAdmin.auth.admin.deleteUser(data.userId);
     if (res.error) throw new Error(`Couldn't delete this member: ${res.error.message}`);
     return { ok: true };
