@@ -1,6 +1,11 @@
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Briefcase, CalendarDays, Home, Loader2, MapPin, Sparkles } from "lucide-react";
+import { ArrowLeft, Briefcase, CalendarDays, Home, Loader2, MapPin, Pencil, Sparkles } from "lucide-react";
+
+import { AdminEditProfile } from "@/components/oka/admin-member-tools";
+import { Button } from "@/components/ui/button";
+import { useRoles } from "@/hooks/use-is-admin";
 
 import { MemberAvatar, ProfileSections } from "@/components/oka/profile-sections";
 import { resolvePhotoUrl } from "@/hooks/use-profile";
@@ -24,6 +29,8 @@ export const Route = createFileRoute("/_authenticated/members/$memberId")({
 
 function MemberPage() {
   const { memberId } = Route.useParams();
+  const roles = useRoles();
+  const [editing, setEditing] = useState(false);
   const q = useQuery({
     queryKey: ["member", memberId],
     queryFn: async () => {
@@ -75,6 +82,13 @@ function MemberPage() {
         </div>
       </div>
 
+      {roles.data?.isAdmin && (
+        <div className="mt-6">
+          {editing ? <AdminEditProfile key={memberId} userId={memberId} onDone={() => setEditing(false)} /> : (
+            <Button variant="outline" className="rounded-full" onClick={() => setEditing(true)}><Pencil className="size-4 text-primary" strokeWidth={1.5} />Edit profile</Button>
+          )}
+        </div>
+      )}
       <div className="mt-10"><ProfileSections profile={p} /></div>
 
       <section className="surface-card mt-6 p-6">

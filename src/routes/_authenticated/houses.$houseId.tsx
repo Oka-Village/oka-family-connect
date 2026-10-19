@@ -9,7 +9,8 @@ import { MemberAvatar } from "@/components/oka/profile-sections";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useCurrentUserId } from "@/hooks/use-is-admin";
+import { useCurrentUserId, useRoles } from "@/hooks/use-is-admin";
+import { canEditListing } from "@/lib/direct-edit";
 import { supabase } from "@/integrations/supabase/client";
 import { HOUSE_SELECT, PROPERTY_LABELS, formatDay, isoDay, nightsBetween, withSignedHousePhotos, type HouseRow } from "@/lib/houses";
 import { sessionErrorMessage, useCredits } from "@/lib/skills";
@@ -32,6 +33,7 @@ export const Route = createFileRoute("/_authenticated/houses/$houseId")({
 function HouseDetail() {
   const { houseId } = Route.useParams();
   const { data: uid } = useCurrentUserId();
+  const roles = useRoles();
   const qc = useQueryClient();
   const [active, setActive] = useState(0);
   const q = useQuery({
@@ -101,6 +103,9 @@ function HouseDetail() {
         </div>
 
         <aside>
+          {!mine && canEditListing(uid, h.owner_id, roles.data?.isAdmin) && (
+            <Button asChild variant="outline" className="mb-5 w-full rounded-full"><Link to="/houses/edit/$houseId" params={{ houseId: h.id }}><Pencil className="size-4 text-primary" strokeWidth={1.5} />Edit home</Link></Button>
+          )}
           {mine ? (
             <div className="surface-card grid gap-3 p-6">
               <p className="section-label">Your home</p>

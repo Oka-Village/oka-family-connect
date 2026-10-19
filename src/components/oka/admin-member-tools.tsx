@@ -44,12 +44,11 @@ export function AdminEditProfile({ userId, onDone }: { userId: string; onDone: (
     e.preventDefault();
     if (!draft) return onDone();
     setBusy(true);
-    const { error } = await supabase.from("profiles").update(draft as never).eq("id", userId);
+    const { error } = await supabase.from("profiles").update(draft as never).eq("id", userId).select("id").single();
     setBusy(false);
     if (error) return void toast.error(error.message);
     toast.success("Profile saved");
-    qc.invalidateQueries({ queryKey: ["admin", "members"] });
-    qc.invalidateQueries({ queryKey: ["admin", "profile", userId] });
+    await qc.invalidateQueries();
     onDone();
   }
 
