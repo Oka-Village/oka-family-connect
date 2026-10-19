@@ -17,6 +17,7 @@ import { AffiliatesSection } from "@/components/oka/admin-affiliates";
 import { ActivitySection } from "@/components/oka/admin-activity";
 import { ThemesSection } from "@/components/oka/admin-themes";
 import { cn } from "@/lib/utils";
+import { AdminDeleteMember, AdminEditProfile, AdminMemberPhoto } from "@/components/oka/admin-member-tools";
 
 const TABS = ["events", "members", "listings", "affiliates", "activity", "themes"] as const;
 type Tab = (typeof TABS)[number];
@@ -167,10 +168,11 @@ function MembersSection() {
   const { data: me } = useCurrentUserId();
   const [term, setTerm] = useState("");
   const [adjusting, setAdjusting] = useState<string | null>(null);
+  const [editing, setEditing] = useState<string | null>(null);
   const q = useQuery({
     queryKey: ["admin", "members", term],
     queryFn: async () => {
-      let pq = supabase.from("profiles").select("id,display_name,location,profession").order("display_name").limit(25);
+      let pq = supabase.from("profiles").select("id,display_name,location,profession,photo_url").order("display_name").limit(25);
       if (term.trim()) pq = pq.ilike("display_name", `%${term.trim().replace(/[%_]/g, "")}%`);
       const { data: people, error } = await pq;
       if (error) throw error;
@@ -228,6 +230,8 @@ function MembersSection() {
           const self = p.id === me;
           return (
             <Card key={p.id}>
+              <div className="flex items-start gap-4">
+              <AdminMemberPhoto photoUrl={p.photo_url} name={p.display_name} />
               <div>
                 <p className="font-serif text-xl text-foreground">{p.display_name || "Unnamed member"}{self && <span className="ml-2 text-sm text-muted-foreground">(you)</span>}</p>
                 <p className="text-sm text-muted-foreground">{[p.profession, p.location].filter(Boolean).join(" · ") || "—"}</p>
@@ -237,6 +241,7 @@ function MembersSection() {
                   {p.affiliate === "active" && <span className="rounded-full bg-sage-light px-3 py-0.5 text-xs text-foreground">Affiliate</span>}
                   {!isAdmin && !isMod && <span className="rounded-full bg-accent px-3 py-0.5 text-xs text-muted-foreground">Member</span>}
                 </div>
+              </div>
               </div>
               <div className="flex flex-wrap gap-2">
                 <Button size="sm" variant={isMod ? "outline" : "default"} className="rounded-full" disabled={toggle.isPending}
@@ -253,8 +258,11 @@ function MembersSection() {
                   {p.affiliate === "active" ? "Pause affiliate" : p.affiliate ? "Resume affiliate" : "Make affiliate"}
                 </Button>
                 <Button size="sm" variant="outline" className="rounded-full" onClick={() => setAdjusting(adjusting === p.id ? null : p.id)}>Adjust credits</Button>
+                <Button size="sm" variant="outline" className="rounded-full" onClick={() => setEditing(editing === p.id ? null : p.id)}>Edit profile</Button>
+                {!self && <AdminDeleteMember userId={p.id} name={p.display_name} />}
               </div>
               {adjusting === p.id && <AdjustCredits userId={p.id} onDone={() => setAdjusting(null)} />}
+              {editing === p.id && <AdminEditProfile userId={p.id} onDone={() => setEditing(null)} />}
             </Card>
           );
         })}
