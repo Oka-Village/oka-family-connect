@@ -7,3 +7,5 @@
 - [x] Verify introduction navigation, refresh, skip and restart at 390px and desktop; preview reports no errors.
 - [x] Apply Daniel's facilitator-only application and draft-term updates, preserving direct-link-only noindex.
 - [x] Verify facilitator draft validation, persistence and desktop/mobile flow without sending data.
+- [ ] Add direct admin editing on skills, members, events and houses while preserving existing permissions.
+- [ ] Verify direct edit saves and permission checks in preview.
