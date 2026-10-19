@@ -5,3 +5,5 @@
 - [x] Verify Home changes in preview; prior verification limits are recorded in chat.
 - [x] Add three skippable Oka introduction screens before the prototype chat, with session-only progress and replay.
 - [x] Verify introduction navigation, refresh, skip and restart at 390px and desktop; preview reports no errors.
+- [ ] Apply Daniel's facilitator-only application and draft-term updates, preserving direct-link-only noindex.
+- [ ] Verify facilitator draft validation, persistence and desktop/mobile flow without sending data.
