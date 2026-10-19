@@ -22,6 +22,8 @@ const LINKS = [
   { to: "/houses", label: "Houses" },
   { to: "/collections", label: "Collections" },
   { to: "/affiliate", label: "Invite a friend" },
+  { to: "/privacy", label: "Privacy" },
+  { to: "/terms", label: "Terms" },
 ] as const;
 
 export function LittleMomentFooter() {
@@ -80,6 +82,11 @@ export function LittleMomentFooter() {
           ))}
         </nav>
         <span className="ml-auto hidden text-[var(--moment-label)] md:inline">Made with care by the One World Family</span>
+      </div>
+
+      <div className="relative mx-auto mt-5 flex max-w-[1180px] flex-wrap items-center justify-center gap-x-6 gap-y-1 font-sans text-[12px] text-[var(--moment-muted)] md:hidden">
+        <Link to="/privacy" className="transition-colors hover:text-primary">Privacy</Link>
+        <Link to="/terms" className="transition-colors hover:text-primary">Terms</Link>
       </div>
     </footer>
   );
