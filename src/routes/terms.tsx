@@ -203,13 +203,10 @@ const SECTIONS: LegalSection[] = [
     blocks: [
       {
         kind: "p",
-        text: "These terms are governed by the law of ",
-      },
-      {
-        kind: "p",
         text: (
           <span>
-            the country in which the Oka operator is registered, and the courts there have jurisdiction over disputes.
+            These terms are governed by the law of the country in which the Oka operator is
+            registered, and the courts there have jurisdiction over disputes.
             <LegalDraft>governing law and operator entity</LegalDraft>
           </span>
         ),

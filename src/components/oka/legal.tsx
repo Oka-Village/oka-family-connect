@@ -77,7 +77,7 @@ export function LegalPage({
                 <a
                   href={`#${s.id}`}
                   className={
-                    "text-foreground underline decoration-border underline-offset-4 transition-colors hover:text-primary " +
+                    "text-foreground transition-colors hover:text-primary hover:underline hover:decoration-border hover:underline-offset-4 " +
                     focusRing
                   }
                 >
