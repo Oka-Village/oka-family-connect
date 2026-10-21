@@ -83,9 +83,10 @@ export function HomeFeatured() {
   const data = q.data ?? EMPTY;
   if (q.isLoading || q.isError) return null;
   const rails: Array<{ key: string; label: string; items: React.ReactNode[] }> = [];
+  if (data.skills.length) rails.push({ key: "skills", label: "Featured skills", items: data.skills.map((s) => <SkillCard key={s.id} skill={s} />) });
   if (data.homes.length) rails.push({ key: "homes", label: "Featured homes", items: data.homes.map((h) => <HouseCard key={h.id} house={h} />) });
   if (data.members.length) rails.push({ key: "members", label: "Featured members", items: data.members.map((m) => <MemberCard key={m.id} member={m} />) });
-  if (data.skills.length) rails.push({ key: "skills", label: "Featured skills", items: data.skills.map((s) => <SkillCard key={s.id} skill={s} />) });
+
   if (!rails.length) return null;
 
   return (
