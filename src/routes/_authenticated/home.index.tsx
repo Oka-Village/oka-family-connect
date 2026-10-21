@@ -84,7 +84,14 @@ function HomePage() {
         <p className="font-serif text-xl italic text-postcard-label md:text-right">Three cards arrived<br />this morning.</p>
       </header>
 
+      <HomeEvents />
+
+      <HomeFeatured />
+
+      <HomeThemes />
+
       <div className="postcard-scene flex flex-col items-center pb-5 pt-2.5 md:flex-row md:flex-nowrap md:justify-center md:gap-6 xl:gap-11">
+
         {CARDS.map((card, i) => (
           <button
             key={card.id}
@@ -109,12 +116,6 @@ function HomePage() {
       </div>
 
       <p className="border-t border-sand pt-8 text-center font-serif text-[28px] text-foreground md:text-4xl">Choose a space when you’re ready.</p>
-
-      <HomeThemes />
-
-      <HomeEvents />
-
-      <HomeFeatured />
     </div>
   );
 }
