@@ -336,7 +336,7 @@ function AdjustCredits({ userId, onDone }: { userId: string; onDone: () => void 
 }
 
 // ---------------- Houses & skills moderation ----------------
-type Listing = { id: string; title: string; status: string; sub: string | null; owner: { display_name: string | null } | null };
+type Listing = { id: string; title: string; status: string; featured?: boolean; sub: string | null; owner: { display_name: string | null } | null };
 
 function ListingsSection() {
   const qc = useQueryClient();
@@ -344,7 +344,7 @@ function ListingsSection() {
     queryKey: ["admin", "houses"],
     queryFn: async () => {
       const { data, error } = await supabase.from("houses")
-        .select("id,title,status,sub:location_text,owner:profiles!houses_owner_id_fkey(display_name)")
+        .select("id,title,status,featured,sub:location_text,owner:profiles!houses_owner_id_fkey(display_name)")
         .in("status", ["published", "archived"]).order("created_at", { ascending: false }).limit(50);
       if (error) throw error;
       return data as unknown as Listing[];
@@ -369,6 +369,19 @@ function ListingsSection() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const feature = useMutation({
+    mutationFn: async ({ id, featured }: { id: string; featured: boolean }) => {
+      const { error } = await supabase.from("houses").update({ featured }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: (_d, v) => {
+      toast.success(v.featured ? "Featured on Home" : "Removed from Home");
+      qc.invalidateQueries({ queryKey: ["admin"] });
+      qc.invalidateQueries({ queryKey: ["home-featured"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const List = ({ table, icon: Icon, label, items }: { table: "houses" | "skills"; icon: typeof Home; label: string; items?: Listing[] | undefined }) => (
     <>
       <p className="section-label mt-10 flex items-center gap-2"><Icon className="size-4 text-primary" strokeWidth={1.5} /> {label}</p>
@@ -380,11 +393,20 @@ function ListingsSection() {
               <p className={cn("font-serif text-xl text-foreground", l.status === "archived" && "line-through opacity-60")}>{l.title}</p>
               <p className="text-sm text-muted-foreground">{[l.sub, l.owner?.display_name && `by ${l.owner.display_name}`].filter(Boolean).join(" · ")}</p>
             </div>
+            <div className="flex flex-wrap gap-2">
+            {table === "houses" && l.status === "published" && (
+              <Button size="sm" variant={l.featured ? "default" : "outline"} className="rounded-full" aria-pressed={!!l.featured}
+                onClick={() => feature.mutate({ id: l.id, featured: !l.featured })}>
+                <Star className="size-4" strokeWidth={1.5} fill={l.featured ? "currentColor" : "none"} aria-hidden />
+                {l.featured ? "Featured on Home" : "Feature on Home"}
+              </Button>
+            )}
             {l.status === "archived" ? (
               <Button size="sm" variant="outline" className="rounded-full" onClick={() => act.mutate({ table, id: l.id, status: "published" })}>Restore</Button>
             ) : (
               <Button size="sm" variant="outline" className="rounded-full text-destructive" onClick={() => confirm("Unlist this for everyone?") && act.mutate({ table, id: l.id, status: "archived" })}>Unlist</Button>
             )}
+            </div>
           </Card>
         ))}
       </ul>
@@ -393,7 +415,7 @@ function ListingsSection() {
 
   return (
     <section className="mt-4">
-      <p className="mt-6 text-sm text-muted-foreground">Members publish houses and skills directly. Unlist anything that doesn't belong.</p>
+      <p className="mt-6 text-sm text-muted-foreground">Members publish houses and skills directly. Unlist anything that doesn't belong. Featured homes show first on members' Home page.</p>
       <List table="houses" icon={Home} label="Houses" items={houses.data} />
       <List table="skills" icon={Sparkles} label="Skills" items={skills.data} />
     </section>
