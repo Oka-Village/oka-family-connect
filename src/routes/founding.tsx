@@ -29,9 +29,10 @@ export const Route = createFileRoute("/founding")({
 
 const TERMS = [
   "Founding membership is a one-time payment of $250 (USD). There are no renewals and no further membership fees.",
-  "It gives you full Oka membership for the lifetime of the Oka community, for one person, and cannot be transferred or resold.",
+  "It gives one person full Oka membership for as long as the Oka platform operates. It cannot be transferred or resold.",
+  "Oka may decide at any time to stop operating. If that happens, lifetime memberships end and are not refunded.",
   "Membership does not buy credits. Credits are still earned by hosting and sharing, have no cash value, and money never passes between members.",
-  "You may request a full refund within 14 days of payment by writing to daniel@zoe.garden. After that, the payment is non-refundable except where the law requires.",
+  "You may request a full refund within 14 days of payment by writing to liran@okavillage.com. After that, the payment is non-refundable except where the law requires.",
   "Founding membership follows the Oka Terms of Service. If your account is removed for breaking them, the membership ends without refund.",
   "Payment is processed securely by Stripe. Oka never sees or stores your card details.",
 ];
