@@ -340,6 +340,7 @@ export type Database = {
           host_id: string | null
           id: string
           join_slug: string
+          photo_url: string | null
           starts_at: string
           status: string
           timezone: string | null
@@ -359,6 +360,7 @@ export type Database = {
           host_id?: string | null
           id?: string
           join_slug?: string
+          photo_url?: string | null
           starts_at: string
           status?: string
           timezone?: string | null
@@ -378,6 +380,7 @@ export type Database = {
           host_id?: string | null
           id?: string
           join_slug?: string
+          photo_url?: string | null
           starts_at?: string
           status?: string
           timezone?: string | null
