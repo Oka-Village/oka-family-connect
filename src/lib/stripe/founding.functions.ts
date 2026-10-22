@@ -18,7 +18,7 @@ async function stripe(path: string, init?: { body?: URLSearchParams }) {
       Authorization: `Bearer ${key}`,
       ...(init?.body ? { "Content-Type": "application/x-www-form-urlencoded" } : {}),
     },
-    body: init?.body,
+    body: init?.body?.toString(),
   });
   const json = (await res.json()) as any;
   if (!res.ok) throw new Error(json?.error?.message ?? "Stripe request failed");
