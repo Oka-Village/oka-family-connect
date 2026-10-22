@@ -10,4 +10,5 @@
 - [x] Add direct admin editing on skills, members, events and houses while preserving existing permissions.
 - [x] Verify direct edit saves in preview and permission-gate tests; restore all original test values.
 - [x] Reorder Home: events, featured skills/homes/members, themes, then the postcards at the bottom.
+- [x] Remove the large "Home" headline from the Home page header.
 
