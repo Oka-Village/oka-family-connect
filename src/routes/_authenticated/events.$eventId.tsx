@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, CalendarDays, Clock, Hourglass, Lock, MapPin, Pencil, Users, Video } from "lucide-react";
 import { toast } from "sonner";
 
-import { RsvpBadge } from "@/components/oka/event-card";
+import { RsvpBadge, useEventPhoto } from "@/components/oka/event-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useCurrentUserId, useIsStaff } from "@/hooks/use-is-admin";
@@ -72,6 +72,8 @@ function EventDetail() {
     queryFn: () => resolvePhotoUrl(q.data?.event?.host?.photo_url ?? null),
     enabled: !!q.data?.event?.host?.photo_url,
   });
+
+  const cover = useEventPhoto(q.data?.event?.photo_url);
 
   const rsvp = useMutation({
     mutationFn: async (action: "join" | "leave") => {
@@ -144,6 +146,8 @@ function EventDetail() {
           <CopyJoinLink slug={ev.join_slug} />
         </div>
       )}
+
+      {cover && <img src={cover} alt="" className="mt-8 aspect-[21/9] w-full rounded-3xl object-cover shadow-soft" />}
 
       <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_320px]">
         <div>

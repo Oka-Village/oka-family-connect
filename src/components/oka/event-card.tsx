@@ -1,4 +1,6 @@
 import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { signPaths } from "@/lib/skills";
 import { ArrowRight, Clock, MapPin, Users, Video } from "lucide-react";
 
 import {
@@ -63,9 +65,20 @@ function Meta({ event }: { event: EventRow }) {
   );
 }
 
+/** Signed URL for an event photo stored privately. */
+export function useEventPhoto(path: string | null | undefined) {
+  return useQuery({
+    queryKey: ["event-photo", path],
+    queryFn: async () => (await signPaths([path]))(path) ?? null,
+    enabled: !!path,
+    staleTime: 30 * 60_000,
+  }).data ?? null;
+}
+
 /** An event rendered like an invitation card. */
 export function EventCard({ event, rsvp }: { event: EventRow; rsvp?: string | undefined }) {
   const cancelled = event.status === "cancelled";
+  const photo = useEventPhoto(event.photo_url);
   return (
     <Link
       to="/events/$eventId"
@@ -76,6 +89,7 @@ export function EventCard({ event, rsvp }: { event: EventRow; rsvp?: string | un
         cancelled && "opacity-60",
       )}
     >
+      {photo && <img src={photo} alt="" loading="lazy" className="-mx-4 -mt-4 mb-4 aspect-[16/9] w-[calc(100%+2rem)] max-w-none rounded-t-2xl object-cover" />}
       <div className="font-serif text-4xl leading-none text-foreground">{new Date(event.starts_at).toLocaleDateString(undefined, { day: "numeric" })}</div>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">

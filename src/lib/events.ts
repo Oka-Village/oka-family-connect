@@ -34,11 +34,12 @@ export type EventRow = {
   host_id: string | null;
   created_by: string | null;
   join_slug: string;
+  photo_url: string | null;
   host: EventHost | null;
 };
 
 export const EVENT_SELECT =
-  "id,title,description,event_type,format,starts_at,ends_at,timezone,capacity,going_count,waitlist_count,status,host_id,created_by,join_slug,host:profiles!events_host_id_fkey(id,display_name,photo_url)";
+  "id,title,description,event_type,format,starts_at,ends_at,timezone,capacity,going_count,waitlist_count,status,host_id,created_by,join_slug,photo_url,host:profiles!events_host_id_fkey(id,display_name,photo_url)";
 
 export type EventFilters = {
   type?: EventType | undefined;

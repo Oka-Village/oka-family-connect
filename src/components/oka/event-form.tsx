@@ -1,6 +1,8 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Camera, Loader2 } from "lucide-react";
+import { signPaths } from "@/lib/skills";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -48,13 +50,32 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
     venue: initialLocation?.venue_address ?? "",
     video: initialLocation?.video_link ?? "",
     description: initial?.description ?? "",
+    photo_url: initial?.photo_url ?? null as string | null,
   });
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    void signPaths([f.photo_url]).then((sign) => alive && setPreview(sign(f.photo_url) ?? null));
+    return () => { alive = false; };
+  }, [f.photo_url]);
+  async function upload(file: File) {
+    if (!file.type.startsWith("image/") || file.size > 5 * 1024 * 1024) return void toast.error("Please choose an image under 5 MB.");
+    setUploading(true);
+    const path = `${userId}/events/${Date.now()}-${file.name.replace(/[^\w.-]/g, "_")}`;
+    const { error } = await supabase.storage.from("avatars").upload(path, file);
+    setUploading(false);
+    if (error) return void toast.error("That photo didn't upload. Please try again.");
+    setF((x) => ({ ...x, photo_url: path }));
+  }
   const [saving, setSaving] = useState(false);
   const up = (k: keyof typeof f) => (e: { target: { value: string } }) => setF((s) => ({ ...s, [k]: e.target.value }));
 
   async function submit(e: React.FormEvent): Promise<unknown> {
     e.preventDefault();
     if (!f.title.trim() || !f.starts) return toast.error("Please add a title and a start time.");
+    if (!f.photo_url) return toast.error("Please add a photo for your event.");
     if (f.video && !/^https?:\/\//.test(f.video)) return toast.error("The video link should start with https://");
     const starts_at = zonedInputToUtc(f.starts, f.timezone);
     const ends_at = f.ends ? zonedInputToUtc(f.ends, f.timezone) : null;
@@ -72,6 +93,7 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
       ends_at,
       capacity,
       description: f.description.trim() || null,
+      photo_url: f.photo_url,
     };
     let eventId = initial?.id;
     if (mode === "create") {
@@ -100,6 +122,15 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
 
   return (
     <form onSubmit={submit} className="mt-10 grid gap-6 rounded-2xl border border-border bg-card p-6 shadow-soft sm:p-8">
+      <div className="grid gap-3">
+        <Label>Event photo (required)</Label>
+        {preview ? <img src={preview} alt="" className="aspect-[16/9] w-full rounded-2xl object-cover" /> : <div className="aspect-[16/9] w-full rounded-2xl bg-accent/60" />}
+        <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const x = e.target.files?.[0]; if (x) void upload(x); e.target.value = ""; }} />
+        <Button type="button" variant="outline" className="justify-self-start rounded-full" disabled={uploading} onClick={() => fileRef.current?.click()}>
+          {uploading ? <Loader2 className="size-4 animate-spin" strokeWidth={1.5} /> : <Camera className="size-4 text-primary" strokeWidth={1.5} />}
+          {f.photo_url ? "Change photo" : "Add a photo"}
+        </Button>
+      </div>
       <div className="grid gap-2">
         <Label htmlFor="title">Title</Label>
         <Input id="title" value={f.title} onChange={up("title")} maxLength={140} required />
@@ -154,7 +185,7 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
         <Label htmlFor="description">Description</Label>
         <Textarea id="description" rows={6} value={f.description} onChange={up("description")} />
       </div>
-      <Button type="submit" disabled={saving} className="justify-self-start rounded-full px-8">
+      <Button type="submit" disabled={saving || uploading} className="justify-self-start rounded-full px-8">
         {saving ? "Saving…" : mode === "edit" ? "Save changes" : isAdmin ? "Publish event" : "Send for review"}
       </Button>
     </form>
