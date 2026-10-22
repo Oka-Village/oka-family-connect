@@ -12,3 +12,4 @@
 - [x] Reorder Home: events, featured skills/homes/members, themes, then the postcards at the bottom.
 - [x] Remove the large "Home" headline from the Home page header.
 
+- [x] Founding member page ($250 lifetime, Stripe)
