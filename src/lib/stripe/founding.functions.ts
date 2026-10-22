@@ -17,7 +17,7 @@ async function stripe(path: string, init?: { body?: URLSearchParams }) {
   const res = await fetch(`https://api.stripe.com/v1/${path}`, {
     method: init?.body ? "POST" : "GET",
     headers,
-    body: init?.body?.toString(),
+    ...(init?.body ? { body: init.body.toString() } : {}),
   });
   const json = (await res.json()) as any;
   if (!res.ok) throw new Error(json?.error?.message ?? "Stripe request failed");
