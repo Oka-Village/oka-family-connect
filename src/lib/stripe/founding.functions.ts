@@ -20,9 +20,9 @@ async function stripe(path: string, init?: { body?: URLSearchParams }) {
     },
     body: init?.body,
   });
-  const json = (await res.json()) as Record<string, any>;
+  const json = (await res.json()) as any;
   if (!res.ok) throw new Error(json?.error?.message ?? "Stripe request failed");
-  return json;
+  return json as { id: string; url: string; payment_status: string; payment_intent: string | null; metadata?: Record<string, string> };
 }
 
 export const createFoundingCheckout = createServerFn({ method: "POST" })
@@ -79,7 +79,7 @@ export const confirmFoundingCheckout = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ sessionId: z.string().min(5).max(255) }).parse(d))
   .handler(async ({ data, context }) => {
     const session = await stripe(`checkout/sessions/${encodeURIComponent(data.sessionId)}`);
-    if (session.metadata?.user_id !== context.userId || session.metadata?.purpose !== "founding_lifetime")
+    if (session.metadata?.["user_id"] !== context.userId || session.metadata?.["purpose"] !== "founding_lifetime")
       throw new Error("This payment does not belong to your account.");
     if (session.payment_status !== "paid") return { paid: false };
 

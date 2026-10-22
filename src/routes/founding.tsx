@@ -12,7 +12,7 @@ import { confirmFoundingCheckout, createFoundingCheckout } from "@/lib/stripe/fo
 
 export const Route = createFileRoute("/founding")({
   validateSearch: (s: Record<string, unknown>) => ({
-    session_id: typeof s.session_id === "string" ? s.session_id : undefined,
+    session_id: typeof s["session_id"] === "string" ? s["session_id"] : undefined,
   }),
   head: () => ({
     meta: [
