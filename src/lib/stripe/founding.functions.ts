@@ -12,12 +12,11 @@ import { FOUNDING_PRICE_CENTS, FOUNDING_TERMS_VERSION } from "@/lib/founding";
 async function stripe(path: string, init?: { body?: URLSearchParams }) {
   const key = process.env["STRIPE_SECRET_KEY"];
   if (!key) throw new Error("Payments are not connected yet.");
+  const headers: Record<string, string> = { Authorization: `Bearer ${key}` };
+  if (init?.body) headers["Content-Type"] = "application/x-www-form-urlencoded";
   const res = await fetch(`https://api.stripe.com/v1/${path}`, {
     method: init?.body ? "POST" : "GET",
-    headers: {
-      Authorization: `Bearer ${key}`,
-      ...(init?.body ? { "Content-Type": "application/x-www-form-urlencoded" } : {}),
-    },
+    headers,
     body: init?.body?.toString(),
   });
   const json = (await res.json()) as any;
