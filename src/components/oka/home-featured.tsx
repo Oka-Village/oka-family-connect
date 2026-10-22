@@ -33,6 +33,7 @@ export function HomeFeatured() {
         .from("houses")
         .select(`${HOUSE_SELECT.replace("owner:profiles!houses_owner_id_fkey(id,display_name,photo_url)", "owner:profiles!houses_owner_id_fkey(id,display_name,photo_url,profile_completed)")}`)
         .eq("status", "published")
+        .order("featured", { ascending: false })
         .order("created_at", { ascending: false })
         .order("id", { ascending: false })
         .limit(12);
