@@ -30,7 +30,7 @@ const WAYS = [
   { icon: Home, title: "Host a guest", amount: "1 per night", text: "Open your home and earn a credit for every night a family member stays.", to: "/houses/new", cta: "List my home" },
   { icon: Sparkles, title: "Share a skill", amount: "1 per session", text: "An hour of what you love — cooking, coaching, a language — is one credit.", to: "/skills/new", cta: "Offer a skill" },
   { icon: CalendarHeart, title: "Host a workshop", amount: "2", text: "Gather the family around something you know well.", to: "/events/new", cta: "Propose an event" },
-  { icon: UserRoundCheck, title: "Complete your profile", { icon: UserRoundCheck, title: "Complete your profile", amount: "+3 once", text: "Let the family know you — every section filled in brings a welcome gift.", to: "/profile", cta: "My profile" },, text: "Let the family know you — every section filled in brings a welcome gift.", to: "/profile", cta: "My profile" },
+  { icon: UserRoundCheck, title: "Complete your profile", amount: "+3 once", text: "Let the family know you — every section filled in brings a welcome gift.", to: "/profile", cta: "My profile" },
   { icon: Users, title: "Complete a Pod", amount: "+3 once", text: "Journey through a Pod with a small circle of members.", to: "/events", cta: "See events" },
 ] as const;
 
