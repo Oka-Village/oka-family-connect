@@ -77,7 +77,6 @@ function HomePage() {
       <header className="grid items-end gap-6 md:grid-cols-[1fr_auto]">
         <div>
           <p className="section-label">Your place in Oka</p>
-          <h1 className="mt-3 font-serif text-[64px] leading-[0.9] tracking-[-0.02em] text-foreground md:text-[104px]">Home</h1>
           {isLoading ? <Skeleton className="mt-4 h-9 w-72" /> : <p className="mt-2.5 font-serif text-[28px] text-foreground md:text-[34px]">{isError ? "Welcome home." : `Welcome home${firstName ? `, ${firstName}` : ""}.`}</p>}
           <p className="mt-3 max-w-[620px] text-[17px] leading-[1.6] text-muted-foreground">A quiet corner to pause, gather a little light, or let someone know they matter.</p>
         </div>
