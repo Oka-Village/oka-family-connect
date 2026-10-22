@@ -133,7 +133,7 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
           </datalist>
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="capacity">Capacity</Label>
+          <Label htmlFor="capacity">Max amount of participants</Label>
           <Input id="capacity" type="number" min={1} value={f.capacity} onChange={up("capacity")} placeholder="Leave empty for unlimited" />
         </div>
       </div>
