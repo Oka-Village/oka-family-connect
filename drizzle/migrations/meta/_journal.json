@@ -43,6 +43,13 @@
       "when": 1792655422481,
       "tag": "0005_event_photo",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792660914178,
+      "tag": "0006_founding_lifetime_purpose",
+      "breakpoints": true
     }
   ]
 }

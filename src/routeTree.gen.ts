@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as FacilitatorsRouteImport } from './routes/facilitators'
+import { Route as FoundingRouteImport } from './routes/founding'
 import { Route as OnboardingChatRouteImport } from './routes/onboarding-chat'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as TermsRouteImport } from './routes/terms'
@@ -57,6 +58,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const FacilitatorsRoute = FacilitatorsRouteImport.update({
   id: '/facilitators',
   path: '/facilitators',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FoundingRoute = FoundingRouteImport.update({
+  id: '/founding',
+  path: '/founding',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OnboardingChatRoute = OnboardingChatRouteImport.update({
@@ -238,6 +244,7 @@ const AuthenticatedSkillsEditSkillIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/facilitators': typeof FacilitatorsRoute
+  '/founding': typeof FoundingRoute
   '/onboarding-chat': typeof OnboardingChatRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
@@ -274,6 +281,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/facilitators': typeof FacilitatorsRoute
+  '/founding': typeof FoundingRoute
   '/onboarding-chat': typeof OnboardingChatRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
@@ -312,6 +320,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/facilitators': typeof FacilitatorsRoute
+  '/founding': typeof FoundingRoute
   '/onboarding-chat': typeof OnboardingChatRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
@@ -350,6 +359,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/facilitators'
+    | '/founding'
     | '/onboarding-chat'
     | '/privacy'
     | '/terms'
@@ -386,6 +396,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/facilitators'
+    | '/founding'
     | '/onboarding-chat'
     | '/privacy'
     | '/terms'
@@ -423,6 +434,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/facilitators'
+    | '/founding'
     | '/onboarding-chat'
     | '/privacy'
     | '/terms'
@@ -461,6 +473,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   FacilitatorsRoute: typeof FacilitatorsRoute
+  FoundingRoute: typeof FoundingRoute
   OnboardingChatRoute: typeof OnboardingChatRoute
   PrivacyRoute: typeof PrivacyRoute
   TermsRoute: typeof TermsRoute
@@ -489,6 +502,13 @@ declare module '@tanstack/react-router' {
       path: '/facilitators'
       fullPath: '/facilitators'
       preLoaderRoute: typeof FacilitatorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/founding': {
+      id: '/founding'
+      path: '/founding'
+      fullPath: '/founding'
+      preLoaderRoute: typeof FoundingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/onboarding-chat': {
@@ -785,6 +805,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   FacilitatorsRoute: FacilitatorsRoute,
+  FoundingRoute: FoundingRoute,
   OnboardingChatRoute: OnboardingChatRoute,
   PrivacyRoute: PrivacyRoute,
   TermsRoute: TermsRoute,

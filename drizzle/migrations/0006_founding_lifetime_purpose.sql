@@ -1,0 +1,2 @@
+ALTER TABLE public.payments DROP CONSTRAINT payments_purpose_check;
+ALTER TABLE public.payments ADD CONSTRAINT payments_purpose_check CHECK (purpose = ANY (ARRAY['pod'::text, 'membership_annual'::text, 'membership_monthly'::text, 'founding_lifetime'::text]));
