@@ -50,6 +50,13 @@
       "when": 1792660914178,
       "tag": "0006_founding_lifetime_purpose",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792661465377,
+      "tag": "0007_house_featured",
+      "breakpoints": true
     }
   ]
 }

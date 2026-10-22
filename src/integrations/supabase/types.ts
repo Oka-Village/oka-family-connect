@@ -436,6 +436,7 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          featured: boolean
           house_rules: string | null
           id: string
           lat: number | null
@@ -451,6 +452,7 @@ export type Database = {
         Insert: {
           created_at?: string
           description?: string | null
+          featured?: boolean
           house_rules?: string | null
           id?: string
           lat?: number | null
@@ -466,6 +468,7 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string | null
+          featured?: boolean
           house_rules?: string | null
           id?: string
           lat?: number | null
