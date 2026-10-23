@@ -5,6 +5,8 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { useProfile } from "@/hooks/use-profile";
+import { useRoles } from "@/hooks/use-is-admin";
+import { isFullMember } from "@/lib/member-access";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/welcome")({
@@ -29,6 +31,9 @@ async function hasRow(table: "skills" | "houses", uid: string) {
 
 function Welcome() {
   const uid = useProfile().data?.id;
+  const profile = useProfile();
+  const roles = useRoles();
+  const fullAccess = roles.data?.isStaff === true || isFullMember(profile.data);
   const progress = useQuery({
     queryKey: ["welcome-checklist", uid],
     enabled: Boolean(uid),
