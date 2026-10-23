@@ -85,7 +85,7 @@ function Welcome() {
   );
 }
 
-function Item({ to, icon: Icon, title, hint, done, children }: { to: "/skills/new" | "/houses/new" | "/events/new" | "/affiliate"; icon: LucideIcon; title: string; hint: string; done?: boolean; children?: React.ReactNode }) {
+function Item({ to, icon: Icon, title, hint, done, children }: { to: "/skills/new" | "/houses/new" | "/events/new" | "/affiliate"; icon: LucideIcon; title: string; hint: string; done?: boolean | undefined; children?: React.ReactNode }) {
   return (
     <div className="surface-card flex flex-col p-6">
       <div className="flex items-start gap-4">
