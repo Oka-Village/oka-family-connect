@@ -5,6 +5,24 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { MONTHLY_PRICE_ID, hasPaidMembership } from "@/lib/membership";
 import { stripeRequest, verifyAndRecordMembership } from "./membership.server";
 
+/** Recheck expired monthly periods so automatic renewals do not revoke paid access. */
+export const getMyMembership = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data: membership, error } = await context.supabase.from("memberships").select("kind,active,current_period_end,stripe_subscription_id,stripe_customer_id").eq("user_id", context.userId).maybeSingle();
+    if (error) throw new Error("We couldn’t check your membership. Please try again.");
+    if (!membership || membership.kind !== "monthly" || hasPaidMembership(membership) || !membership.stripe_subscription_id) return membership;
+    const subscription = await stripeRequest<{ status: string; customer: string; items: { data: { price: { id: string }; current_period_end: number }[] } }>(`subscriptions/${encodeURIComponent(membership.stripe_subscription_id)}`);
+    const item = subscription.items.data[0];
+    if (subscription.customer !== membership.stripe_customer_id || subscription.items.data.length !== 1 || item?.price.id !== MONTHLY_PRICE_ID) throw new Error("We couldn’t verify your membership.");
+    const active = subscription.status === "active" && item.current_period_end * 1000 > Date.now();
+    const current_period_end = new Date(item.current_period_end * 1000).toISOString();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error: updateError } = await supabaseAdmin.from("memberships").update({ active, current_period_end, updated_at: new Date().toISOString() }).eq("user_id", context.userId).eq("stripe_subscription_id", membership.stripe_subscription_id);
+    if (updateError) throw new Error("We couldn’t update your membership. Please try again.");
+    return { ...membership, active, current_period_end };
+  });
+
 export const createMonthlyCheckout = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ acceptedTerms: z.literal(true), origin: z.string().url() }).parse(input))
