@@ -566,6 +566,7 @@ export type Database = {
           id: string
           intentions: string[]
           location: string | null
+          member_status: string
           membership_tier: string
           onboarded_at: string | null
           photo_url: string | null
@@ -587,6 +588,7 @@ export type Database = {
           id: string
           intentions?: string[]
           location?: string | null
+          member_status?: string
           membership_tier?: string
           onboarded_at?: string | null
           photo_url?: string | null
@@ -608,6 +610,7 @@ export type Database = {
           id?: string
           intentions?: string[]
           location?: string | null
+          member_status?: string
           membership_tier?: string
           onboarded_at?: string | null
           photo_url?: string | null
@@ -869,6 +872,14 @@ export type Database = {
           test_cents: number
         }[]
       }
+      can_read_member_image: {
+        Args: { _name: string; _owner: string }
+        Returns: boolean
+      }
+      can_read_theme_image: {
+        Args: { _name: string; _owner: string }
+        Returns: boolean
+      }
       cancel_rsvp: { Args: { _event_id: string }; Returns: string }
       claim_referral: { Args: { _code: string }; Returns: string }
       generate_invite_code: { Args: never; Returns: string }
@@ -885,6 +896,7 @@ export type Database = {
         }[]
       }
       is_event_manager: { Args: { _event_id: string }; Returns: boolean }
+      is_full_member: { Args: never; Returns: boolean }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
       mark_letter_read: {
         Args: { _letter_id: string; _recipient_id: string }

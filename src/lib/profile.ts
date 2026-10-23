@@ -18,6 +18,7 @@ export type OkaProfile = {
   travel_frequent: string[] | null;
   travel_desired: string[] | null;
   membership_tier: "free" | "full";
+  member_status: "full" | "limited";
   /** Set by the database when every completeness field is filled; awards +3 once. */
   profile_completed: boolean;
   /** Welcome steps finished or skipped. */
