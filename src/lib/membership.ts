@@ -2,6 +2,17 @@ export const MONTHLY_PRICE_CENTS = 2900;
 export const MONTHLY_PRICE_ID = "price_1UTe0QAFMj6Lc1ysuIEzR8zM";
 export type MembershipKind = "founding" | "monthly";
 
+/** Only grandfathered profiles and staff are exempt; launch day never waives payment. */
+export function isPaymentExempt(profile: { member_status: string } | null | undefined, isStaff = false): boolean {
+  return isStaff || profile?.member_status === "full";
+}
+
+export function isPublicEntryRoute(pathname: string): boolean {
+  const path = pathname.replace(/\/+$/, "") || "/";
+  return ["/", "/membership", "/founding", "/privacy", "/terms", "/facilitators", "/onboarding-chat"].includes(path)
+    || /^\/(invite|join)\/[^/]+$/.test(path);
+}
+
 export function hasPaidMembership(membership: { active: boolean; kind: string; current_period_end?: string | null } | null | undefined, now = new Date()): boolean {
   if (!membership?.active) return false;
   if (membership.kind === "founding") return true;

@@ -1,8 +1,26 @@
 import { describe, expect, it } from "vitest";
-import { afterMembershipPayment, hasPaidMembership, MONTHLY_PRICE_CENTS, MONTHLY_PRICE_ID, paymentRedirect, validateMembershipSession, type VerifiedSession } from "./membership";
+import { afterMembershipPayment, hasPaidMembership, isPaymentExempt, isPublicEntryRoute, MONTHLY_PRICE_CENTS, MONTHLY_PRICE_ID, paymentRedirect, validateMembershipSession, type VerifiedSession } from "./membership";
+import { isFullMember } from "./member-access";
 
 const monthly: VerifiedSession = { id: "cs_example", mode: "subscription", status: "complete", payment_status: "paid", client_reference_id: "member-a", amount_total: 2900, currency: "usd", customer: "cus_example", subscription: "sub_example", payment_intent: null, line_items: { data: [{ price: { id: MONTHLY_PRICE_ID }, quantity: 1 }] } };
 describe("membership payment rules", () => {
+  it("requires payment from new members even after the December launch", () => {
+    const profile = { member_status: "limited" as const };
+    expect(isFullMember(profile, new Date("2026-12-01T00:00:00Z"))).toBe(true);
+    expect(isPaymentExempt(profile)).toBe(false);
+    expect(paymentRedirect("/home", isPaymentExempt(profile), false)).toBe("/membership");
+  });
+  it("preserves grandfathered members and staff exemptions", () => {
+    expect(isPaymentExempt({ member_status: "full" })).toBe(true);
+    expect(isPaymentExempt({ member_status: "limited" }, true)).toBe(true);
+    expect(isPaymentExempt(null)).toBe(false);
+  });
+  it.each(["/home", "/directory", "/profile", "/events", "/skills", "/houses", "/welcome", "/collections", "/credits"])("does not expose signed-out member content at %s", (path) => {
+    expect(isPublicEntryRoute(path)).toBe(false);
+  });
+  it.each(["/", "/membership", "/privacy", "/terms", "/invite/FRIEND", "/join/gathering", "/facilitators"])("preserves public entry at %s", (path) => {
+    expect(isPublicEntryRoute(path)).toBe(true);
+  });
   it("charges 29 USD monthly and verifies the configured price", () => {
     expect(MONTHLY_PRICE_CENTS).toBe(2900);
     expect(validateMembershipSession(monthly, "member-a", "monthly")).toBe(true);

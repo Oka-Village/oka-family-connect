@@ -931,6 +931,7 @@ export type Database = {
         Args: { _event_id: string; _going_only: boolean }
         Returns: boolean
       }
+      has_member_payment_access: { Args: never; Returns: boolean }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
       house_booked_ranges: {
         Args: { _house_id: string }

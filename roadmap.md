@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Harden signed-out and unpaid-member entry checks; preserve grandfathered members; 75 tests passed, real full-member directory and simulated unpaid redirection verified without payments.
+
 - [x] Add membership choices and verified paid-membership storage with monthly Stripe price.
 - [x] Gate unpaid limited accounts globally, preserve invite attribution and send paid limited members to onboarding.
 - [x] Verify access rules and preview without creating checkout sessions or making payments (57 tests; real full member; simulated unpaid limited account).
