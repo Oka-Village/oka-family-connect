@@ -1,15 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { initializeNewFlowProfile } from "@/lib/signup-flow.functions";
 
 import { supabase } from "@/integrations/supabase/client";
 import type { OkaProfile } from "@/lib/profile";
 
 /** The signed-in member's profile row, or null while signed out. */
 export function useProfile() {
+  const initialize = useServerFn(initializeNewFlowProfile);
   return useQuery({
     queryKey: ["profile"],
     queryFn: async (): Promise<OkaProfile | null> => {
       const { data: auth } = await supabase.auth.getUser();
       if (!auth.user) return null;
+
+      await initialize();
 
       const { data, error } = await supabase
         .from("profiles")

@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
 import { takeReturnTo } from "@/lib/join-link";
+import { useServerFn } from "@tanstack/react-start";
+import { beginSignupFlow } from "@/lib/signup-flow.functions";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -51,6 +53,7 @@ const PILLARS = [
 
 function Landing() {
   const navigate = useNavigate();
+  const beginSignup = useServerFn(beginSignupFlow);
   const [signingIn, setSigningIn] = useState(false);
 
   // Someone already signed in never needs the welcome page.
@@ -70,6 +73,7 @@ function Landing() {
 
   async function handleGoogleSignIn() {
     setSigningIn(true);
+    await beginSignup();
     const result = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin,
     });

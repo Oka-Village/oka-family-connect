@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
 import { saveInviteCode } from "@/lib/affiliates";
+import { useServerFn } from "@tanstack/react-start";
+import { beginSignupFlow } from "@/lib/signup-flow.functions";
 
 export const Route = createFileRoute("/invite/$code")({
   head: () => ({
@@ -26,6 +28,7 @@ export const Route = createFileRoute("/invite/$code")({
 function InvitePage() {
   const { code } = Route.useParams();
   const navigate = useNavigate();
+  const beginSignup = useServerFn(beginSignupFlow);
   const [busy, setBusy] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
   const info = useQuery({
@@ -45,6 +48,7 @@ function InvitePage() {
   async function join() {
     setBusy(true);
     saveInviteCode(code);
+    await beginSignup();
     const res = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
     if (res.error) setBusy(false);
     else if (!res.redirected) void navigate({ to: "/events" });
