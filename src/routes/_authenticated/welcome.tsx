@@ -5,6 +5,8 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { useProfile } from "@/hooks/use-profile";
+import { useRoles } from "@/hooks/use-is-admin";
+import { isFullMember } from "@/lib/member-access";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/welcome")({
@@ -29,6 +31,9 @@ async function hasRow(table: "skills" | "houses", uid: string) {
 
 function Welcome() {
   const uid = useProfile().data?.id;
+  const profile = useProfile();
+  const roles = useRoles();
+  const fullAccess = roles.data?.isStaff === true || isFullMember(profile.data);
   const progress = useQuery({
     queryKey: ["welcome-checklist", uid],
     enabled: Boolean(uid),
@@ -77,10 +82,12 @@ function Welcome() {
         </Item>
       </div>
 
-      <section className="surface-card mt-10 p-7 text-center sm:p-10">
-        <h2 className="text-3xl text-foreground">Your place in the family is kept.</h2>
-        <p className="mt-4 leading-relaxed text-muted-foreground">Full access opens on December 1. Until then you can add what you'd love to offer and complete your <Link to="/profile" className="text-primary underline-offset-4 hover:underline">profile</Link> — the rest of the app opens at the soft launch.</p>
-      </section>
+      {!fullAccess && (
+        <section className="surface-card mt-10 p-7 text-center sm:p-10">
+          <h2 className="text-3xl text-foreground">Your place in the family is kept.</h2>
+          <p className="mt-4 leading-relaxed text-muted-foreground">Full access opens on December 1. Until then you can add what you'd love to offer and complete your <Link to="/profile" className="text-primary underline-offset-4 hover:underline">profile</Link> — the rest of the app opens at the soft launch.</p>
+        </section>
+      )}
     </div>
   );
 }
