@@ -15,6 +15,7 @@ import { createMonthlyCheckout, confirmMembershipCheckout } from "@/lib/stripe/m
 import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
 import { saveReturnTo } from "@/lib/join-link";
+import { beginSignupFlow } from "@/lib/signup-flow.functions";
 
 export const Route = createFileRoute("/membership")({
   validateSearch: (s: Record<string, unknown>) => ({
@@ -45,6 +46,7 @@ function MembershipPage() {
   const founding = useServerFn(createFoundingCheckout);
   const monthly = useServerFn(createMonthlyCheckout);
   const confirm = useServerFn(confirmMembershipCheckout);
+  const beginSignup = useServerFn(beginSignupFlow);
   const full = roles.data?.isStaff === true || isFullMember(profile.data, new Date(), hasPaidMembership(membership.data));
   const exempt = isPaymentExempt(profile.data, roles.data?.isStaff === true);
   async function finish() {
@@ -70,6 +72,7 @@ function MembershipPage() {
     try {
       if (!profile.data) {
         saveReturnTo("/membership");
+        await beginSignup();
         const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
         if (result.error) throw new Error("We couldn’t open Google sign-in. Please try again.");
         return;

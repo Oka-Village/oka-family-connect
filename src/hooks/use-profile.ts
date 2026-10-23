@@ -1,4 +1,6 @@
+// @refresh reset
 import { useQuery } from "@tanstack/react-query";
+import { initializeNewFlowProfile } from "@/lib/signup-flow.functions";
 
 import { supabase } from "@/integrations/supabase/client";
 import type { OkaProfile } from "@/lib/profile";
@@ -10,6 +12,9 @@ export function useProfile() {
     queryFn: async (): Promise<OkaProfile | null> => {
       const { data: auth } = await supabase.auth.getUser();
       if (!auth.user) return null;
+
+      // No redirect result: call directly inside the async query, not another hook.
+      await initializeNewFlowProfile();
 
       const { data, error } = await supabase
         .from("profiles")

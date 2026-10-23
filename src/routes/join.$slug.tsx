@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
 import { saveReturnTo } from "@/lib/join-link";
+import { useServerFn } from "@tanstack/react-start";
+import { beginSignupFlow } from "@/lib/signup-flow.functions";
 
 export const Route = createFileRoute("/join/$slug")({
   head: () => ({
@@ -27,6 +29,7 @@ type State = "checking" | "signed_out" | "joining" | "not_found";
 function JoinPage() {
   const { slug } = Route.useParams();
   const navigate = useNavigate();
+  const beginSignup = useServerFn(beginSignupFlow);
   const [state, setState] = useState<State>("checking");
   const [busy, setBusy] = useState(false);
   const ran = useRef(false);
@@ -60,6 +63,7 @@ function JoinPage() {
   async function signIn() {
     setBusy(true);
     saveReturnTo(`/join/${slug}`);
+    await beginSignup();
     const res = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
     if (res.error) setBusy(false);
     else if (!res.redirected) window.location.replace(`/join/${slug}`);

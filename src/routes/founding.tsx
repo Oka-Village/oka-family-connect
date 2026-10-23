@@ -15,6 +15,7 @@ import { useRoles } from "@/hooks/use-is-admin";
 import { isFullMember } from "@/lib/member-access";
 import { afterMembershipPayment, hasPaidMembership } from "@/lib/membership";
 import { useMembership } from "@/hooks/use-membership";
+import { beginSignupFlow } from "@/lib/signup-flow.functions";
 
 export const Route = createFileRoute("/founding")({
   validateSearch: (s: Record<string, unknown>) => ({
@@ -64,6 +65,7 @@ function FoundingPage() {
   const [done, setDone] = useState<"paid" | "pending" | null>(null);
   const startCheckout = useServerFn(createFoundingCheckout);
   const confirm = useServerFn(confirmFoundingCheckout);
+  const beginSignup = useServerFn(beginSignupFlow);
 
   useEffect(() => {
     void supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session));
@@ -84,6 +86,7 @@ function FoundingPage() {
 
   async function signIn() {
     saveReturnTo("/founding");
+    await beginSignup();
     await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
   }
 
