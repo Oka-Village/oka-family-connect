@@ -6,7 +6,7 @@ export function isFullMember(profile: { member_status: MemberStatus } | null | u
   return Boolean(profile && (profile.member_status === "full" || (profile.member_status === "limited" && now.getTime() >= Date.parse(FULL_ACCESS_OPENS_AT))));
 }
 
-const ALLOWED_ROUTES = new Set(["/profile", "/onboarding", "/skills/new", "/houses/new", "/events/new", "/affiliate", "/privacy", "/terms"]);
+const ALLOWED_ROUTES = new Set(["/profile", "/onboarding", "/welcome", "/skills/new", "/houses/new", "/events/new", "/affiliate", "/privacy", "/terms"]);
 
 export function ownEditTarget(pathname: string): { table: "skills" | "houses" | "events"; id: string } | null {
   const match = /^\/(skills|houses|events)\/edit\/([^/]+)$/.exec(pathname.replace(/\/+$/, ""));

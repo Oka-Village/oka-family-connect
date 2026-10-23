@@ -26,6 +26,7 @@ import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authentic
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedSessionsRouteImport } from './routes/_authenticated/sessions'
 import { Route as AuthenticatedStaysRouteImport } from './routes/_authenticated/stays'
+import { Route as AuthenticatedWelcomeRouteImport } from './routes/_authenticated/welcome'
 import { Route as InviteCodeRouteImport } from './routes/invite.$code'
 import { Route as JoinSlugRouteImport } from './routes/join.$slug'
 import { Route as AuthenticatedEventsIndexRouteImport } from './routes/_authenticated/events.index'
@@ -130,6 +131,11 @@ const AuthenticatedSessionsRoute = AuthenticatedSessionsRouteImport.update({
 const AuthenticatedStaysRoute = AuthenticatedStaysRouteImport.update({
   id: '/stays',
   path: '/stays',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedWelcomeRoute = AuthenticatedWelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const InviteCodeRoute = InviteCodeRouteImport.update({
@@ -264,6 +270,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AuthenticatedProfileRoute
   '/sessions': typeof AuthenticatedSessionsRoute
   '/stays': typeof AuthenticatedStaysRoute
+  '/welcome': typeof AuthenticatedWelcomeRoute
   '/invite/$code': typeof InviteCodeRoute
   '/join/$slug': typeof JoinSlugRoute
   '/events/$eventId': typeof AuthenticatedEventsEventIdRoute
@@ -302,6 +309,7 @@ export interface FileRoutesByTo {
   '/profile': typeof AuthenticatedProfileRoute
   '/sessions': typeof AuthenticatedSessionsRoute
   '/stays': typeof AuthenticatedStaysRoute
+  '/welcome': typeof AuthenticatedWelcomeRoute
   '/invite/$code': typeof InviteCodeRoute
   '/join/$slug': typeof JoinSlugRoute
   '/events/$eventId': typeof AuthenticatedEventsEventIdRoute
@@ -342,6 +350,7 @@ export interface FileRoutesById {
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/sessions': typeof AuthenticatedSessionsRoute
   '/_authenticated/stays': typeof AuthenticatedStaysRoute
+  '/_authenticated/welcome': typeof AuthenticatedWelcomeRoute
   '/invite/$code': typeof InviteCodeRoute
   '/join/$slug': typeof JoinSlugRoute
   '/_authenticated/events/$eventId': typeof AuthenticatedEventsEventIdRoute
@@ -382,6 +391,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/sessions'
     | '/stays'
+    | '/welcome'
     | '/invite/$code'
     | '/join/$slug'
     | '/events/$eventId'
@@ -420,6 +430,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/sessions'
     | '/stays'
+    | '/welcome'
     | '/invite/$code'
     | '/join/$slug'
     | '/events/$eventId'
@@ -459,6 +470,7 @@ export interface FileRouteTypes {
     | '/_authenticated/profile'
     | '/_authenticated/sessions'
     | '/_authenticated/stays'
+    | '/_authenticated/welcome'
     | '/invite/$code'
     | '/join/$slug'
     | '/_authenticated/events/$eventId'
@@ -615,6 +627,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStaysRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/welcome': {
+      id: '/_authenticated/welcome'
+      path: '/welcome'
+      fullPath: '/welcome'
+      preLoaderRoute: typeof AuthenticatedWelcomeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/invite/$code': {
       id: '/invite/$code'
       path: '/invite/$code'
@@ -768,6 +787,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedSessionsRoute: typeof AuthenticatedSessionsRoute
   AuthenticatedStaysRoute: typeof AuthenticatedStaysRoute
+  AuthenticatedWelcomeRoute: typeof AuthenticatedWelcomeRoute
   AuthenticatedEventsEventIdRoute: typeof AuthenticatedEventsEventIdRoute
   AuthenticatedEventsNewRoute: typeof AuthenticatedEventsNewRoute
   AuthenticatedHomeAppreciationRoute: typeof AuthenticatedHomeAppreciationRoute
@@ -798,6 +818,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedSessionsRoute: AuthenticatedSessionsRoute,
   AuthenticatedStaysRoute: AuthenticatedStaysRoute,
+  AuthenticatedWelcomeRoute: AuthenticatedWelcomeRoute,
   AuthenticatedEventsEventIdRoute: AuthenticatedEventsEventIdRoute,
   AuthenticatedEventsNewRoute: AuthenticatedEventsNewRoute,
   AuthenticatedHomeAppreciationRoute: AuthenticatedHomeAppreciationRoute,
