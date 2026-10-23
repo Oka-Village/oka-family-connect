@@ -2,9 +2,9 @@ export const MONTHLY_PRICE_CENTS = 2900;
 export const MONTHLY_PRICE_ID = "price_1UThk4AKS7i2pY48URb0JBTk";
 export type MembershipKind = "founding" | "monthly";
 
-/** Only grandfathered profiles and staff are exempt; launch day never waives payment. */
-export function isPaymentExempt(profile: { member_status: string } | null | undefined, isStaff = false): boolean {
-  return isStaff || profile?.member_status === "full";
+/** Only staff are exempt; stored full status and launch day never waive payment. */
+export function isPaymentExempt(_profile: { member_status: string } | null | undefined, isStaff = false): boolean {
+  return isStaff;
 }
 
 export function isPublicEntryRoute(pathname: string): boolean {
@@ -23,7 +23,8 @@ export function hasPaidMembership(membership: { active: boolean; kind: string; c
 export function paymentRedirect(pathname: string, fullAccess: boolean, paid: boolean): "/membership" | "/home" | null {
   const path = pathname.replace(/\/+$/, "") || "/";
   if (fullAccess) return path === "/membership" ? "/home" : null;
-  if (paid || path === "/membership" || path === "/privacy" || path === "/terms") return null;
+  if (paid) return null;
+  if (path === "/membership" || path === "/privacy" || path === "/terms") return null;
   return "/membership";
 }
 

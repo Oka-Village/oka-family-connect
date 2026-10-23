@@ -28,12 +28,12 @@ export function MembershipBoundary({ children }: { children: ReactNode }) {
   const profile = useProfile();
   const roles = useRoles();
   const membership = useMembership(profile.data?.id);
-  const full = isPaymentExempt(profile.data, roles.data?.isStaff === true);
+  const exempt = isPaymentExempt(profile.data, roles.data?.isStaff === true);
   const paid = hasPaidMembership(membership.data);
-  const loading = session.isPending || session.isFetching || profile.isPending || Boolean(session.data && (roles.isPending || (!full && profile.data && membership.isPending)));
-  const failed = session.isError || profile.isError || Boolean(session.data && (roles.isError || (!full && membership.isError) || !profile.isPending && !profile.data));
+  const loading = session.isPending || session.isFetching || profile.isPending || Boolean(session.data && (roles.isPending || (!exempt && profile.data && membership.isPending)));
+  const failed = session.isError || profile.isError || Boolean(session.data && (roles.isError || (!exempt && membership.isError) || !profile.isPending && !profile.data));
   const destination = session.data
-    ? paymentRedirect(location.pathname, full, paid)
+    ? paymentRedirect(location.pathname, exempt, paid)
     : isPublicEntryRoute(location.pathname) ? null : "/membership";
   const inviteCode = /^\/invite\/([^/]+)$/.exec(location.pathname)?.[1];
   // Persist attribution before the payment redirect; claim on the membership page.

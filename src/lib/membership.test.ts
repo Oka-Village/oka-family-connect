@@ -10,8 +10,12 @@ describe("membership payment rules", () => {
     expect(isPaymentExempt(profile)).toBe(false);
     expect(paymentRedirect("/home", isPaymentExempt(profile), false)).toBe("/membership");
   });
-  it("preserves grandfathered members and staff exemptions", () => {
-    expect(isPaymentExempt({ member_status: "full" })).toBe(true);
+  it("requires payment from existing full members too", () => {
+    expect(isPaymentExempt({ member_status: "full" })).toBe(false);
+    expect(paymentRedirect("/home", isPaymentExempt({ member_status: "full" }), false)).toBe("/membership");
+  });
+  it("preserves only staff exemptions", () => {
+    expect(isPaymentExempt({ member_status: "full" }, true)).toBe(true);
     expect(isPaymentExempt({ member_status: "limited" }, true)).toBe(true);
     expect(isPaymentExempt(null)).toBe(false);
   });
@@ -46,7 +50,7 @@ describe("membership payment rules", () => {
   it.each(["/membership", "/privacy", "/terms"])("allows unpaid limited members at %s", (path) => {
     expect(paymentRedirect(path, false, false)).toBeNull();
   });
-  it("full members bypass the payment page", () => {
+  it("staff bypass the payment page", () => {
     expect(paymentRedirect("/membership", true, false)).toBe("/home");
     expect(paymentRedirect("/home", true, false)).toBeNull();
   });
