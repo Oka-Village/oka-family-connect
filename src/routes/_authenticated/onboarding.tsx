@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useClaimInvite } from "@/lib/affiliates";
 import { AGE_RANGES } from "@/lib/profile";
 import { cn } from "@/lib/utils";
+import { isFullMember } from "@/lib/member-access";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
   head: () => ({
@@ -114,14 +115,20 @@ function Onboarding() {
       return;
     }
     await queryClient.invalidateQueries({ queryKey: ["profile"] });
+    if (limited) { navigate({ to: "/welcome", replace: true }); return; }
     const back = takeReturnTo();
     if (back) window.location.replace(back);
     else navigate({ to: "/home", replace: true });
   }
 
+  const limited = !isFullMember(profile);
   const current = STEPS[step];
+  const photoIndex = STEPS.indexOf("photo");
+  const photoBlocked = limited && current === "photo" && !draft.photo_url;
   const progress = Math.round((step / (STEPS.length - 1)) * 100);
   const next = () => (step === STEPS.length - 1 ? finish() : setStep((s) => s + 1));
+  // Limited members can't skip past the required photo from the welcome step.
+  const skip = () => (limited && !draft.photo_url ? setStep(photoIndex) : void finish());
 
   if (isLoading) {
     return (
@@ -202,6 +209,11 @@ function Onboarding() {
                   <p className="mt-2 text-sm text-muted-foreground">
                     {draft.photo_url ? "Photo saved to your profile." : "Up to 5 MB."}
                   </p>
+                  {photoBlocked && (
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      A photo is needed to continue — people want to recognise who&apos;s arriving.
+                    </p>
+                  )}
                 </div>
               </div>
             </StepShell>
@@ -256,11 +268,11 @@ function Onboarding() {
           <Button
             variant="ghost"
             className="rounded-full text-muted-foreground"
-            onClick={() => (step === 0 ? void finish() : setStep((s) => s - 1))}
+            onClick={() => (step === 0 ? skip() : setStep((s) => s - 1))}
           >
             {step === 0 ? "Skip for now" : "Back"}
           </Button>
-          <Button className="rounded-full px-8" onClick={next} disabled={saving}>
+          <Button className="rounded-full px-8" onClick={next} disabled={saving || uploading || photoBlocked}>
             {step === STEPS.length - 1 ? (saving ? "Saving…" : "Enter Oka") : "Continue"}
           </Button>
         </div>
