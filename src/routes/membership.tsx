@@ -42,7 +42,7 @@ function MembershipPage() {
   const roles = useRoles();
   const membership = useMembership(profile.data?.id);
   const [agreed, setAgreed] = useState(false);
-  const [busy, setBusy] = useState<MembershipKind | "confirm" | null>(null);
+  const [busy, setBusy] = useState<MembershipKind | "confirm" | "signin" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const founding = useServerFn(createFoundingCheckout);
@@ -146,7 +146,14 @@ function MembershipPage() {
       <div className="mx-auto mt-8 max-w-2xl">
         <p className="text-sm leading-relaxed text-muted-foreground">Founding membership ends without a refund if Oka stops operating. You may request a refund within 14 days at liran@okavillage.com; after that, it is non-refundable except where required by law. Monthly membership is $29 USD, charged each month until cancelled. Payments are securely processed by Stripe.</p>
         <label className="mt-5 flex cursor-pointer items-start gap-3 text-sm leading-relaxed"><input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-1 size-4 shrink-0 accent-primary" /><span>I agree to the membership terms above and the <Link to="/terms" target="_blank" className="underline underline-offset-4">Oka Terms of Service</Link>.</span></label>
-        {!profile.data && <p className="mt-4 text-sm text-muted-foreground">Continue with Google before choosing your membership.</p>}
+        {!profile.data && (
+          <div className="mt-4 flex flex-col items-center gap-2">
+            <Button variant="outline" className="rounded-full px-6" disabled={busy !== null} onClick={() => void signInGoogle()}>
+              {busy === "signin" && <Loader2 className="size-4 animate-spin" />}Sign in with Google
+            </Button>
+            <p className="text-xs text-muted-foreground">Sign in first if you already have a membership, or to save your choice.</p>
+          </div>
+        )}
         {busy === "confirm" && <p role="status" className="mt-5 flex items-center gap-2 text-muted-foreground"><Loader2 className="size-4 animate-spin" />Confirming your membership…</p>}
         {pending && <p role="status" className="mt-5 text-muted-foreground">Your payment is still pending. Refresh this page once it has completed.</p>}
         {error && <p role="alert" className="mt-5 text-sm text-destructive">{error}</p>}
