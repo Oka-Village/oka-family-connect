@@ -1,5 +1,8 @@
 # Roadmap
 
+- [ ] Restore shared signup default to full and align client launch access with verified payment; verify preview without profile or membership changes.
+- [ ] Explicitly initialize new-flow signups as limited; blocked because managed Google creates the profile before preview code can supply a status, and existing profile rows must not be changed.
+
 - [x] Consolidate membership Stripe on Oka: saved key verified, monthly price created directly, app price updated and founding Payment Link read access confirmed; no setup endpoint or file created, no checkout or publishing.
 
 - [x] Harden signed-out and unpaid-member entry checks; preserve grandfathered members; 75 tests passed, real full-member directory and simulated unpaid redirection verified without payments.
