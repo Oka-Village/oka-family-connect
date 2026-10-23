@@ -1,5 +1,9 @@
 # Roadmap
 
+- [ ] Add grandfathered member status and automatic December 1 full-access rule.
+- [ ] Gate limited-member browsing without changing payments or onboarding UI.
+- [ ] Tighten profiles/themes and flagged file reads; verify full-member Home/Members and access rules.
+
 - [x] Add Home spaces, decks, appreciation letters and Home-first navigation.
 - [x] Rename user-facing Directory copy to Members while preserving `/directory`.
 - [x] Verify Home changes in preview; prior verification limits are recorded in chat.
