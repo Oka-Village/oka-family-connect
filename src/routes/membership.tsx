@@ -9,7 +9,7 @@ import { useProfile } from "@/hooks/use-profile";
 import { useRoles } from "@/hooks/use-is-admin";
 import { useMembership } from "@/hooks/use-membership";
 import { isFullMember } from "@/lib/member-access";
-import { afterMembershipPayment, hasPaidMembership, type MembershipKind } from "@/lib/membership";
+import { afterMembershipPayment, hasPaidMembership, isPaymentExempt, type MembershipKind } from "@/lib/membership";
 import { createFoundingCheckout } from "@/lib/stripe/founding.functions";
 import { createMonthlyCheckout, confirmMembershipCheckout } from "@/lib/stripe/membership.functions";
 import { lovable } from "@/integrations/lovable/index";
@@ -46,14 +46,15 @@ function MembershipPage() {
   const monthly = useServerFn(createMonthlyCheckout);
   const confirm = useServerFn(confirmMembershipCheckout);
   const full = roles.data?.isStaff === true || isFullMember(profile.data);
+  const exempt = isPaymentExempt(profile.data, roles.data?.isStaff === true);
   async function finish() {
     await qc.invalidateQueries({ queryKey: ["membership"] });
     await qc.invalidateQueries({ queryKey: ["profile"] });
     void navigate({ to: afterMembershipPayment(full), replace: true });
   }
   useEffect(() => {
-    if (profile.data && !session_id && hasPaidMembership(membership.data)) void navigate({ to: afterMembershipPayment(full), replace: true });
-  }, [profile.data, membership.data, session_id, full, navigate]);
+    if (profile.data && !session_id && (exempt || hasPaidMembership(membership.data))) void navigate({ to: afterMembershipPayment(full), replace: true });
+  }, [profile.data, membership.data, session_id, full, exempt, navigate]);
   useEffect(() => {
     if (!profile.data || !session_id) return;
     let active = true;
