@@ -23,6 +23,7 @@ describe("membership payment rules", () => {
   });
   it("charges 29 USD monthly and verifies the configured price", () => {
     expect(MONTHLY_PRICE_CENTS).toBe(2900);
+    expect(MONTHLY_PRICE_ID).toBe("price_1UThk4AKS7i2pY48URb0JBTk");
     expect(validateMembershipSession(monthly, "member-a", "monthly")).toBe(true);
     expect(() => validateMembershipSession({ ...monthly, amount_total: 9900 }, "member-a", "monthly")).toThrow();
     expect(() => validateMembershipSession({ ...monthly, line_items: { data: [{ price: { id: "price_other" }, quantity: 1 }] } }, "member-a", "monthly")).toThrow();

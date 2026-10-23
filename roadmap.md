@@ -1,13 +1,14 @@
 # Roadmap
 
-- [ ] Consolidate membership Stripe on Oka: verify saved key, create monthly price directly, update app price and check founding read access without checkout or publishing.
+- [x] Consolidate membership Stripe on Oka: saved key verified, monthly price created directly, app price updated and founding Payment Link read access confirmed; no setup endpoint or file created, no checkout or publishing.
 
 - [x] Harden signed-out and unpaid-member entry checks; preserve grandfathered members; 75 tests passed, real full-member directory and simulated unpaid redirection verified without payments.
 
 - [x] Add membership choices and verified paid-membership storage with monthly Stripe price.
 - [x] Gate unpaid limited accounts globally, preserve invite attribution and send paid limited members to onboarding.
 - [x] Verify access rules and preview without creating checkout sessions or making payments (57 tests; real full member; simulated unpaid limited account).
-- [ ] Enable founding payment verification: existing supplied Payment Link belongs to a different Stripe account than the unchanged connected key; requires the correct account connection and a session-id return URL.
+- [x] Align founding verification key with the Oka Payment Link account; direct read confirmed.
+- [ ] Verify founding Payment Link session-id return destination; no return-setting changes or payment tests authorized in consolidation.
 
 - [x] Add grandfathered member status and automatic December 1 full-access rule.
 - [x] Gate limited-member browsing without changing payments or onboarding UI.
