@@ -3,7 +3,8 @@
 - [x] Restore shared signup default to full and align client launch access with verified payment; 76 tests and real full-member Home/welcome plus signed-out membership verified; all 25 profiles and Kyle's membership untouched.
 - [x] Require verified payment from existing and new non-staff members in preview UI; 77 tests and simulated existing unpaid full-member redirect verified; real admin access preserved, no profile/payment changes.
 - [ ] Synchronize existing-member paid-access enforcement in shared database with the new live payment UI; deferred because tightening shared policies now would lock the old live app out before publishing.
-- [ ] Explicitly initialize new-flow signups as limited; awaiting permission for a narrowly scoped future-new-account post-Google initialization, because managed Google creates the profile before preview code can supply a status. Until implemented, new preview Google signups inherit full too.
+- [ ] Initialize only future new-flow signups as limited using a server-issued pre-Google marker; preserve the full default and existing rows.
+- [ ] Walk both checkouts signed in without paying; verify branding, amounts and return destinations.
 
 - [x] Consolidate membership Stripe on Oka: saved key verified, monthly price created directly, app price updated and founding Payment Link read access confirmed; no setup endpoint or file created, no checkout or publishing.
 
