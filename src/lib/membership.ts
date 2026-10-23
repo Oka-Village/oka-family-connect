@@ -23,7 +23,7 @@ export function hasPaidMembership(membership: { active: boolean; kind: string; c
 export function paymentRedirect(pathname: string, fullAccess: boolean, paid: boolean): "/membership" | "/home" | null {
   const path = pathname.replace(/\/+$/, "") || "/";
   if (fullAccess) return path === "/membership" ? "/home" : null;
-  if (paid) return path === "/membership" ? "/home" : null;
+  if (paid) return null;
   if (path === "/membership" || path === "/privacy" || path === "/terms") return null;
   return "/membership";
 }
