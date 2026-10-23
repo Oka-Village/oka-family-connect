@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Infinity as InfinityIcon, CalendarDays, Loader2, LogOut } from "lucide-react";
 import { Wordmark } from "@/components/oka/wordmark";
 import { Button } from "@/components/ui/button";
@@ -16,11 +16,12 @@ import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
 import { saveReturnTo } from "@/lib/join-link";
 import { beginSignupFlow } from "@/lib/signup-flow.functions";
+import { clearIntent, readIntent, resolveIntent, saveIntent } from "@/lib/membership-intent";
 
 export const Route = createFileRoute("/membership")({
   validateSearch: (s: Record<string, unknown>) => ({
     session_id: typeof s["session_id"] === "string" ? s["session_id"] : undefined,
-    kind: s["kind"] === "monthly" ? "monthly" as const : "founding" as const,
+    kind: s["kind"] === "monthly" ? "monthly" as const : s["kind"] === "founding" ? "founding" as const : undefined,
   }),
   head: () => ({ meta: [
     { title: "Choose your membership — Oka" },
@@ -33,7 +34,8 @@ export const Route = createFileRoute("/membership")({
 });
 
 function MembershipPage() {
-  const { session_id, kind } = Route.useSearch();
+  const { session_id, kind: kindParam } = Route.useSearch();
+  const kind: MembershipKind = kindParam ?? "founding";
   const navigate = useNavigate();
   const qc = useQueryClient();
   const profile = useProfile();
@@ -67,16 +69,35 @@ function MembershipPage() {
     }).catch((e: Error) => { if (active) setError(e.message); }).finally(() => { if (active) setBusy(null); });
     return () => { active = false; };
   }, [profile.data?.id, session_id, kind, confirm]);
+  // Resume a plan chosen before the Google sign-in round-trip.
+  const [selected, setSelected] = useState<MembershipKind | null>(null);
+  const resumed = useRef(false);
+  useEffect(() => {
+    const intent = resolveIntent(kindParam, readIntent());
+    if (!intent) return;
+    setSelected(intent.kind);
+    if (intent.agreed) setAgreed(true);
+  }, [kindParam]);
+  useEffect(() => {
+    if (resumed.current || session_id || !profile.data || membership.isPending || roles.isPending) return;
+    if (exempt || hasPaidMembership(membership.data)) { clearIntent(); return; }
+    const intent = resolveIntent(kindParam, readIntent());
+    if (!intent?.agreed) return;
+    resumed.current = true;
+    void pay(intent.kind);
+  }, [profile.data, membership.isPending, membership.data, roles.isPending, exempt, session_id, kindParam]);
   async function pay(choice: MembershipKind) {
-    setError(null); setBusy(choice);
+    setError(null); setBusy(choice); setSelected(choice);
     try {
       if (!profile.data) {
-        saveReturnTo("/membership");
+        saveReturnTo(`/membership?kind=${choice}`);
+        saveIntent({ kind: choice, agreed });
         await beginSignup();
-        const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
+        const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: `${window.location.origin}/membership?kind=${choice}` });
         if (result.error) throw new Error("We couldn’t open Google sign-in. Please try again.");
         return;
       }
+      clearIntent();
       const result = await (choice === "founding" ? founding : monthly)({ data: { acceptedTerms: true, origin: window.location.origin } });
       if (result.status === "already") await finish(); else window.location.assign(result.url);
     } catch (e) { setError(e instanceof Error ? e.message : "Checkout could not be opened. Please try again."); }
