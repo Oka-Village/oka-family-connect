@@ -3,7 +3,6 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { Infinity as InfinityIcon, CalendarDays, Loader2, LogOut } from "lucide-react";
-import { GoogleBrandmark } from "@/components/oka/google-brandmark";
 import { Wordmark } from "@/components/oka/wordmark";
 import { Button } from "@/components/ui/button";
 import { useProfile } from "@/hooks/use-profile";
