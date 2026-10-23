@@ -1,8 +1,9 @@
 # Roadmap
 
-- [ ] Add membership choices and verified paid-membership storage with monthly Stripe price.
-- [ ] Gate unpaid limited accounts globally, preserve invite attribution and send paid limited members to onboarding.
-- [ ] Verify access rules and preview without creating checkout sessions or making payments.
+- [x] Add membership choices and verified paid-membership storage with monthly Stripe price.
+- [x] Gate unpaid limited accounts globally, preserve invite attribution and send paid limited members to onboarding.
+- [x] Verify access rules and preview without creating checkout sessions or making payments (57 tests; real full member; simulated unpaid limited account).
+- [ ] Enable founding payment verification: existing supplied Payment Link belongs to a different Stripe account than the unchanged connected key; requires the correct account connection and a session-id return URL.
 
 - [x] Add grandfathered member status and automatic December 1 full-access rule.
 - [x] Gate limited-member browsing without changing payments or onboarding UI.

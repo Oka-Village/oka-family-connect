@@ -1,15 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { getMyMembership } from "@/lib/stripe/membership.functions";
 
 export function useMembership(userId: string | undefined) {
+  const getMembership = useServerFn(getMyMembership);
   return useQuery({
     queryKey: ["membership", userId],
     enabled: Boolean(userId),
     queryFn: async () => {
       if (!userId) return null;
-      const { data, error } = await supabase.from("memberships").select("kind,active,current_period_end").eq("user_id", userId).maybeSingle();
-      if (error) throw error;
-      return data;
+      return getMembership();
     },
     refetchOnWindowFocus: true,
   });
