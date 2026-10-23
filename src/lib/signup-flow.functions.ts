@@ -13,7 +13,7 @@ export const beginSignupFlow = createServerFn({ method: "POST" }).handler(async 
   if (!password) throw new Error("Sign-in is not ready. Please try again.");
   const session = await useSession<{ startedAt?: number }>({
     name: COOKIE_NAME, password, maxAge: 3600,
-    cookie: { httpOnly: true, secure: new URL(request.url).protocol === "https:", sameSite: "lax", path: "/" },
+    cookie: { httpOnly: true, secure: new URL(request.url).protocol === "https:", sameSite: new URL(request.url).protocol === "https:" ? "none" : "lax", path: "/" },
   });
   await session.update({ startedAt: Date.now() });
   return { ready: true };
@@ -28,7 +28,7 @@ export const initializeNewFlowProfile = createServerFn({ method: "POST" })
     if (!password) throw new Error("We couldn’t finish sign-in. Please try again.");
     const session = await useSession<{ startedAt?: number }>({
       name: COOKIE_NAME, password, maxAge: 3600,
-      cookie: { httpOnly: true, secure: new URL(getRequest().url).protocol === "https:", sameSite: "lax", path: "/" },
+      cookie: { httpOnly: true, secure: new URL(getRequest().url).protocol === "https:", sameSite: new URL(getRequest().url).protocol === "https:" ? "none" : "lax", path: "/" },
     });
     const { data: auth, error: authError } = await context.supabase.auth.getUser();
     if (authError || !auth.user || auth.user.id !== context.userId) throw new Error("Please sign in again.");
