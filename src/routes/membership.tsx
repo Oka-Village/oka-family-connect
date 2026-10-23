@@ -98,7 +98,7 @@ function MembershipPage() {
           <h2 className="mt-5 font-serif text-3xl">Founding membership</h2>
           <p className="mt-5"><span className="font-serif text-5xl">$250</span><span className="ml-2 text-muted-foreground">one-time</span></p>
           <p className="mt-4 text-sm text-primary">Founding member deal - available until November 15.</p>
-          <p className="mt-4 leading-relaxed text-muted-foreground">Lifetime membership, for as long as Oka operates. No renewals.</p>
+          <p className="mt-4 leading-relaxed text-muted-foreground">Lifetime membership. No renewals.</p>
           <Button className="mt-8 w-full rounded-full" disabled={!agreed || busy !== null} onClick={() => void pay("founding")}>{busy === "founding" && <Loader2 className="size-4 animate-spin" />}Choose founding membership</Button>
         </article>
         <article className="surface-card flex flex-col p-7 sm:p-8">
