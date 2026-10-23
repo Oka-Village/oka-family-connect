@@ -9,7 +9,7 @@ export async function stripeRequest<T>(path: string, body?: URLSearchParams): Pr
   const response = await fetch(`https://api.stripe.com/v1/${path}`, {
     method: body ? "POST" : "GET",
     headers: { Authorization: `Bearer ${key}`, "Stripe-Version": "2025-08-27.basil", ...(body ? { "Content-Type": "application/x-www-form-urlencoded" } : {}) },
-    body,
+    ...(body ? { body } : {}),
   });
   const result = await response.json() as T;
   if (!response.ok) {
@@ -35,7 +35,7 @@ export async function verifyAndRecordMembership(sessionId: string, userId: strin
   const { error } = await admin.rpc("record_verified_membership", {
     _user_id: userId, _kind: kind, _session_id: session.id,
     _customer_id: session.customer ?? "", _subscription_id: session.subscription ?? "",
-    _period_end: periodEnd ?? undefined, _payment_intent: session.payment_intent ?? "",
+    _period_end: periodEnd ?? "infinity", _payment_intent: session.payment_intent ?? "",
     _amount: session.amount_total ?? 0,
     _metadata: { terms_version: FOUNDING_TERMS_VERSION, source: kind === "founding" ? "payment_link" : "checkout" },
   });
