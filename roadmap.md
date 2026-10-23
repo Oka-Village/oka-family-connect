@@ -3,8 +3,8 @@
 - [x] Restore shared signup default to full and align client launch access with verified payment; 76 tests and real full-member Home/welcome plus signed-out membership verified; all 25 profiles and Kyle's membership untouched.
 - [x] Require verified payment from existing and new non-staff members in preview UI; 77 tests and simulated existing unpaid full-member redirect verified; real admin access preserved, no profile/payment changes.
 - [ ] Synchronize existing-member paid-access enforcement in shared database with the new live payment UI; deferred because tightening shared policies now would lock the old live app out before publishing.
-- [ ] Initialize only future new-flow signups as limited using a server-issued pre-Google marker; preserve the full default and existing rows.
-- [ ] Walk both checkouts signed in without paying; verify branding, amounts and return destinations.
+- [x] Initialize only future new-flow signups as limited using a server-issued pre-Google marker; 80 tests passed, real existing-account no-op verified; new-account end-to-end not tested because no test accounts authorized.
+- [x] Walk both checkouts signed in without paying; both show Oka and correct USD base amounts. Monthly success/cancel URLs verified; founding Payment Link uses hosted confirmation, not an Oka return.
 
 - [x] Consolidate membership Stripe on Oka: saved key verified, monthly price created directly, app price updated and founding Payment Link read access confirmed; no setup endpoint or file created, no checkout or publishing.
 
@@ -14,7 +14,7 @@
 - [x] Gate unpaid limited accounts globally, preserve invite attribution and send paid limited members to onboarding.
 - [x] Verify access rules and preview without creating checkout sessions or making payments (57 tests; real full member; simulated unpaid limited account).
 - [x] Align founding verification key with the Oka Payment Link account; direct read confirmed.
-- [ ] Verify founding Payment Link session-id return destination; no return-setting changes or payment tests authorized in consolidation.
+- [ ] Configure founding Payment Link session-id return destination; read confirmed hosted confirmation (no Oka redirect); changing the live link setting was not authorized in the no-charge walk.
 
 - [x] Add grandfathered member status and automatic December 1 full-access rule.
 - [x] Gate limited-member browsing without changing payments or onboarding UI.
