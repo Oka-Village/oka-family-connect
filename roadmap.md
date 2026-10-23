@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Consolidate membership Stripe on Oka: verify saved key, create monthly price directly, update app price and check founding read access without checkout or publishing.
+
 - [x] Harden signed-out and unpaid-member entry checks; preserve grandfathered members; 75 tests passed, real full-member directory and simulated unpaid redirection verified without payments.
 
 - [x] Add membership choices and verified paid-membership storage with monthly Stripe price.
