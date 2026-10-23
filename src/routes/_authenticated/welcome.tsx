@@ -82,10 +82,12 @@ function Welcome() {
         </Item>
       </div>
 
-      <section className="surface-card mt-10 p-7 text-center sm:p-10">
-        <h2 className="text-3xl text-foreground">Your place in the family is kept.</h2>
-        <p className="mt-4 leading-relaxed text-muted-foreground">Full access opens on December 1. Until then you can add what you'd love to offer and complete your <Link to="/profile" className="text-primary underline-offset-4 hover:underline">profile</Link> — the rest of the app opens at the soft launch.</p>
-      </section>
+      {!fullAccess && (
+        <section className="surface-card mt-10 p-7 text-center sm:p-10">
+          <h2 className="text-3xl text-foreground">Your place in the family is kept.</h2>
+          <p className="mt-4 leading-relaxed text-muted-foreground">Full access opens on December 1. Until then you can add what you'd love to offer and complete your <Link to="/profile" className="text-primary underline-offset-4 hover:underline">profile</Link> — the rest of the app opens at the soft launch.</p>
+        </section>
+      )}
     </div>
   );
 }
