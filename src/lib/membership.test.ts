@@ -6,7 +6,7 @@ const monthly: VerifiedSession = { id: "cs_example", mode: "subscription", statu
 describe("membership payment rules", () => {
   it("requires payment from new members even after the December launch", () => {
     const profile = { member_status: "limited" as const };
-    expect(isFullMember(profile, new Date("2026-12-01T00:00:00Z"))).toBe(true);
+    expect(isFullMember(profile, new Date("2026-12-01T00:00:00Z"))).toBe(false);
     expect(isPaymentExempt(profile)).toBe(false);
     expect(paymentRedirect("/home", isPaymentExempt(profile), false)).toBe("/membership");
   });

@@ -13,7 +13,8 @@ import { confirmFoundingCheckout, createFoundingCheckout } from "@/lib/stripe/fo
 import { useProfile } from "@/hooks/use-profile";
 import { useRoles } from "@/hooks/use-is-admin";
 import { isFullMember } from "@/lib/member-access";
-import { afterMembershipPayment } from "@/lib/membership";
+import { afterMembershipPayment, hasPaidMembership } from "@/lib/membership";
+import { useMembership } from "@/hooks/use-membership";
 
 export const Route = createFileRoute("/founding")({
   validateSearch: (s: Record<string, unknown>) => ({
@@ -53,7 +54,8 @@ function FoundingPage() {
   const qc = useQueryClient();
   const profile = useProfile();
   const roles = useRoles();
-  const full = roles.data?.isStaff === true || isFullMember(profile.data);
+  const membership = useMembership(profile.data?.id);
+  const full = roles.data?.isStaff === true || isFullMember(profile.data, new Date(), hasPaidMembership(membership.data));
   const { session_id } = Route.useSearch();
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
   const [agreed, setAgreed] = useState(false);

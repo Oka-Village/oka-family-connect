@@ -45,7 +45,7 @@ function MembershipPage() {
   const founding = useServerFn(createFoundingCheckout);
   const monthly = useServerFn(createMonthlyCheckout);
   const confirm = useServerFn(confirmMembershipCheckout);
-  const full = roles.data?.isStaff === true || isFullMember(profile.data);
+  const full = roles.data?.isStaff === true || isFullMember(profile.data, new Date(), hasPaidMembership(membership.data));
   const exempt = isPaymentExempt(profile.data, roles.data?.isStaff === true);
   async function finish() {
     await qc.invalidateQueries({ queryKey: ["membership"] });

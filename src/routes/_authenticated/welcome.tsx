@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useProfile } from "@/hooks/use-profile";
 import { useRoles } from "@/hooks/use-is-admin";
+import { useMembership } from "@/hooks/use-membership";
+import { hasPaidMembership } from "@/lib/membership";
 import { isFullMember } from "@/lib/member-access";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -33,12 +35,14 @@ function Welcome() {
   const uid = useProfile().data?.id;
   const profile = useProfile();
   const roles = useRoles();
-  const fullAccess = roles.data?.isStaff === true || isFullMember(profile.data);
+  const membership = useMembership(profile.data?.id);
+  const fullAccess = roles.data?.isStaff === true || isFullMember(profile.data, new Date(), hasPaidMembership(membership.data));
   const progress = useQuery({
     queryKey: ["welcome-checklist", uid],
     enabled: Boolean(uid),
     queryFn: async () => {
-      const id = uid!;
+      if (!uid) throw new Error("Sign in to see your checklist.");
+      const id = uid;
       const [skill, house, events, aff, stats] = await Promise.all([
         hasRow("skills", id),
         hasRow("houses", id),
