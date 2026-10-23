@@ -509,6 +509,50 @@ export type Database = {
         }
         Relationships: []
       }
+      memberships: {
+        Row: {
+          active: boolean
+          created_at: string
+          current_period_end: string | null
+          kind: string
+          stripe_checkout_session_id: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          current_period_end?: string | null
+          kind: string
+          stripe_checkout_session_id: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          current_period_end?: string | null
+          kind?: string
+          stripe_checkout_session_id?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memberships_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount_cents: number | null
@@ -926,6 +970,20 @@ export type Database = {
         Returns: boolean
       }
       promote_waitlist: { Args: { _event_id: string }; Returns: undefined }
+      record_verified_membership: {
+        Args: {
+          _amount: number
+          _customer_id: string
+          _kind: string
+          _metadata: Json
+          _payment_intent: string
+          _period_end: string
+          _session_id: string
+          _subscription_id: string
+          _user_id: string
+        }
+        Returns: undefined
+      }
       request_booking: {
         Args: {
           _check_in: string

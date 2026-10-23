@@ -78,6 +78,13 @@
       "when": 1792744505178,
       "tag": "0010_member_image_shared_reference",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1792744827409,
+      "tag": "0011_verified_membership_payments",
+      "breakpoints": true
     }
   ]
 }

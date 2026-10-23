@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { Check, Infinity as InfinityIcon, Loader2, Sparkles } from "lucide-react";
@@ -9,6 +10,10 @@ import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
 import { saveReturnTo } from "@/lib/join-link";
 import { confirmFoundingCheckout, createFoundingCheckout } from "@/lib/stripe/founding.functions";
+import { useProfile } from "@/hooks/use-profile";
+import { useRoles } from "@/hooks/use-is-admin";
+import { isFullMember } from "@/lib/member-access";
+import { afterMembershipPayment } from "@/lib/membership";
 
 export const Route = createFileRoute("/founding")({
   validateSearch: (s: Record<string, unknown>) => ({
@@ -44,6 +49,11 @@ const PERKS = [
 ];
 
 function FoundingPage() {
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const profile = useProfile();
+  const roles = useRoles();
+  const full = roles.data?.isStaff === true || isFullMember(profile.data);
   const { session_id } = Route.useSearch();
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
   const [agreed, setAgreed] = useState(false);
@@ -60,7 +70,13 @@ function FoundingPage() {
   useEffect(() => {
     if (!session_id || !signedIn) return;
     confirm({ data: { sessionId: session_id } })
-      .then((r) => setDone(r.paid ? "paid" : "pending"))
+      .then(async (r) => {
+        setDone(r.paid ? "paid" : "pending");
+        if (r.paid) {
+          await qc.invalidateQueries({ queryKey: ["membership"] });
+          if (!full) void navigate({ to: "/onboarding", replace: true });
+        }
+      })
       .catch((e: Error) => setError(e.message));
   }, [session_id, signedIn, confirm]);
 
@@ -105,6 +121,7 @@ function FoundingPage() {
               <InfinityIcon className="size-4 text-primary" strokeWidth={1.5} aria-hidden /> once, lifetime membership
             </span>
           </div>
+          <p className="mt-4 text-sm text-primary">The founding member deal is available until November 15.</p>
           <ul className="mt-6 flex flex-col gap-3">
             {PERKS.map((p) => (
               <li key={p} className="flex gap-3 text-[15px] text-foreground">
@@ -119,7 +136,7 @@ function FoundingPage() {
             <Sparkles className="mx-auto size-6 text-primary" strokeWidth={1.5} aria-hidden />
             <h2 className="mt-3 font-serif text-3xl text-foreground">Welcome, founding member.</h2>
             <p className="mt-3 text-muted-foreground">Your lifetime membership is active.</p>
-            <Button asChild className="mt-6 rounded-full"><Link to="/home">Go to Home</Link></Button>
+            <Button asChild className="mt-6 rounded-full"><Link to={afterMembershipPayment(full)}>{full ? "Go to Home" : "Continue to onboarding"}</Link></Button>
           </div>
         ) : done === "pending" ? (
           <p role="status" className="mt-8 text-muted-foreground">
