@@ -1,5 +1,5 @@
 export const MONTHLY_PRICE_CENTS = 2900;
-export const MONTHLY_PRICE_ID = "price_1UTe0QAFMj6Lc1ysuIEzR8zM";
+export const MONTHLY_PRICE_ID = "price_1UThk4AKS7i2pY48URb0JBTk";
 export type MembershipKind = "founding" | "monthly";
 
 /** Only grandfathered profiles and staff are exempt; launch day never waives payment. */
