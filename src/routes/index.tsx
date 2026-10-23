@@ -102,7 +102,7 @@ function Landing() {
         </p>
         <div className="mt-10 flex flex-col items-center gap-4">
           <Button asChild size="lg" className="rounded-full px-8">
-            <Link to="/membership">Choose your membership</Link>
+            <Link to="/membership" search={{ kind: "founding", session_id: undefined }}>Choose your membership</Link>
           </Button>
           <Button
             variant="ghost"
