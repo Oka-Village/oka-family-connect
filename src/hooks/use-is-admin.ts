@@ -11,7 +11,8 @@ export function useRoles() {
     queryFn: async (): Promise<Roles> => {
       const { data: auth } = await supabase.auth.getUser();
       if (!auth.user) return { isAdmin: false, isModerator: false, isStaff: false };
-      const { data } = await supabase.from("user_roles").select("role").eq("user_id", auth.user.id);
+      const { data, error } = await supabase.from("user_roles").select("role").eq("user_id", auth.user.id);
+      if (error) throw error;
       const set = new Set((data ?? []).map((r) => r.role));
       const isAdmin = set.has("admin");
       const isModerator = set.has("moderator");

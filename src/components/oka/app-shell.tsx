@@ -13,6 +13,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useClaimInvite } from "@/lib/affiliates";
 import { cn } from "@/lib/utils";
 import { CreditPill } from "@/components/oka/credit-pill";
+import { useMemberAccess } from "@/hooks/use-member-access";
+import { MemberAccessGate } from "@/components/oka/member-access-gate";
 
 const SUPPORT_EMAIL = "daniel@zoe.garden";
 
@@ -35,6 +37,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const access = useMemberAccess(pathname);
   const { data: profile, isLoading } = useProfile();
   useClaimInvite(Boolean(profile));
   const { data: isAdmin } = useIsStaff();
@@ -60,7 +63,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { data: suspended } = useQuery({
     queryKey: ["my-suspension", profile?.id ?? null],
     queryFn: async () => {
-      const { data } = await supabase.from("member_suspensions").select("user_id").eq("user_id", profile!.id).maybeSingle();
+      if (!profile) return false;
+      const { data } = await supabase.from("member_suspensions").select("user_id").eq("user_id", profile.id).maybeSingle();
       return Boolean(data);
     },
     enabled: Boolean(profile),
@@ -72,10 +76,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   // Anyone who hasn't finished the welcome steps is taken back to them.
   useEffect(() => {
-    if (!isLoading && profile && !profile.onboarded_at) {
+    if (!isLoading && profile && !profile.onboarded_at && access.fullAccess) {
       navigate({ to: "/onboarding", replace: true });
     }
-  }, [isLoading, profile, navigate]);
+  }, [isLoading, profile, navigate, access.fullAccess]);
 
   async function handleSignOut() {
     await queryClient.cancelQueries();
@@ -100,6 +104,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
     );
   }
+
+  // Do not mount the child Outlet (or its data queries) until membership is resolved.
+  if (access.isLoading) {
+    return <div className="flex min-h-screen items-center justify-center bg-background" role="status"><p className="font-serif text-2xl text-muted-foreground">A moment, please…</p></div>;
+  }
+  if (access.isError) {
+    return <div className="flex min-h-screen flex-col items-center justify-center gap-5 bg-background px-6"><p className="text-muted-foreground" role="alert">We couldn’t check your access. Please try again.</p><Button className="rounded-full" onClick={access.retry}>Try again</Button><Button variant="ghost" onClick={handleSignOut}>Sign out</Button></div>;
+  }
+  if (!access.allowed) return <MemberAccessGate onSignOut={handleSignOut} />;
 
   return (
     <div className="min-h-screen bg-canvas p-0 lg:p-3">
