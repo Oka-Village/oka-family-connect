@@ -56,18 +56,27 @@ function Landing() {
   const beginSignup = useServerFn(beginSignupFlow);
   const [signingIn, setSigningIn] = useState(false);
 
-  // Someone already signed in never needs the welcome page.
+  // Someone already signed in never needs the welcome page. The OAuth return
+  // can finish just after this mounts (full-page redirect mode exchanges the
+  // code asynchronously), so also forward any SIGNED_IN that lands later.
   useEffect(() => {
     let active = true;
+    const leave = () => {
+      if (!active) return;
+      active = false;
+      const back = takeReturnTo();
+      if (back) window.location.replace(back);
+      else navigate({ to: "/home", replace: true });
+    };
     supabase.auth.getSession().then(({ data }) => {
-      if (active && data.session) {
-        const back = takeReturnTo();
-        if (back) window.location.replace(back);
-        else navigate({ to: "/home", replace: true });
-      }
+      if (data.session) leave();
+    });
+    const { data } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN") leave();
     });
     return () => {
       active = false;
+      data.subscription.unsubscribe();
     };
   }, [navigate]);
 
