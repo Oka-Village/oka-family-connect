@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Heart, Home, Sparkles } from "lucide-react";
 import { toast } from "sonner";
@@ -100,14 +100,17 @@ function Landing() {
           Oka is a circle of people who host each other and share their gifts in a credit economy.
           One credit is one night&apos;s stay, or one hour of service. Never money.
         </p>
-        <div className="mt-10 flex justify-center">
+        <div className="mt-10 flex flex-col items-center gap-4">
+          <Button asChild size="lg" className="rounded-full px-8">
+            <Link to="/membership" search={{ kind: "founding", session_id: undefined }}>Choose your membership</Link>
+          </Button>
           <Button
-            size="lg"
+            variant="ghost"
             className="rounded-full px-8"
             onClick={handleGoogleSignIn}
             disabled={signingIn}
           >
-            {signingIn ? "Opening Google…" : "Continue with Google"}
+            {signingIn ? "Opening Google…" : "Already a member? Sign in"}
           </Button>
         </div>
       </section>
