@@ -71,6 +71,13 @@
       "when": 1792744272640,
       "tag": "0009_member_status_access_security",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792744505178,
+      "tag": "0010_member_image_shared_reference",
+      "breakpoints": true
     }
   ]
 }
