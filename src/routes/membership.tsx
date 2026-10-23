@@ -65,7 +65,7 @@ function MembershipPage() {
     setBusy("confirm"); setError(null);
     void confirm({ data: { sessionId: session_id, kind } }).then(async (result) => {
       if (!active) return;
-      if (result.paid) await finish(); else setPending(true);
+      if (result.paid) { clearIntent(); await finish(); } else setPending(true);
     }).catch((e: Error) => { if (active) setError(e.message); }).finally(() => { if (active) setBusy(null); });
     return () => { active = false; };
   }, [profile.data?.id, session_id, kind, confirm]);
@@ -114,7 +114,7 @@ function MembershipPage() {
       <h1 className="mt-4 text-center font-serif text-4xl text-foreground sm:text-5xl">Choose your Oka membership</h1>
       <p className="mx-auto mt-5 max-w-xl text-center leading-relaxed text-muted-foreground">One family, two ways to join. Full access opens on December 1, 2026. Until then, you can share your skills, offer your home, add events and invite friends.</p>
       <div className="mt-10 grid items-stretch gap-6 md:grid-cols-2">
-        <article className="surface-card flex flex-col p-7 sm:p-8">
+        <article className={`surface-card flex flex-col p-7 sm:p-8 ${selected === "founding" ? "ring-2 ring-primary" : ""}`}>
           <InfinityIcon className="size-7 text-primary" strokeWidth={1.5} aria-hidden />
           <h2 className="mt-5 font-serif text-3xl">Founding membership</h2>
           <p className="mt-5"><span className="font-serif text-5xl">$250</span><span className="ml-2 text-muted-foreground">one-time</span></p>
@@ -122,7 +122,7 @@ function MembershipPage() {
           <p className="mt-4 leading-relaxed text-muted-foreground">Lifetime membership. No renewals.</p>
           <Button className="mt-8 w-full rounded-full" disabled={!agreed || busy !== null} onClick={() => void pay("founding")}>{busy === "founding" && <Loader2 className="size-4 animate-spin" />}Choose founding membership</Button>
         </article>
-        <article className="surface-card flex flex-col p-7 sm:p-8">
+        <article className={`surface-card flex flex-col p-7 sm:p-8 ${selected === "monthly" ? "ring-2 ring-primary" : ""}`}>
           <CalendarDays className="size-7 text-primary" strokeWidth={1.5} aria-hidden />
           <h2 className="mt-5 font-serif text-3xl">Oka membership</h2>
           <p className="mt-5"><span className="font-serif text-5xl">$29</span><span className="ml-2 text-muted-foreground">per month</span></p>
