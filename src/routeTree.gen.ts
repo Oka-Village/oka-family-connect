@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as FacilitatorsRouteImport } from './routes/facilitators'
 import { Route as FoundingRouteImport } from './routes/founding'
+import { Route as MembershipRouteImport } from './routes/membership'
 import { Route as OnboardingChatRouteImport } from './routes/onboarding-chat'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as TermsRouteImport } from './routes/terms'
@@ -63,6 +64,11 @@ const FacilitatorsRoute = FacilitatorsRouteImport.update({
 const FoundingRoute = FoundingRouteImport.update({
   id: '/founding',
   path: '/founding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MembershipRoute = MembershipRouteImport.update({
+  id: '/membership',
+  path: '/membership',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OnboardingChatRoute = OnboardingChatRouteImport.update({
@@ -245,6 +251,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/facilitators': typeof FacilitatorsRoute
   '/founding': typeof FoundingRoute
+  '/membership': typeof MembershipRoute
   '/onboarding-chat': typeof OnboardingChatRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
@@ -282,6 +289,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/facilitators': typeof FacilitatorsRoute
   '/founding': typeof FoundingRoute
+  '/membership': typeof MembershipRoute
   '/onboarding-chat': typeof OnboardingChatRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
@@ -321,6 +329,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/facilitators': typeof FacilitatorsRoute
   '/founding': typeof FoundingRoute
+  '/membership': typeof MembershipRoute
   '/onboarding-chat': typeof OnboardingChatRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
@@ -360,6 +369,7 @@ export interface FileRouteTypes {
     | '/'
     | '/facilitators'
     | '/founding'
+    | '/membership'
     | '/onboarding-chat'
     | '/privacy'
     | '/terms'
@@ -397,6 +407,7 @@ export interface FileRouteTypes {
     | '/'
     | '/facilitators'
     | '/founding'
+    | '/membership'
     | '/onboarding-chat'
     | '/privacy'
     | '/terms'
@@ -435,6 +446,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/facilitators'
     | '/founding'
+    | '/membership'
     | '/onboarding-chat'
     | '/privacy'
     | '/terms'
@@ -474,6 +486,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   FacilitatorsRoute: typeof FacilitatorsRoute
   FoundingRoute: typeof FoundingRoute
+  MembershipRoute: typeof MembershipRoute
   OnboardingChatRoute: typeof OnboardingChatRoute
   PrivacyRoute: typeof PrivacyRoute
   TermsRoute: typeof TermsRoute
@@ -509,6 +522,13 @@ declare module '@tanstack/react-router' {
       path: '/founding'
       fullPath: '/founding'
       preLoaderRoute: typeof FoundingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/membership': {
+      id: '/membership'
+      path: '/membership'
+      fullPath: '/membership'
+      preLoaderRoute: typeof MembershipRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/onboarding-chat': {
@@ -806,6 +826,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   FacilitatorsRoute: FacilitatorsRoute,
   FoundingRoute: FoundingRoute,
+  MembershipRoute: MembershipRoute,
   OnboardingChatRoute: OnboardingChatRoute,
   PrivacyRoute: PrivacyRoute,
   TermsRoute: TermsRoute,
