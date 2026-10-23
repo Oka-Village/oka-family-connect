@@ -64,6 +64,13 @@
       "when": 1792680230167,
       "tag": "0008_profile_completion_three_credits",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792744272640,
+      "tag": "0009_member_status_access_security",
+      "breakpoints": true
     }
   ]
 }
