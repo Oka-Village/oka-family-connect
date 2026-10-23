@@ -30,7 +30,7 @@ export function MembershipBoundary({ children }: { children: ReactNode }) {
   const membership = useMembership(profile.data?.id);
   const full = isPaymentExempt(profile.data, roles.data?.isStaff === true);
   const paid = hasPaidMembership(membership.data);
-  const loading = session.isPending || session.isFetching || profile.isPending || Boolean(session.data && (profile.isFetching || roles.isPending || (!full && profile.data && membership.isPending)));
+  const loading = session.isPending || session.isFetching || profile.isPending || Boolean(session.data && (roles.isPending || (!full && profile.data && membership.isPending)));
   const failed = session.isError || profile.isError || Boolean(session.data && (roles.isError || (!full && membership.isError) || !profile.isPending && !profile.data));
   const destination = session.data
     ? paymentRedirect(location.pathname, full, paid)
