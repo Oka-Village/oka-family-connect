@@ -33,7 +33,7 @@ export function MembershipBoundary({ children }: { children: ReactNode }) {
     if (destination === "/membership") {
       const search = new URLSearchParams(location.searchStr);
       const session = location.pathname === "/founding" ? search.get("session_id") : null;
-      void navigate({ to: "/membership", replace: true, search: session ? { session_id: session, kind: "founding" } : {} });
+      void navigate({ to: "/membership", replace: true, search: { session_id: session ?? undefined, kind: "founding" } });
     } else void navigate({ to: "/home", replace: true });
   }, [loading, failed, destination, navigate, location.pathname, location.searchStr]);
   async function signOut() {
