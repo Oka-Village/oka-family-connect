@@ -86,6 +86,18 @@ function MembershipPage() {
     resumed.current = true;
     void pay(intent.kind);
   }, [profile.data, membership.isPending, membership.data, roles.isPending, exempt, session_id, kindParam]);
+  async function signInGoogle() {
+    setError(null); setBusy("signin");
+    if (selected) saveIntent({ kind: selected, agreed });
+    try {
+      await beginSignup();
+      const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: `${window.location.origin}/membership` });
+      if (result.error) throw new Error("We couldn’t open Google sign-in. Please try again.");
+      if (result.redirected) return;
+      void qc.invalidateQueries({ queryKey: ["profile"] });
+    } catch (e) { setError(e instanceof Error ? e.message : "Google sign-in could not be opened. Please try again."); }
+    finally { setBusy(null); }
+  }
   async function pay(choice: MembershipKind) {
     setError(null); setBusy(choice); setSelected(choice);
     try {
