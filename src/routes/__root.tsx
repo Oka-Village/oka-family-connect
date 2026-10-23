@@ -18,6 +18,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { MembershipBoundary } from "@/components/oka/membership-boundary";
 
 function NotFoundComponent() {
   return (
@@ -175,13 +176,15 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <MembershipBoundary>
       <div className="flex min-h-screen flex-col">
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <div className="min-h-screen flex-1">
           <Outlet />
         </div>
-        <FooterAfterContent key={locationKey} />
+        {!locationKey.startsWith("/membership") && <FooterAfterContent key={locationKey} />}
       </div>
+      </MembershipBoundary>
       <Toaster />
     </QueryClientProvider>
   );
