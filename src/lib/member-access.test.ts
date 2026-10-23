@@ -6,11 +6,15 @@ describe("membership soft launch", () => {
     expect(isFullMember({ member_status: "full" }, new Date("2026-10-23T08:29:00Z"))).toBe(true);
   });
   it("keeps limited members limited until December 1", () => {
-    expect(isFullMember({ member_status: "limited" }, new Date("2026-11-30T23:59:59.999Z"))).toBe(false);
+    expect(isFullMember({ member_status: "limited" }, new Date("2026-11-30T23:59:59.999Z"), true)).toBe(false);
   });
-  it("opens limited access on December 1, 2026 at midnight UTC", () => {
-    expect(isFullMember({ member_status: "limited" }, new Date("2026-12-01T00:00:00Z"))).toBe(true);
-    expect(isFullMember({ member_status: "limited" }, new Date("2027-01-01T00:00:00Z"))).toBe(true);
+  it("opens paid limited access on December 1, 2026 at midnight UTC", () => {
+    expect(isFullMember({ member_status: "limited" }, new Date("2026-12-01T00:00:00Z"), true)).toBe(true);
+    expect(isFullMember({ member_status: "limited" }, new Date("2027-01-01T00:00:00Z"), true)).toBe(true);
+  });
+  it("never opens unpaid limited access by date alone", () => {
+    expect(isFullMember({ member_status: "limited" }, new Date("2026-12-01T00:00:00Z"), false)).toBe(false);
+    expect(isFullMember({ member_status: "limited" }, new Date("2027-01-01T00:00:00Z"))).toBe(false);
   });
   it("does not grant access without a profile", () => {
     expect(isFullMember(null, new Date("2026-12-01T00:00:00Z"))).toBe(false);

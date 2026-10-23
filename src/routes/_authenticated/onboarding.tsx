@@ -15,6 +15,8 @@ import { useClaimInvite } from "@/lib/affiliates";
 import { AGE_RANGES } from "@/lib/profile";
 import { cn } from "@/lib/utils";
 import { isFullMember } from "@/lib/member-access";
+import { useMembership } from "@/hooks/use-membership";
+import { hasPaidMembership } from "@/lib/membership";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
   head: () => ({
@@ -50,6 +52,7 @@ function Onboarding() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: profile, isLoading } = useProfile();
+  const membership = useMembership(profile?.id);
   useClaimInvite(Boolean(profile));
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
@@ -121,7 +124,7 @@ function Onboarding() {
     else navigate({ to: "/home", replace: true });
   }
 
-  const limited = !isFullMember(profile);
+  const limited = !isFullMember(profile, new Date(), hasPaidMembership(membership.data));
   const current = STEPS[step];
   const photoIndex = STEPS.indexOf("photo");
   const photoBlocked = limited && current === "photo" && !draft.photo_url;

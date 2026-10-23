@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ALTER COLUMN member_status SET DEFAULT 'full';
