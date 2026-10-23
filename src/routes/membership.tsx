@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Infinity as InfinityIcon, CalendarDays, Loader2, LogOut } from "lucide-react";
 import { Wordmark } from "@/components/oka/wordmark";
 import { Button } from "@/components/ui/button";
@@ -16,11 +16,12 @@ import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
 import { saveReturnTo } from "@/lib/join-link";
 import { beginSignupFlow } from "@/lib/signup-flow.functions";
+import { clearIntent, readIntent, resolveIntent, saveIntent } from "@/lib/membership-intent";
 
 export const Route = createFileRoute("/membership")({
   validateSearch: (s: Record<string, unknown>) => ({
     session_id: typeof s["session_id"] === "string" ? s["session_id"] : undefined,
-    kind: s["kind"] === "monthly" ? "monthly" as const : "founding" as const,
+    kind: s["kind"] === "monthly" ? "monthly" as const : s["kind"] === "founding" ? "founding" as const : undefined,
   }),
   head: () => ({ meta: [
     { title: "Choose your membership — Oka" },
@@ -33,7 +34,8 @@ export const Route = createFileRoute("/membership")({
 });
 
 function MembershipPage() {
-  const { session_id, kind } = Route.useSearch();
+  const { session_id, kind: kindParam } = Route.useSearch();
+  const kind: MembershipKind = kindParam ?? "founding";
   const navigate = useNavigate();
   const qc = useQueryClient();
   const profile = useProfile();
@@ -63,20 +65,39 @@ function MembershipPage() {
     setBusy("confirm"); setError(null);
     void confirm({ data: { sessionId: session_id, kind } }).then(async (result) => {
       if (!active) return;
-      if (result.paid) await finish(); else setPending(true);
+      if (result.paid) { clearIntent(); await finish(); } else setPending(true);
     }).catch((e: Error) => { if (active) setError(e.message); }).finally(() => { if (active) setBusy(null); });
     return () => { active = false; };
   }, [profile.data?.id, session_id, kind, confirm]);
+  // Resume a plan chosen before the Google sign-in round-trip.
+  const [selected, setSelected] = useState<MembershipKind | null>(null);
+  const resumed = useRef(false);
+  useEffect(() => {
+    const intent = resolveIntent(kindParam, readIntent());
+    if (!intent) return;
+    setSelected(intent.kind);
+    if (intent.agreed) setAgreed(true);
+  }, [kindParam]);
+  useEffect(() => {
+    if (resumed.current || session_id || !profile.data || membership.isPending || roles.isPending) return;
+    if (exempt || hasPaidMembership(membership.data)) { clearIntent(); return; }
+    const intent = resolveIntent(kindParam, readIntent());
+    if (!intent?.agreed) return;
+    resumed.current = true;
+    void pay(intent.kind);
+  }, [profile.data, membership.isPending, membership.data, roles.isPending, exempt, session_id, kindParam]);
   async function pay(choice: MembershipKind) {
-    setError(null); setBusy(choice);
+    setError(null); setBusy(choice); setSelected(choice);
     try {
       if (!profile.data) {
-        saveReturnTo("/membership");
+        saveReturnTo(`/membership?kind=${choice}`);
+        saveIntent({ kind: choice, agreed });
         await beginSignup();
-        const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
+        const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: `${window.location.origin}/membership?kind=${choice}` });
         if (result.error) throw new Error("We couldn’t open Google sign-in. Please try again.");
         return;
       }
+      clearIntent();
       const result = await (choice === "founding" ? founding : monthly)({ data: { acceptedTerms: true, origin: window.location.origin } });
       if (result.status === "already") await finish(); else window.location.assign(result.url);
     } catch (e) { setError(e instanceof Error ? e.message : "Checkout could not be opened. Please try again."); }
@@ -93,7 +114,7 @@ function MembershipPage() {
       <h1 className="mt-4 text-center font-serif text-4xl text-foreground sm:text-5xl">Choose your Oka membership</h1>
       <p className="mx-auto mt-5 max-w-xl text-center leading-relaxed text-muted-foreground">One family, two ways to join. Full access opens on December 1, 2026. Until then, you can share your skills, offer your home, add events and invite friends.</p>
       <div className="mt-10 grid items-stretch gap-6 md:grid-cols-2">
-        <article className="surface-card flex flex-col p-7 sm:p-8">
+        <article className={`surface-card flex flex-col p-7 sm:p-8 ${selected === "founding" ? "ring-2 ring-primary" : ""}`}>
           <InfinityIcon className="size-7 text-primary" strokeWidth={1.5} aria-hidden />
           <h2 className="mt-5 font-serif text-3xl">Founding membership</h2>
           <p className="mt-5"><span className="font-serif text-5xl">$250</span><span className="ml-2 text-muted-foreground">one-time</span></p>
@@ -101,7 +122,7 @@ function MembershipPage() {
           <p className="mt-4 leading-relaxed text-muted-foreground">Lifetime membership. No renewals.</p>
           <Button className="mt-8 w-full rounded-full" disabled={!agreed || busy !== null} onClick={() => void pay("founding")}>{busy === "founding" && <Loader2 className="size-4 animate-spin" />}Choose founding membership</Button>
         </article>
-        <article className="surface-card flex flex-col p-7 sm:p-8">
+        <article className={`surface-card flex flex-col p-7 sm:p-8 ${selected === "monthly" ? "ring-2 ring-primary" : ""}`}>
           <CalendarDays className="size-7 text-primary" strokeWidth={1.5} aria-hidden />
           <h2 className="mt-5 font-serif text-3xl">Oka membership</h2>
           <p className="mt-5"><span className="font-serif text-5xl">$29</span><span className="ml-2 text-muted-foreground">per month</span></p>
