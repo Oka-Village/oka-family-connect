@@ -45,7 +45,8 @@ export function trialState(trialStartedAt: string | null | undefined, now = new 
 const PROFILE_ONLY_ROUTES = new Set(["/onboarding", "/profile", "/welcome"]);
 /** An active trial adds content creation and own-content editing on top of profile-only routes. */
 const CONTENT_ADDING_ROUTES = new Set(["/skills/new", "/houses/new", "/events/new"]);
-const ALWAYS_ALLOWED_ROUTES = new Set(["/membership", "/privacy", "/terms", "/founding"]);
+/** The invite space is open in every state, including before a member has chosen to pay or trial. */
+const ALWAYS_ALLOWED_ROUTES = new Set(["/membership", "/privacy", "/terms", "/founding", "/affiliate"]);
 
 export function paymentRedirect(pathname: string, fullAccess: boolean, paid: boolean, trial: TrialState): "/membership" | "/home" | "/welcome" | null {
   const path = pathname.replace(/\/+$/, "") || "/";

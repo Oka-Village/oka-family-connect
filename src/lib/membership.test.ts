@@ -79,7 +79,7 @@ describe("membership payment rules", () => {
     expect(validateMembershipSession({ ...monthly, payment_status: "unpaid" }, "member-a", "monthly")).toBe(false);
     expect(validateMembershipSession({ ...monthly, status: "open" }, "member-a", "monthly")).toBe(false);
   });
-  it.each(["/", "/home", "/directory", "/events", "/skills", "/houses", "/collections", "/credits", "/affiliate", "/facilitators", "/invite/FRIEND"])(
+  it.each(["/", "/home", "/directory", "/events", "/skills", "/houses", "/collections", "/credits", "/facilitators", "/invite/FRIEND"])(
     "sends unpaid members from browsing route %s to /welcome",
     (path) => {
       expect(paymentRedirect(path, false, false, "none")).toBe("/welcome");
@@ -98,12 +98,19 @@ describe("membership payment rules", () => {
     expect(paymentRedirect(path, false, false, "active")).toBeNull();
     expect(paymentRedirect(path, false, false, "none")).toBe("/welcome");
   });
-  it.each(["/membership", "/privacy", "/terms", "/founding"])("always allows %s", (path) => {
+  it.each(["/membership", "/privacy", "/terms", "/founding", "/affiliate"])("always allows %s", (path) => {
     expect(paymentRedirect(path, false, false, "none")).toBeNull();
     expect(paymentRedirect(path, false, false, "active")).toBeNull();
     expect(paymentRedirect(path, false, false, "expired")).toBeNull();
   });
-  it.each(["/home", "/profile", "/welcome", "/skills/new", "/onboarding", "/affiliate", "/"])(
+  it.each(["none", "active", "expired"] as const)("keeps the invite space open for every unpaid state: %s", (trial) => {
+    expect(paymentRedirect("/affiliate", false, false, trial)).toBeNull();
+  });
+  it("sends paid members away from the payment page but keeps the invite space open", () => {
+    expect(paymentRedirect("/affiliate", false, true, "expired")).toBeNull();
+    expect(paymentRedirect("/affiliate", true, false, "none")).toBeNull();
+  });
+  it.each(["/home", "/profile", "/welcome", "/skills/new", "/onboarding", "/"])(
     "sends expired-trial members from %s to /membership",
     (path) => {
       expect(paymentRedirect(path, false, false, "expired")).toBe("/membership");
