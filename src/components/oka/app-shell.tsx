@@ -15,6 +15,10 @@ import { cn } from "@/lib/utils";
 import { CreditPill } from "@/components/oka/credit-pill";
 import { useMemberAccess } from "@/hooks/use-member-access";
 import { MemberAccessGate } from "@/components/oka/member-access-gate";
+import { SupportOkaDialog } from "@/components/oka/support-oka-dialog";
+import { useMembership } from "@/hooks/use-membership";
+import { hasPaidMembership } from "@/lib/membership";
+import { showSupportOffer } from "@/lib/onboarding-rules";
 
 const SUPPORT_EMAIL = "daniel@zoe.garden";
 
@@ -41,6 +45,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { data: profile, isLoading } = useProfile();
   useClaimInvite(Boolean(profile));
   const { data: isAdmin } = useIsStaff();
+  const membership = useMembership(profile?.id);
+  const [supportOpen, setSupportOpen] = useState(false);
+  // Existing unpaid members get the same payment/trial offer as new ones, on each app entry.
+  useEffect(() => {
+    if (!profile || isAdmin !== false || membership.isPending || membership.isError) return;
+    if (showSupportOffer(hasPaidMembership(membership.data), false, profile.trial_started_at)) setSupportOpen(true);
+  }, [profile, isAdmin, membership.isPending, membership.isError, membership.data]);
   const photoQuery = useQuery({
     queryKey: ["profile-photo", profile?.photo_url ?? null],
     queryFn: () => resolvePhotoUrl(profile?.photo_url ?? null),
@@ -177,6 +188,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </header>
 
       <main className="pb-28">{children}</main>
+      <SupportOkaDialog
+        open={supportOpen}
+        trialStartedAt={profile?.trial_started_at ?? null}
+        onProceed={() => {
+          setSupportOpen(false);
+          queryClient.invalidateQueries({ queryKey: ["profile"] });
+          queryClient.invalidateQueries({ queryKey: ["membership"] });
+          if (pathname !== "/welcome") void navigate({ to: "/welcome", replace: true });
+        }}
+      />
 
       <nav className="fixed inset-x-0 bottom-0 z-10 flex justify-between border-t border-border bg-sidebar px-2 py-2 lg:hidden">
         {PRIMARY_ITEMS.map((item) => {
