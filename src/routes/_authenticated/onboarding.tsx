@@ -1,4 +1,3 @@
-import { takeReturnTo } from "@/lib/join-link";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
@@ -14,9 +13,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useClaimInvite } from "@/lib/affiliates";
 import { AGE_RANGES } from "@/lib/profile";
 import { cn } from "@/lib/utils";
-import { isFullMember } from "@/lib/member-access";
 import { useMembership } from "@/hooks/use-membership";
-import { hasPaidMembership } from "@/lib/membership";
+import { hasPaidMembership, isPaymentExempt } from "@/lib/membership";
+import { useRoles } from "@/hooks/use-is-admin";
+import { SupportOkaDialog } from "@/components/oka/support-oka-dialog";
+import { needsOnboardingPhoto, showSupportOffer } from "@/lib/onboarding-rules";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
   head: () => ({
@@ -53,6 +54,8 @@ function Onboarding() {
   const queryClient = useQueryClient();
   const { data: profile, isLoading } = useProfile();
   const membership = useMembership(profile?.id);
+  const roles = useRoles();
+  const [supportOpen, setSupportOpen] = useState(false);
   useClaimInvite(Boolean(profile));
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
@@ -83,12 +86,12 @@ function Onboarding() {
   async function handleUpload(file: File) {
     setUploading(true);
     const { data: auth } = await supabase.auth.getUser();
-    if (!auth.user) return;
+    if (!auth.user) { setUploading(false); return; }
     const path = `${auth.user.id}/${Date.now()}-${file.name.replace(/[^\w.-]/g, "_")}`;
     const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
     setUploading(false);
     if (error) {
-      toast.error("That photo didn't upload. You can add one later.");
+      toast.error("That photo didn't upload. Please try again to continue.");
       return;
     }
     setDraft((d) => ({ ...d, photo_url: path }));
@@ -96,9 +99,11 @@ function Onboarding() {
   }
 
   async function finish() {
+    if (needsOnboardingPhoto(draft.photo_url)) { setStep(STEPS.indexOf("photo")); return; }
+    if (membership.isPending || roles.isPending || membership.isError || roles.isError) return;
     setSaving(true);
     const { data: auth } = await supabase.auth.getUser();
-    if (!auth.user) return;
+    if (!auth.user) { setSaving(false); return; }
 
     const { error } = await supabase
       .from("profiles")
@@ -118,20 +123,18 @@ function Onboarding() {
       return;
     }
     await queryClient.invalidateQueries({ queryKey: ["profile"] });
-    if (limited) { navigate({ to: "/welcome", replace: true }); return; }
-    const back = takeReturnTo();
-    if (back) window.location.replace(back);
-    else navigate({ to: "/home", replace: true });
+    if (showSupportOffer(hasPaidMembership(membership.data), isPaymentExempt(profile, roles.data?.isStaff === true))) {
+      setSupportOpen(true);
+    } else navigate({ to: "/home", replace: true });
   }
 
-  const limited = !isFullMember(profile, new Date(), hasPaidMembership(membership.data));
   const current = STEPS[step];
   const photoIndex = STEPS.indexOf("photo");
-  const photoBlocked = limited && current === "photo" && !draft.photo_url;
+  const photoBlocked = current === "photo" && needsOnboardingPhoto(draft.photo_url);
   const progress = Math.round((step / (STEPS.length - 1)) * 100);
   const next = () => (step === STEPS.length - 1 ? finish() : setStep((s) => s + 1));
-  // Limited members can't skip past the required photo from the welcome step.
-  const skip = () => (limited && !draft.photo_url ? setStep(photoIndex) : void finish());
+  // All members must visit the photo step before finishing skipped questions.
+  const skip = () => (needsOnboardingPhoto(draft.photo_url) ? setStep(photoIndex) : void finish());
 
   if (isLoading) {
     return (
@@ -275,11 +278,13 @@ function Onboarding() {
           >
             {step === 0 ? "Skip for now" : "Back"}
           </Button>
-          <Button className="rounded-full px-8" onClick={next} disabled={saving || uploading || photoBlocked}>
+          <Button className="rounded-full px-8" onClick={next} disabled={saving || uploading || photoBlocked || (step === STEPS.length - 1 && (membership.isPending || roles.isPending || membership.isError || roles.isError))}>
             {step === STEPS.length - 1 ? (saving ? "Saving…" : "Enter Oka") : "Continue"}
           </Button>
         </div>
+        {(membership.isError || roles.isError) && <p role="alert" className="text-sm text-destructive">We couldn’t check your membership. <Button variant="ghost" onClick={() => { void membership.refetch(); void roles.refetch(); }}>Try again</Button></p>}
       </div>
+      <SupportOkaDialog open={supportOpen} trialStartedAt={profile?.trial_started_at ?? null} onProceed={() => { setSupportOpen(false); void navigate({ to: "/home", replace: true }); }} />
     </div>
   );
 }
