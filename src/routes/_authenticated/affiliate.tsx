@@ -63,8 +63,10 @@ function AffiliatePage() {
   }
 
   const link = aff.data ? inviteUrl(aff.data.invite_code) : "";
+  /** The rate the backend actually credits: the affiliate's stored commission_pct. */
+  const sharePct = aff.data ? Number(aff.data.commission_pct) : null;
   const rows = stats.data ?? [];
-  const earned = rows.reduce((s, r) => s + commissionCents(Number(r.paid_cents), AFFILIATE_SHARE_PCT), 0);
+  const earned = rows.reduce((s, r) => s + Number(r.earned_cents), 0);
   const tests = rows.reduce((s, r) => s + Number(r.test_cents), 0);
 
   return (
@@ -72,7 +74,7 @@ function AffiliatePage() {
       <p className="section-label">Invite & earn</p>
       <h1 className="mt-4 text-4xl text-foreground lg:text-5xl">Grow the family</h1>
       <p className="mt-3 max-w-2xl text-muted-foreground">
-        Share your personal link. When someone you invite pays for membership, {AFFILIATE_SHARE_PCT}% of what they paid is tracked as your affiliate credit.
+        Share your personal link. {sharePct != null ? `When someone you invite pays for membership, ${sharePct}% of what they paid is tracked as your affiliate credit.` : "When someone you invite pays for membership, your affiliate share is tracked as your affiliate credit."}
       </p>
       <ProgramTotals />
 
@@ -99,11 +101,11 @@ function AffiliatePage() {
           </div>
           <div className="mt-6 grid gap-4 sm:grid-cols-3">
             <Stat label="Invited" value={String(rows.length)} />
-            <Stat label="Your share" value={`${AFFILIATE_SHARE_PCT}%`} />
+            <Stat label="Your share" value={sharePct != null ? `${sharePct}%` : "—"} />
             <Stat label="Earned" value={formatCents(earned)} />
           </div>
           {tests > 0 && <p className="mt-3 text-sm text-muted-foreground">Test payments ({formatCents(tests)}) are shown for setup only and not counted in earnings.</p>}
-          <p className="mt-3 text-xs text-muted-foreground">Earnings = {AFFILIATE_SHARE_PCT}% of the membership payments of the members you invited. Payouts begin once payments go live.</p>
+          <p className="mt-3 text-xs text-muted-foreground">Earnings = {sharePct != null ? `${sharePct}%` : "your share"} of the membership payments of the members you invited, as recorded by Oka. Payouts begin once payments go live.</p>
 
           <p className="section-label mt-12">People you invited</p>
           {rows.length === 0 ? (
@@ -125,7 +127,7 @@ function AffiliatePage() {
                     </span>
                     {r.paid_cents > 0 && (
                       <span className="font-serif text-xl text-foreground">
-                        paid {formatCents(Number(r.paid_cents))} · credit {formatCents(commissionCents(Number(r.paid_cents), AFFILIATE_SHARE_PCT))}
+                        paid {formatCents(Number(r.paid_cents))} · credit {formatCents(Number(r.earned_cents))}
                       </span>
                     )}
                     {r.test_cents > 0 && <span className="text-xs text-muted-foreground">test {formatCents(Number(r.test_cents))}</span>}
