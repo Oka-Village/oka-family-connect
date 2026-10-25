@@ -79,7 +79,7 @@ export function SupportOkaDialog({ open, onProceed, trialStartedAt }: {
           {busy === "trial" ? <Loader2 className="size-4 animate-spin" /> : <Gift className="size-4 text-primary" strokeWidth={1.5} />}
           {trialStartedAt ? "Your trial has already started" : `Start ${TRIAL_DAYS}-day free trial`}
         </Button>
-        <p className="mt-3 text-center text-sm leading-relaxed text-muted-foreground">No card required. After {TRIAL_DAYS} days, choose a paid membership to keep full use of Oka.</p>
+        <p className="mt-3 text-center text-sm leading-relaxed text-muted-foreground">No card required. The {TRIAL_DAYS}-day trial is for adding content — events, houses, and skills. After {TRIAL_DAYS} days, a paid membership is required to keep using Oka.</p>
       </div>
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
     </DialogContent>

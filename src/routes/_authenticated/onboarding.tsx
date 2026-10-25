@@ -123,7 +123,7 @@ function Onboarding() {
       return;
     }
     await queryClient.invalidateQueries({ queryKey: ["profile"] });
-    if (showSupportOffer(hasPaidMembership(membership.data), isPaymentExempt(profile, roles.data?.isStaff === true))) {
+    if (showSupportOffer(hasPaidMembership(membership.data), isPaymentExempt(profile, roles.data?.isStaff === true), profile?.trial_started_at)) {
       setSupportOpen(true);
     } else navigate({ to: "/home", replace: true });
   }
@@ -284,7 +284,7 @@ function Onboarding() {
         </div>
         {(membership.isError || roles.isError) && <p role="alert" className="text-sm text-destructive">We couldn’t check your membership. <Button variant="ghost" onClick={() => { void membership.refetch(); void roles.refetch(); }}>Try again</Button></p>}
       </div>
-      <SupportOkaDialog open={supportOpen} trialStartedAt={profile?.trial_started_at ?? null} onProceed={() => { setSupportOpen(false); void navigate({ to: "/home", replace: true }); }} />
+      <SupportOkaDialog open={supportOpen} trialStartedAt={profile?.trial_started_at ?? null} onProceed={() => { setSupportOpen(false); void navigate({ to: "/welcome", replace: true }); }} />
     </div>
   );
 }
