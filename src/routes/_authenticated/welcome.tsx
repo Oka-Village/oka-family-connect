@@ -9,6 +9,7 @@ import { useRoles } from "@/hooks/use-is-admin";
 import { useMembership } from "@/hooks/use-membership";
 import { hasPaidMembership } from "@/lib/membership";
 import { isFullMember } from "@/lib/member-access";
+import { inviteUrl } from "@/lib/affiliate-share";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/welcome")({
@@ -59,7 +60,7 @@ function Welcome() {
     },
   });
   const p = progress.data;
-  const link = p?.inviteCode && typeof window !== "undefined" ? `${window.location.origin}/invite/${p.inviteCode}` : "";
+  const link = p?.inviteCode ? inviteUrl(p.inviteCode) : "";
 
   async function copy() {
     try { await navigator.clipboard.writeText(link); toast.success("Invite link copied"); }
