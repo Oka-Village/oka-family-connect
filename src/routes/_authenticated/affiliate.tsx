@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useCurrentUserId, useRoles } from "@/hooks/use-is-admin";
 import { supabase } from "@/integrations/supabase/client";
 import { commissionCents, formatCents } from "@/lib/affiliates";
-import { AFFILIATE_SHARE_PCT } from "@/lib/affiliate-share";
+import { AFFILIATE_SHARE_PCT, inviteUrl } from "@/lib/affiliate-share";
 import { signPaths } from "@/lib/skills";
 
 export const Route = createFileRoute("/_authenticated/affiliate")({
@@ -62,7 +62,7 @@ function AffiliatePage() {
     await qc.invalidateQueries({ queryKey: ["affiliate"] });
   }
 
-  const link = aff.data && typeof window !== "undefined" ? `${window.location.origin}/invite/${aff.data.invite_code}` : "";
+  const link = aff.data ? inviteUrl(aff.data.invite_code) : "";
   const rows = stats.data ?? [];
   const earned = rows.reduce((s, r) => s + commissionCents(Number(r.paid_cents), AFFILIATE_SHARE_PCT), 0);
   const tests = rows.reduce((s, r) => s + Number(r.test_cents), 0);
