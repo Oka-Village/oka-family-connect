@@ -8,16 +8,17 @@ import { MemberAvatar } from "@/components/oka/profile-sections";
 import { Button } from "@/components/ui/button";
 import { useCurrentUserId, useRoles } from "@/hooks/use-is-admin";
 import { supabase } from "@/integrations/supabase/client";
-import { formatCents } from "@/lib/affiliates";
+import { commissionCents, formatCents } from "@/lib/affiliates";
+import { AFFILIATE_SHARE_PCT } from "@/lib/affiliate-share";
 import { signPaths } from "@/lib/skills";
 
 export const Route = createFileRoute("/_authenticated/affiliate")({
   head: () => ({
     meta: [
       { title: "Invite & earn — Oka" },
-      { name: "description", content: "Invite people into the Oka family and share in their memberships." },
+      { name: "description", content: `Invite people into the Oka family. When someone you invite pays, ${AFFILIATE_SHARE_PCT}% is tracked as your affiliate credit.` },
       { property: "og:title", content: "Invite & earn — Oka" },
-      { property: "og:description", content: "Invite people into the Oka family and share in their memberships." },
+      { property: "og:description", content: `Invite people into the Oka family. When someone you invite pays, ${AFFILIATE_SHARE_PCT}% is tracked as your affiliate credit.` },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -26,9 +27,6 @@ export const Route = createFileRoute("/_authenticated/affiliate")({
 });
 
 type Stat = { referred_user_id: string; display_name: string | null; photo_url: string | null; joined_at: string; membership_tier: string; paid_cents: number; test_cents: number; earned_cents: number };
-
-/** Program share shown before a member's own rate is loaded. */
-const DEFAULT_SHARE_PCT = 50;
 
 function AffiliatePage() {
   const { data: uid } = useCurrentUserId();
@@ -39,7 +37,7 @@ function AffiliatePage() {
     queryKey: ["affiliate", "me", uid],
     enabled: !!uid,
     queryFn: async () => {
-      const { data, error } = await supabase.from("affiliates").select("id,invite_code,status,commission_pct").eq("user_id", uid!).maybeSingle();
+      const { data, error } = await supabase.from("affiliates").select("id,invite_code,status").eq("user_id", uid!).maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -68,7 +66,7 @@ function AffiliatePage() {
 
   const link = aff.data && typeof window !== "undefined" ? `${window.location.origin}/invite/${aff.data.invite_code}` : "";
   const rows = stats.data ?? [];
-  const earned = rows.reduce((s, r) => s + Number(r.earned_cents), 0);
+  const earned = rows.reduce((s, r) => s + commissionCents(Number(r.paid_cents), AFFILIATE_SHARE_PCT), 0);
   const tests = rows.reduce((s, r) => s + Number(r.test_cents), 0);
 
   return (
@@ -76,7 +74,7 @@ function AffiliatePage() {
       <p className="section-label">Invite & earn</p>
       <h1 className="mt-4 text-4xl text-foreground lg:text-5xl">Grow the family</h1>
       <p className="mt-3 max-w-2xl text-muted-foreground">
-        Share your personal link. When someone you invite pays for membership, {sharePct}% of what they paid is tracked as your affiliate credit.
+        Share your personal link. When someone you invite pays for membership, {AFFILIATE_SHARE_PCT}% of what they paid is tracked as your affiliate credit.
       </p>
       <ProgramTotals />
 
@@ -103,11 +101,11 @@ function AffiliatePage() {
           </div>
           <div className="mt-6 grid gap-4 sm:grid-cols-3">
             <Stat label="Invited" value={String(rows.length)} />
-            <Stat label="Your share" value={`${Number(aff.data.commission_pct)}%`} />
+            <Stat label="Your share" value={`${AFFILIATE_SHARE_PCT}%`} />
             <Stat label="Earned" value={formatCents(earned)} />
           </div>
           {tests > 0 && <p className="mt-3 text-sm text-muted-foreground">Test payments ({formatCents(tests)}) are shown for setup only and not counted in earnings.</p>}
-          <p className="mt-3 text-xs text-muted-foreground">Earnings = your share × paid membership payments of the members you invited. Payouts begin once payments go live.</p>
+          <p className="mt-3 text-xs text-muted-foreground">Earnings = {AFFILIATE_SHARE_PCT}% of the membership payments of the members you invited. Payouts begin once payments go live.</p>
 
           <p className="section-label mt-12">People you invited</p>
           {rows.length === 0 ? (
@@ -129,7 +127,7 @@ function AffiliatePage() {
                     </span>
                     {r.paid_cents > 0 && (
                       <span className="font-serif text-xl text-foreground">
-                        paid {formatCents(Number(r.paid_cents))} · credit {formatCents(Number(r.earned_cents))}
+                        paid {formatCents(Number(r.paid_cents))} · credit {formatCents(commissionCents(Number(r.paid_cents), AFFILIATE_SHARE_PCT))}
                       </span>
                     )}
                     {r.test_cents > 0 && <span className="text-xs text-muted-foreground">test {formatCents(Number(r.test_cents))}</span>}
