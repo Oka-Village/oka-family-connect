@@ -37,7 +37,7 @@ function AffiliatePage() {
     queryKey: ["affiliate", "me", uid],
     enabled: !!uid,
     queryFn: async () => {
-      const { data, error } = await supabase.from("affiliates").select("id,invite_code,status").eq("user_id", uid!).maybeSingle();
+      const { data, error } = await supabase.from("affiliates").select("id,invite_code,status,commission_pct").eq("user_id", uid!).maybeSingle();
       if (error) throw error;
       return data;
     },
