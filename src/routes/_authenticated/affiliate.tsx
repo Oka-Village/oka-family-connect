@@ -54,8 +54,6 @@ function AffiliatePage() {
     },
   });
 
-  const sharePct = aff.data ? Number(aff.data.commission_pct) : DEFAULT_SHARE_PCT;
-
   async function activate() {
     setBusy(true);
     const { error } = await supabase.rpc("activate_affiliate");
