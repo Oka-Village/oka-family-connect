@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useProfile } from "@/hooks/use-profile";
@@ -8,23 +8,44 @@ import { hasPaidMembership, isPaymentExempt, isPublicEntryRoute, paymentRedirect
 import { saveInviteCode, useClaimInvite } from "@/lib/affiliates";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { brokeredPreviewStorage } from "@/integrations/supabase/previewAuthStorage";
+import { recoverSession, restoreSession, sessionStorageKey } from "@/lib/session-restore";
 
 /** Covers public routes and full-bleed onboarding too, before mounting their content. */
 export function MembershipBoundary({ children }: { children: ReactNode }) {
   const location = useRouterState({ select: (s) => s.location });
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const recovering = useRef(false);
   const session = useQuery({
     queryKey: ["membership-session"],
-    queryFn: async () => {
+    queryFn: () => restoreSession(async () => {
       const { data, error } = await supabase.auth.getUser();
       if (error && error.name !== "AuthSessionMissingError") throw error;
       return data.user?.id ?? null;
-    },
+    }),
+    retry: false,
     staleTime: 0,
     refetchOnMount: "always",
     refetchOnWindowFocus: true,
   });
+  useEffect(() => {
+    if (!session.isError || recovering.current) return;
+    recovering.current = true;
+    void qc.cancelQueries();
+    qc.clear();
+    void recoverSession(async () => {
+      const apiUrl = import.meta.env.VITE_SUPABASE_URL;
+      if (!apiUrl) return;
+      const key = sessionStorageKey(apiUrl);
+      const storage = brokeredPreviewStorage();
+      await Promise.all([key, `${key}-user`].map(async (name) => {
+        // Clear the local copy immediately, even if the preview broker is slow.
+        try { localStorage.removeItem(name); } catch { /* blocked browser storage */ }
+        await storage?.removeItem(name);
+      }));
+    }, (path) => window.location.replace(path));
+  }, [session.isError, qc]);
   const profile = useProfile();
   const roles = useRoles();
   const membership = useMembership(profile.data?.id);
