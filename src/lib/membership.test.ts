@@ -86,16 +86,17 @@ describe("membership payment rules", () => {
       expect(paymentRedirect(path, false, false, "active")).toBe("/welcome");
     },
   );
-  it.each(["/onboarding", "/profile", "/welcome", "/skills/new", "/houses/new", "/events/new"])(
-    "keeps trial-active and trial-unstarted members on contribution route %s",
-    (path) => {
-      expect(paymentRedirect(path, false, false, "active")).toBeNull();
-      expect(paymentRedirect(path, false, false, "none")).toBeNull();
-    },
-  );
-  it.each(["/skills/edit/own", "/houses/edit/own", "/events/edit/own"])("keeps unpaid members editing their own content at %s", (path) => {
+  it.each(["/onboarding", "/profile", "/welcome"])("keeps pre-choice and trial-active members on profile-only route %s", (path) => {
     expect(paymentRedirect(path, false, false, "active")).toBeNull();
     expect(paymentRedirect(path, false, false, "none")).toBeNull();
+  });
+  it.each(["/skills/new", "/houses/new", "/events/new"])("allows content adding at %s only during an active trial", (path) => {
+    expect(paymentRedirect(path, false, false, "active")).toBeNull();
+    expect(paymentRedirect(path, false, false, "none")).toBe("/welcome");
+  });
+  it.each(["/skills/edit/own", "/houses/edit/own", "/events/edit/own"])("allows editing own content at %s only during an active trial", (path) => {
+    expect(paymentRedirect(path, false, false, "active")).toBeNull();
+    expect(paymentRedirect(path, false, false, "none")).toBe("/welcome");
   });
   it.each(["/membership", "/privacy", "/terms", "/founding"])("always allows %s", (path) => {
     expect(paymentRedirect(path, false, false, "none")).toBeNull();

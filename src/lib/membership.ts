@@ -41,8 +41,10 @@ export function trialState(trialStartedAt: string | null | undefined, now = new 
   return now.getTime() - started < TRIAL_DAYS * 24 * 60 * 60 * 1000 ? "active" : "expired";
 }
 
-/** Unpaid members with a live or unstarted trial may only add content and manage their own profile. */
-const CONTENT_ONLY_ROUTES = new Set(["/onboarding", "/profile", "/welcome", "/skills/new", "/houses/new", "/events/new"]);
+/** Pre-choice unpaid members manage only their profile and the payment/legal pages. */
+const PROFILE_ONLY_ROUTES = new Set(["/onboarding", "/profile", "/welcome"]);
+/** An active trial adds content creation and own-content editing on top of profile-only routes. */
+const CONTENT_ADDING_ROUTES = new Set(["/skills/new", "/houses/new", "/events/new"]);
 const ALWAYS_ALLOWED_ROUTES = new Set(["/membership", "/privacy", "/terms", "/founding"]);
 
 export function paymentRedirect(pathname: string, fullAccess: boolean, paid: boolean, trial: TrialState): "/membership" | "/home" | "/welcome" | null {
@@ -51,7 +53,8 @@ export function paymentRedirect(pathname: string, fullAccess: boolean, paid: boo
   if (paid) return null;
   if (ALWAYS_ALLOWED_ROUTES.has(path)) return null;
   if (trial === "expired") return "/membership";
-  if (CONTENT_ONLY_ROUTES.has(path) || ownEditTarget(path)) return null;
+  if (trial === "active" && (CONTENT_ADDING_ROUTES.has(path) || ownEditTarget(path))) return null;
+  if (PROFILE_ONLY_ROUTES.has(path)) return null;
   return "/welcome";
 }
 
