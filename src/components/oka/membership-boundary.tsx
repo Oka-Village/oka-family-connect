@@ -35,7 +35,7 @@ export function MembershipBoundary({ children }: { children: ReactNode }) {
     void qc.cancelQueries();
     qc.clear();
     void recoverSession(async () => {
-      const apiUrl = import.meta.env.VITE_SUPABASE_URL;
+      const apiUrl = import.meta.env['VITE_SUPABASE_URL'];
       if (!apiUrl) return;
       const key = sessionStorageKey(apiUrl);
       const storage = brokeredPreviewStorage();
