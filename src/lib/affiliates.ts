@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
+import { affiliateCreditCents } from "./affiliate-share";
 
 /** localStorage key that carries an invite code through the Google sign-in round-trip. */
 export const INVITE_KEY = "oka_invite_code";
@@ -40,10 +41,10 @@ export function useClaimInvite(enabled: boolean) {
 }
 
 /**
- * Commission for one referral, mirroring affiliate_referral_stats() in the database:
- * floor(sum of PAID membership_* payment cents × commission_pct / 100). Display only —
- * the dashboard shows the database's earned_cents; this exists for documentation and tests.
+ * Commission for one referral at a given rate: floor(PAID membership cents x pct / 100).
+ * The page shows the fixed program share (AFFILIATE_SHARE_PCT) rather than each affiliate's
+ * stored commission_pct; the database still records earned_cents at its own rate.
  */
 export function commissionCents(paidMembershipCents: number, commissionPct: number) {
-  return Math.floor((paidMembershipCents * commissionPct) / 100);
+  return affiliateCreditCents(paidMembershipCents, commissionPct);
 }
