@@ -3,7 +3,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
-import { affiliateCreditCents } from "./affiliate-share";
 
 /** localStorage key that carries an invite code through the Google sign-in round-trip. */
 export const INVITE_KEY = "oka_invite_code";

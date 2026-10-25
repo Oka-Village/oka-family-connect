@@ -8,17 +8,17 @@ import { MemberAvatar } from "@/components/oka/profile-sections";
 import { Button } from "@/components/ui/button";
 import { useCurrentUserId, useRoles } from "@/hooks/use-is-admin";
 import { supabase } from "@/integrations/supabase/client";
-import { commissionCents, formatCents } from "@/lib/affiliates";
-import { AFFILIATE_SHARE_PCT, inviteUrl } from "@/lib/affiliate-share";
+import { formatCents } from "@/lib/affiliates";
+import { inviteUrl } from "@/lib/affiliate-share";
 import { signPaths } from "@/lib/skills";
 
 export const Route = createFileRoute("/_authenticated/affiliate")({
   head: () => ({
     meta: [
       { title: "Invite & earn — Oka" },
-      { name: "description", content: `Invite people into the Oka family. When someone you invite pays, ${AFFILIATE_SHARE_PCT}% is tracked as your affiliate credit.` },
+      { name: "description", content: "Invite people into the Oka family. When someone you invite pays for membership, your affiliate share is tracked as your affiliate credit." },
       { property: "og:title", content: "Invite & earn — Oka" },
-      { property: "og:description", content: `Invite people into the Oka family. When someone you invite pays, ${AFFILIATE_SHARE_PCT}% is tracked as your affiliate credit.` },
+      { property: "og:description", content: "Invite people into the Oka family. When someone you invite pays for membership, your affiliate share is tracked as your affiliate credit." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
