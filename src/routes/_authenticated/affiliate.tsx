@@ -70,7 +70,9 @@ function AffiliatePage() {
     <div className="mx-auto max-w-4xl px-6 py-12 lg:py-16">
       <p className="section-label">Invite & earn</p>
       <h1 className="mt-4 text-4xl text-foreground lg:text-5xl">Grow the family</h1>
-      <p className="mt-3 max-w-2xl text-muted-foreground">Share your personal link. When someone you invite becomes a full member, you receive a share of their membership.</p>
+      <p className="mt-3 max-w-2xl text-muted-foreground">
+        Share your personal link. When someone you invite pays for membership, {SHARE_PCT}% of what they paid is tracked as your affiliate credit. Payouts begin once payments go live.
+      </p>
       <ProgramTotals />
 
       {aff.isLoading || !uid ? (
@@ -120,7 +122,11 @@ function AffiliatePage() {
                     <span className={r.paid_cents > 0 || r.membership_tier === "full" ? "rounded-full bg-secondary px-3 py-1 text-xs uppercase tracking-widest text-secondary-foreground" : "rounded-full bg-muted px-3 py-1 text-xs uppercase tracking-widest text-muted-foreground"}>
                       {r.paid_cents > 0 || r.membership_tier === "full" ? "Full member" : "Free"}
                     </span>
-                    <span className="font-serif text-xl text-foreground">{formatCents(Number(r.earned_cents))}</span>
+                    {r.paid_cents > 0 && (
+                      <span className="font-serif text-xl text-foreground">
+                        paid {formatCents(Number(r.paid_cents))} · credit {formatCents(Number(r.earned_cents))}
+                      </span>
+                    )}
                     {r.test_cents > 0 && <span className="text-xs text-muted-foreground">test {formatCents(Number(r.test_cents))}</span>}
                   </div>
                 </li>
