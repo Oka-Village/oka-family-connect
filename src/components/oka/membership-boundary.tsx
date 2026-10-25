@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useProfile } from "@/hooks/use-profile";
 import { useRoles } from "@/hooks/use-is-admin";
 import { useMembership } from "@/hooks/use-membership";
-import { hasPaidMembership, isPaymentExempt, isPublicEntryRoute, paymentRedirect } from "@/lib/membership";
+import { hasPaidMembership, isPaymentExempt, isPublicEntryRoute, paymentRedirect, trialState } from "@/lib/membership";
 import { saveInviteCode, useClaimInvite } from "@/lib/affiliates";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,7 +36,7 @@ export function MembershipBoundary({ children }: { children: ReactNode }) {
   const destination = session.data
     ? location.pathname === "/onboarding" ? null
       : !profile.data?.onboarded_at && ["/", "/home"].includes(location.pathname) ? "/onboarding"
-      : paymentRedirect(location.pathname, exempt, paid)
+      : paymentRedirect(location.pathname, exempt, paid, trialState(profile.data?.trial_started_at))
     : isPublicEntryRoute(location.pathname) ? null : "/membership";
   const inviteCode = /^\/invite\/([^/]+)$/.exec(location.pathname)?.[1];
   // Persist attribution before the payment redirect; claim on the membership page.
@@ -49,6 +49,7 @@ export function MembershipBoundary({ children }: { children: ReactNode }) {
       const session = location.pathname === "/founding" ? search.get("session_id") : null;
       void navigate({ to: "/membership", replace: true, search: { session_id: session ?? undefined, kind: "founding" } });
     } else if (destination === "/onboarding") void navigate({ to: "/onboarding", replace: true });
+    else if (destination === "/welcome") void navigate({ to: "/welcome", replace: true });
     else void navigate({ to: "/home", replace: true });
   }, [loading, failed, destination, navigate, location.pathname, location.searchStr]);
   async function signOut() {

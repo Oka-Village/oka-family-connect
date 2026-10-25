@@ -7,6 +7,7 @@ import {
   MONTHLY_PRICE_CENTS,
   MONTHLY_PRICE_ID,
   paymentRedirect,
+  trialState,
   validateMembershipSession,
   type VerifiedSession,
 } from "./membership";
@@ -30,11 +31,11 @@ describe("membership payment rules", () => {
     const profile = { member_status: "limited" as const };
     expect(isFullMember(profile, new Date("2026-12-01T00:00:00Z"))).toBe(false);
     expect(isPaymentExempt(profile)).toBe(false);
-    expect(paymentRedirect("/home", isPaymentExempt(profile), false)).toBe("/membership");
+    expect(paymentRedirect("/home", isPaymentExempt(profile), false, "none")).toBe("/welcome");
   });
-  it("exempts existing full members from payment", () => {
-    expect(isPaymentExempt({ member_status: "full" })).toBe(true);
-    expect(paymentRedirect("/home", isPaymentExempt({ member_status: "full" }), false)).toBeNull();
+  it("no longer exempts unpaid full-status members from payment", () => {
+    expect(isPaymentExempt({ member_status: "full" })).toBe(false);
+    expect(paymentRedirect("/home", isPaymentExempt({ member_status: "full" }), false, "none")).toBe("/welcome");
   });
   it("exempts staff regardless of member status", () => {
     expect(isPaymentExempt({ member_status: "full" }, true)).toBe(true);
@@ -78,32 +79,50 @@ describe("membership payment rules", () => {
     expect(validateMembershipSession({ ...monthly, payment_status: "unpaid" }, "member-a", "monthly")).toBe(false);
     expect(validateMembershipSession({ ...monthly, status: "open" }, "member-a", "monthly")).toBe(false);
   });
-  it.each([
-    "/",
-    "/home",
-    "/profile",
-    "/onboarding",
-    "/events",
-    "/events/new",
-    "/skills/new",
-    "/houses/new",
-    "/affiliate",
-    "/founding",
-    "/facilitators",
-    "/invite/FRIEND",
-  ])("redirects unpaid limited members from %s", (path) => {
-    expect(paymentRedirect(path, false, false)).toBe("/membership");
+  it.each(["/", "/home", "/directory", "/events", "/skills", "/houses", "/collections", "/credits", "/affiliate", "/facilitators", "/invite/FRIEND"])(
+    "sends unpaid members from browsing route %s to /welcome",
+    (path) => {
+      expect(paymentRedirect(path, false, false, "none")).toBe("/welcome");
+      expect(paymentRedirect(path, false, false, "active")).toBe("/welcome");
+    },
+  );
+  it.each(["/onboarding", "/profile", "/welcome", "/skills/new", "/houses/new", "/events/new"])(
+    "keeps trial-active and trial-unstarted members on contribution route %s",
+    (path) => {
+      expect(paymentRedirect(path, false, false, "active")).toBeNull();
+      expect(paymentRedirect(path, false, false, "none")).toBeNull();
+    },
+  );
+  it.each(["/skills/edit/own", "/houses/edit/own", "/events/edit/own"])("keeps unpaid members editing their own content at %s", (path) => {
+    expect(paymentRedirect(path, false, false, "active")).toBeNull();
+    expect(paymentRedirect(path, false, false, "none")).toBeNull();
   });
-  it.each(["/membership", "/privacy", "/terms"])("allows unpaid limited members at %s", (path) => {
-    expect(paymentRedirect(path, false, false)).toBeNull();
+  it.each(["/membership", "/privacy", "/terms", "/founding"])("always allows %s", (path) => {
+    expect(paymentRedirect(path, false, false, "none")).toBeNull();
+    expect(paymentRedirect(path, false, false, "active")).toBeNull();
+    expect(paymentRedirect(path, false, false, "expired")).toBeNull();
   });
+  it.each(["/home", "/profile", "/welcome", "/skills/new", "/onboarding", "/affiliate", "/"])(
+    "sends expired-trial members from %s to /membership",
+    (path) => {
+      expect(paymentRedirect(path, false, false, "expired")).toBe("/membership");
+    },
+  );
   it("staff bypass the payment page", () => {
-    expect(paymentRedirect("/membership", true, false)).toBe("/home");
-    expect(paymentRedirect("/home", true, false)).toBeNull();
+    expect(paymentRedirect("/membership", true, false, "none")).toBe("/home");
+    expect(paymentRedirect("/home", true, false, "expired")).toBeNull();
   });
   it("paid limited members continue to the step-one gate", () => {
-    expect(paymentRedirect("/onboarding", false, true)).toBeNull();
-    expect(paymentRedirect("/home", false, true)).toBeNull();
+    expect(paymentRedirect("/onboarding", false, true, "expired")).toBeNull();
+    expect(paymentRedirect("/home", false, true, "none")).toBeNull();
+  });
+  it("runs a trial for exactly seven days", () => {
+    const started = "2026-10-25T10:00:00.000Z";
+    expect(trialState(null)).toBe("none");
+    expect(trialState("not-a-date")).toBe("none");
+    expect(trialState(started, new Date("2026-10-25T10:00:00.000Z"))).toBe("active");
+    expect(trialState(started, new Date("2026-11-01T09:59:59.999Z"))).toBe("active");
+    expect(trialState(started, new Date("2026-11-01T10:00:00.000Z"))).toBe("expired");
   });
   it("sends paid limited members to onboarding and full members home", () => {
     expect(afterMembershipPayment(false)).toBe("/onboarding");

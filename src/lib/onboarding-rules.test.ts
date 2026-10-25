@@ -15,6 +15,13 @@ describe("free signup requirements", () => {
   it("does not offer payment to exempt members", () => {
     expect(showSupportOffer(false, true)).toBe(false);
   });
+  it("offers payment to existing unpaid full-status members", () => {
+    expect(showSupportOffer(false, false, null)).toBe(true);
+  });
+  it("never offers payment to staff or to members who already started a trial", () => {
+    expect(showSupportOffer(false, true, null)).toBe(false);
+    expect(showSupportOffer(false, false, "2026-10-25T10:00:00.000Z")).toBe(false);
+  });
   it("offers a seven-day trial", () => {
     expect(TRIAL_DAYS).toBe(7);
   });

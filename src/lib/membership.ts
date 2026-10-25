@@ -1,10 +1,13 @@
+import { ownEditTarget } from "./member-access";
+import { TRIAL_DAYS } from "./onboarding-rules";
+
 export const MONTHLY_PRICE_CENTS = 2900;
 export const MONTHLY_PRICE_ID = "price_1UThk4AKS7i2pY48URb0JBTk";
 export type MembershipKind = "founding" | "monthly";
 
-/** Staff and existing full members are exempt; payment applies to new and limited members. */
-export function isPaymentExempt(profile: { member_status: string } | null | undefined, isStaff = false): boolean {
-  return isStaff || profile?.member_status === "full";
+/** Only staff are exempt; unpaid members get the same payment/trial choice regardless of member_status. */
+export function isPaymentExempt(_profile: { member_status: string } | null | undefined, isStaff = false): boolean {
+  return isStaff;
 }
 
 export function isPublicEntryRoute(pathname: string): boolean {
@@ -28,12 +31,28 @@ export function hasPaidMembership(
 }
 
 /** Payment detour precedes contribution-only access, without changing launch rules. */
-export function paymentRedirect(pathname: string, fullAccess: boolean, paid: boolean): "/membership" | "/home" | null {
+export type TrialState = "none" | "active" | "expired";
+
+/** A trial is active for exactly TRIAL_DAYS from profiles.trial_started_at. */
+export function trialState(trialStartedAt: string | null | undefined, now = new Date()): TrialState {
+  if (!trialStartedAt) return "none";
+  const started = Date.parse(trialStartedAt);
+  if (Number.isNaN(started)) return "none";
+  return now.getTime() - started < TRIAL_DAYS * 24 * 60 * 60 * 1000 ? "active" : "expired";
+}
+
+/** Unpaid members with a live or unstarted trial may only add content and manage their own profile. */
+const CONTENT_ONLY_ROUTES = new Set(["/onboarding", "/profile", "/welcome", "/skills/new", "/houses/new", "/events/new"]);
+const ALWAYS_ALLOWED_ROUTES = new Set(["/membership", "/privacy", "/terms", "/founding"]);
+
+export function paymentRedirect(pathname: string, fullAccess: boolean, paid: boolean, trial: TrialState): "/membership" | "/home" | "/welcome" | null {
   const path = pathname.replace(/\/+$/, "") || "/";
   if (fullAccess) return path === "/membership" ? "/home" : null;
   if (paid) return null;
-  if (path === "/membership" || path === "/privacy" || path === "/terms") return null;
-  return "/membership";
+  if (ALWAYS_ALLOWED_ROUTES.has(path)) return null;
+  if (trial === "expired") return "/membership";
+  if (CONTENT_ONLY_ROUTES.has(path) || ownEditTarget(path)) return null;
+  return "/welcome";
 }
 
 export function afterMembershipPayment(fullAccess: boolean): "/home" | "/onboarding" {
