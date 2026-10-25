@@ -27,6 +27,9 @@ export const Route = createFileRoute("/_authenticated/affiliate")({
 
 type Stat = { referred_user_id: string; display_name: string | null; photo_url: string | null; joined_at: string; membership_tier: string; paid_cents: number; test_cents: number; earned_cents: number };
 
+/** Program share shown before a member's own rate is loaded. */
+const DEFAULT_SHARE_PCT = 50;
+
 function AffiliatePage() {
   const { data: uid } = useCurrentUserId();
   const qc = useQueryClient();
@@ -53,6 +56,8 @@ function AffiliatePage() {
     },
   });
 
+  const sharePct = aff.data ? Number(aff.data.commission_pct) : DEFAULT_SHARE_PCT;
+
   async function activate() {
     setBusy(true);
     const { error } = await supabase.rpc("activate_affiliate");
@@ -71,7 +76,7 @@ function AffiliatePage() {
       <p className="section-label">Invite & earn</p>
       <h1 className="mt-4 text-4xl text-foreground lg:text-5xl">Grow the family</h1>
       <p className="mt-3 max-w-2xl text-muted-foreground">
-        Share your personal link. When someone you invite pays for membership, {SHARE_PCT}% of what they paid is tracked as your affiliate credit. Payouts begin once payments go live.
+        Share your personal link. When someone you invite pays for membership, {sharePct}% of what they paid is tracked as your affiliate credit. Payouts begin once payments go live.
       </p>
       <ProgramTotals />
 
