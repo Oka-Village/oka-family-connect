@@ -1,18 +1,11 @@
 /**
- * Every referrer earns the same fixed share of what an invited member paid.
- * This is deliberately independent of any affiliate's stored commission_pct so the
- * page can promise the same number to everyone.
- */
-export const AFFILIATE_SHARE_PCT = 50;
-
-/** Affiliate credit for one paid amount, in cents, rounded down. */
-export function affiliateCreditCents(paidCents: number, sharePct = AFFILIATE_SHARE_PCT): number {
-  return Math.floor((paidCents * sharePct) / 100);
-}
-
-/**
- * Invited people must always land on the real site, so invite links are built from the
- * production origin in every environment — the preview host would be a dead link to a member.
+ * Invite links must always land invited people on the real site, so they are built
+ * from the production origin in every environment — the preview host would be a dead
+ * link to a member.
+ *
+ * The credit rate itself is never computed here: the affiliate_referral_stats RPC
+ * returns earned_cents calculated from each affiliate's stored commission_pct, and
+ * the page renders that server value directly.
  */
 export const PRODUCTION_ORIGIN = "https://www.oneworldfamily.app";
 
