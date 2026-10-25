@@ -76,7 +76,7 @@ function AffiliatePage() {
       <p className="section-label">Invite & earn</p>
       <h1 className="mt-4 text-4xl text-foreground lg:text-5xl">Grow the family</h1>
       <p className="mt-3 max-w-2xl text-muted-foreground">
-        Share your personal link. When someone you invite pays for membership, {sharePct}% of what they paid is tracked as your affiliate credit. Payouts begin once payments go live.
+        Share your personal link. When someone you invite pays for membership, {sharePct}% of what they paid is tracked as your affiliate credit.
       </p>
       <ProgramTotals />
 
