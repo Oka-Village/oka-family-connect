@@ -1,5 +1,10 @@
 # Roadmap
 
+- [x] Free Google signup to onboarding; require every member's photo, with an authorized onboarding-only root boundary exception.
+- [x] Add dismissible Support Oka choices with existing checkouts and one-time trial recording, leaving other access rules and direct membership visits unchanged.
+- [x] Verify 89 focused tests, signed-out landing and direct membership preview, nullable trial column and unchanged protected files; no publish or checkout created.
+- [ ] Verify authenticated signup through photo upload, post-onboarding modal and persisted trial read-back; blocked by no available requesting-user session (self session mint failed). Local-only isolated screen harness did not complete, so modal visual verification remains unconfirmed.
+
 - [x] Restore shared signup default to full and align client launch access with verified payment; 76 tests and real full-member Home/welcome plus signed-out membership verified; all 25 profiles and Kyle's membership untouched.
 - [x] Require verified payment from existing and new non-staff members in preview UI; 77 tests and simulated existing unpaid full-member redirect verified; real admin access preserved, no profile/payment changes.
 - [ ] Synchronize existing-member paid-access enforcement in shared database with the new live payment UI; deferred because tightening shared policies now would lock the old live app out before publishing.

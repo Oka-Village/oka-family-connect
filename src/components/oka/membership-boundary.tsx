@@ -32,8 +32,11 @@ export function MembershipBoundary({ children }: { children: ReactNode }) {
   const paid = hasPaidMembership(membership.data);
   const loading = session.isPending || session.isFetching || profile.isPending || Boolean(session.data && (roles.isPending || (!exempt && profile.data && membership.isPending)));
   const failed = session.isError || profile.isError || Boolean(session.data && (roles.isError || (!exempt && membership.isError) || !profile.isPending && !profile.data));
+  // Free profile creation is the sole exception; member content remains gated.
   const destination = session.data
-    ? paymentRedirect(location.pathname, exempt, paid)
+    ? location.pathname === "/onboarding" ? null
+      : !profile.data?.onboarded_at && ["/", "/home"].includes(location.pathname) ? "/onboarding"
+      : paymentRedirect(location.pathname, exempt, paid)
     : isPublicEntryRoute(location.pathname) ? null : "/membership";
   const inviteCode = /^\/invite\/([^/]+)$/.exec(location.pathname)?.[1];
   // Persist attribution before the payment redirect; claim on the membership page.
@@ -45,7 +48,8 @@ export function MembershipBoundary({ children }: { children: ReactNode }) {
       const search = new URLSearchParams(location.searchStr);
       const session = location.pathname === "/founding" ? search.get("session_id") : null;
       void navigate({ to: "/membership", replace: true, search: { session_id: session ?? undefined, kind: "founding" } });
-    } else void navigate({ to: "/home", replace: true });
+    } else if (destination === "/onboarding") void navigate({ to: "/onboarding", replace: true });
+    else void navigate({ to: "/home", replace: true });
   }, [loading, failed, destination, navigate, location.pathname, location.searchStr]);
   async function signOut() {
     await qc.cancelQueries(); qc.clear(); await supabase.auth.signOut();

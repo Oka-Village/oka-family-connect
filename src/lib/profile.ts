@@ -23,6 +23,8 @@ export type OkaProfile = {
   profile_completed: boolean;
   /** Welcome steps finished or skipped. */
   onboarded_at: string | null;
+  /** First trial start only; never used by access gates. */
+  trial_started_at?: string | null;
   created_at: string;
   updated_at: string;
 };

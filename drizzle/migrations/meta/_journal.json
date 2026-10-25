@@ -99,6 +99,13 @@
       "when": 1792760060507,
       "tag": "0013_restore_legacy_profile_signup_default",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1792923136341,
+      "tag": "0014_record_one_time_profile_trial",
+      "breakpoints": true
     }
   ]
 }
