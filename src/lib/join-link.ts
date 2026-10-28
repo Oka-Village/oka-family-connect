@@ -13,6 +13,11 @@ export function joinUrl(slug: string, refCode?: string | null) {
   return `${window.location.origin}${joinPath(slug, refCode)}`;
 }
 
+/** Who may see the share box: the host, staff, or any member holding an active affiliate code. */
+export function canShareEventLink(isManager: boolean, isStaff: boolean, refCode?: string | null) {
+  return isManager || isStaff || Boolean(refCode?.trim());
+}
+
 /** Remember a same-origin path to return to after the Google round-trip. */
 export function saveReturnTo(path: string) {
   if (!path.startsWith("/") || path.startsWith("//")) return;

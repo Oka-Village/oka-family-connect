@@ -15,7 +15,7 @@ import { VideoRoom } from "@/components/oka/video-room";
 import { useServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { CopyJoinLink } from "@/components/oka/copy-join-link";
-import { joinPath } from "@/lib/join-link";
+import { canShareEventLink, joinPath } from "@/lib/join-link";
 import {
   EVENT_SELECT,
   FORMAT_LABELS,
@@ -148,7 +148,7 @@ function EventDetail() {
         </div>
       )}
 
-      {(isManager || isAdmin) && ev.status === "published" && ev.format === "virtual" && !past && (
+      {canShareEventLink(isManager, !!isAdmin, refCode) && ev.status === "published" && ev.format === "virtual" && !past && (
         <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-card p-5 shadow-soft">
           <div>
             <p className="section-label">Share your call</p>
