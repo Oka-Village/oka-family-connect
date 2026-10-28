@@ -118,14 +118,14 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
       });
       const { data, error } = await supabase.from("events").insert(rows).select("id,starts_at").order("starts_at");
       if (error || !data?.length) { setSaving(false); return toast.error(error?.message ?? "Couldn't save the event."); }
-      eventId = data[0].id;
+      const firstId = data[0]!.id;
       const { error: locErr } = await supabase.from("event_locations").upsert(data.map((r) => ({ event_id: r.id, ...location })));
       setSaving(false);
       if (locErr) return toast.error(locErr.message);
       await queryClient.invalidateQueries();
       const n = data.length > 1 ? ` (${data.length} dates)` : "";
       toast.success((isAdmin ? "Event published" : "Proposal sent for review") + n);
-      return navigate({ to: "/events/$eventId", params: { eventId: eventId! } });
+      return navigate({ to: "/events/$eventId", params: { eventId: firstId } });
     } else {
       const { error } = await supabase.from("events").update(payload).eq("id", eventId!);
       if (error) { setSaving(false); return toast.error(error.message); }
@@ -134,7 +134,7 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
     setSaving(false);
     if (locErr) return toast.error(locErr.message);
     await queryClient.invalidateQueries();
-    toast.success(mode === "create" ? (isAdmin ? "Event published" : "Proposal sent for review") : "Event updated");
+    toast.success("Event updated");
     return navigate({ to: "/events/$eventId", params: { eventId: eventId! } });
   }
 
