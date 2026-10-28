@@ -33,6 +33,7 @@ export function HouseForm({ userId, initial }: { userId: string; initial?: House
   const [photos, setPhotos] = useState<string[]>(initial?.photos ?? []);
   const [previews, setPreviews] = useState<Record<string, string>>({});
   const [uploading, setUploading] = useState(0);
+  const [photoError, setPhotoError] = useState(false);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -57,11 +58,13 @@ export function HouseForm({ userId, initial }: { userId: string; initial?: House
     const ok = results.filter((p): p is string => !!p);
     if (ok.length < list.length) toast.error("Some photos didn't upload — images under 5 MB only.");
     setPhotos((p) => [...p, ...ok]);
+    if (ok.length) setPhotoError(false);
   }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!f.title.trim()) { toast.error("Please give your home a title."); return; }
+    if (!photos.length) { setPhotoError(true); toast.error("Please add at least one photo for your home."); return; }
     setBusy(true);
     const payload = {
       title: f.title.trim().slice(0, 120),
@@ -88,7 +91,7 @@ export function HouseForm({ userId, initial }: { userId: string; initial?: House
   return (
     <form onSubmit={submit} className="surface-card grid gap-6 p-6">
       <div>
-        <L>Photos</L>
+        <L>Photos (required)</L>
         <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
           {photos.map((p, i) => (
             <div key={p} className="relative">
@@ -107,6 +110,7 @@ export function HouseForm({ userId, initial }: { userId: string; initial?: House
           )}
         </div>
         <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => { if (e.target.files?.length) void uploadMany(e.target.files); e.target.value = ""; }} />
+        {photoError && !photos.length && <p className="text-sm text-destructive">Please add at least one photo for your home.</p>}
       </div>
       <div><L>Title</L><Input required maxLength={120} placeholder="e.g. Sunlit room above the olive grove" value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} /></div>
       <div>
