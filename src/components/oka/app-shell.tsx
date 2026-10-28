@@ -12,7 +12,7 @@ import { useIsStaff } from "@/hooks/use-is-admin";
 import { supabase } from "@/integrations/supabase/client";
 import { useClaimInvite } from "@/lib/affiliates";
 import { cn } from "@/lib/utils";
-import { CreditPill } from "@/components/oka/credit-pill";
+import { CreditPill, ProfileCompletionBanner } from "@/components/oka/credit-pill";
 import { NotificationsBell } from "@/components/oka/notifications-bell";
 import { useMemberAccess } from "@/hooks/use-member-access";
 import { MemberAccessGate } from "@/components/oka/member-access-gate";
@@ -192,6 +192,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </Button>
         </div>
       </header>
+
+      <ProfileCompletionBanner />
 
       <main className="pb-28">{children}</main>
       <SupportOkaDialog
