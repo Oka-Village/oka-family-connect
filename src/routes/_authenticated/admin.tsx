@@ -14,12 +14,13 @@ import { deleteEvent, setEventStatus } from "@/lib/event-admin";
 import { EVENT_SELECT, TYPE_LABELS, formatEventDate, formatEventTime, hostName, type EventRow } from "@/lib/events";
 import { CopyJoinLink } from "@/components/oka/copy-join-link";
 import { AffiliatesSection } from "@/components/oka/admin-affiliates";
+import { FacilitatorsSection } from "@/components/oka/admin-facilitators";
 import { ActivitySection } from "@/components/oka/admin-activity";
 import { ThemesSection } from "@/components/oka/admin-themes";
 import { cn } from "@/lib/utils";
 import { AdminDeleteMember, AdminEditProfile, AdminMemberPhoto, AdminSuspendMember, BlockedEmails, useSuspendedIds } from "@/components/oka/admin-member-tools";
 
-const TABS = ["events", "members", "listings", "affiliates", "activity", "themes"] as const;
+const TABS = ["events", "members", "listings", "affiliates", "facilitators", "activity", "themes"] as const;
 type Tab = (typeof TABS)[number];
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -56,6 +57,7 @@ function AdminPage() {
     ...(roles.isAdmin ? [{ id: "members" as const, label: "Members", icon: Users }] : []),
     { id: "listings", label: "Houses & skills", icon: Home },
     ...(roles.isAdmin ? [{ id: "affiliates" as const, label: "Affiliates", icon: Gift }] : []),
+    ...(roles.isAdmin ? [{ id: "facilitators" as const, label: "Facilitators", icon: Star }] : []),
     ...(roles.isAdmin ? [{ id: "activity" as const, label: "Activity log", icon: Activity }] : []),
     ...(roles.isAdmin ? [{ id: "themes" as const, label: "Themes", icon: Palette }] : []),
   ];
@@ -83,6 +85,7 @@ function AdminPage() {
       {active === "members" && roles.isAdmin && <MembersSection />}
       {active === "listings" && <ListingsSection />}
       {active === "affiliates" && roles.isAdmin && <AffiliatesSection />}
+      {active === "facilitators" && roles.isAdmin && <FacilitatorsSection />}
       {active === "activity" && roles.isAdmin && <ActivitySection />}
       {active === "themes" && roles.isAdmin && <ThemesSection />}
     </div>
