@@ -70,6 +70,10 @@ function Welcome() {
   return (
     <div className="mx-auto max-w-3xl px-5 py-12 sm:px-8">
       <p className="section-label">Welcome to Oka</p>
+      <p className="mt-5 inline-flex items-center gap-2 rounded-full border border-border bg-secondary px-4 py-1.5 text-xs font-medium uppercase tracking-[0.18em] text-secondary-foreground">
+        <span className="size-1.5 rounded-full bg-primary" aria-hidden="true" />
+        Oka launches December 1
+      </p>
       <h1 className="mt-4 text-4xl text-foreground sm:text-5xl">Make yourself at home</h1>
       <p className="mt-4 text-base leading-relaxed text-muted-foreground">Four small ways to begin, whenever you're ready.</p>
 
