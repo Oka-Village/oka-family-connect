@@ -27,3 +27,22 @@ export const adminDeleteMember = createServerFn({ method: "POST" })
     if (res.error) throw new Error(`Couldn't delete this member: ${res.error.message}`);
     return { ok: true };
   });
+
+/** Admin-only read-only: verified membership rows for the listed members, so the Members tab can show payment status. */
+export const getAdminMemberStatuses = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((value: unknown) => z.object({ userIds: z.array(z.string().uuid()).max(100) }).parse(value))
+  .handler(async ({ data, context }) => {
+    const { data: isAdmin, error } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
+    if (error || !isAdmin) throw new Error("Only admins can view member payment status.");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: memberships, error: mErr } = await supabaseAdmin
+      .from("memberships")
+      .select("user_id,kind,active,current_period_end")
+      .in("user_id", data.userIds);
+    if (mErr) throw new Error("We couldn't read member memberships. Please try again.");
+    const byUser: Record<string, { user_id: string; kind: string; active: boolean; current_period_end: string | null }> = {};
+    for (const m of memberships ?? []) byUser[m.user_id] = m;
+    return byUser;
+  });

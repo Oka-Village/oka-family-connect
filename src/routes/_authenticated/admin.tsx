@@ -10,8 +10,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCurrentUserId, useRoles } from "@/hooks/use-is-admin";
 import { supabase } from "@/integrations/supabase/client";
+import { getAdminMemberStatuses } from "@/lib/admin-members.functions";
 import { deleteEvent, setEventStatus } from "@/lib/event-admin";
 import { EVENT_SELECT, TYPE_LABELS, formatEventDate, formatEventTime, hostName, type EventRow } from "@/lib/events";
+import { memberStatusIndicators } from "@/lib/member-status";
 import { CopyJoinLink } from "@/components/oka/copy-join-link";
 import { AffiliatesSection } from "@/components/oka/admin-affiliates";
 import { FacilitatorsSection } from "@/components/oka/admin-facilitators";
@@ -209,7 +211,7 @@ function MembersSection() {
   const q = useQuery({
     queryKey: ["admin", "members", term],
     queryFn: async () => {
-      let pq = supabase.from("profiles").select("id,display_name,location,profession,photo_url").order("display_name").limit(25);
+      let pq = supabase.from("profiles").select("id,display_name,location,profession,photo_url,trial_started_at").order("display_name").limit(25);
       if (term.trim()) pq = pq.ilike("display_name", `%${term.trim().replace(/[%_]/g, "")}%`);
       const { data: people, error } = await pq;
       if (error) throw error;
@@ -223,7 +225,13 @@ function MembersSection() {
         ? await supabase.from("affiliates").select("user_id,status").in("user_id", ids)
         : { data: [] as { user_id: string; status: string }[] };
       const affBy = new Map((affs ?? []).map((a) => [a.user_id, a.status]));
-      return (people ?? []).map((p) => ({ ...p, roles: byUser.get(p.id) ?? new Set<string>(), affiliate: affBy.get(p.id) ?? null }));
+      const membershipBy = ids.length ? await getAdminMemberStatuses({ data: { userIds: ids } }) : {};
+      return (people ?? []).map((p) => ({
+        ...p,
+        roles: byUser.get(p.id) ?? new Set<string>(),
+        affiliate: affBy.get(p.id) ?? null,
+        membership: membershipBy[p.id] ?? null,
+      }));
     },
   });
 
@@ -264,6 +272,7 @@ function MembersSection() {
         {q.data?.map((p) => {
           const isAdmin = p.roles.has("admin");
           const isMod = p.roles.has("moderator");
+          const { paid, trial } = memberStatusIndicators(p.membership, p.trial_started_at);
           const self = p.id === me;
           return (
             <Card key={p.id}>
@@ -272,9 +281,12 @@ function MembersSection() {
               <div>
                 <p className="font-serif text-xl text-foreground">{p.display_name || "Unnamed member"}{self && <span className="ml-2 text-sm text-muted-foreground">(you)</span>}</p>
                 <p className="text-sm text-muted-foreground">{[p.profession, p.location].filter(Boolean).join(" · ") || "—"}</p>
-                <div className="mt-2 flex gap-2">
+                <div className="mt-2 flex flex-wrap gap-2">
                   {isAdmin && <span className="rounded-full bg-primary/15 px-3 py-0.5 text-xs text-primary">Admin</span>}
                   {isMod && <span className="rounded-full bg-secondary px-3 py-0.5 text-xs text-secondary-foreground">Moderator</span>}
+                  {paid && <span className="rounded-full bg-sage-light px-3 py-0.5 text-xs text-foreground">Paid</span>}
+                  {trial === "active" && <span className="rounded-full bg-accent px-3 py-0.5 text-xs text-foreground">7-day trial</span>}
+                  {trial === "expired" && <span className="rounded-full bg-accent/40 px-3 py-0.5 text-xs text-muted-foreground">Trial ended</span>}
                   {p.affiliate === "active" && <span className="rounded-full bg-sage-light px-3 py-0.5 text-xs text-foreground">Affiliate</span>}
                   {suspendedIds?.has(p.id) && <span className="rounded-full bg-destructive/15 px-3 py-0.5 text-xs text-destructive">Suspended</span>}
                   {!isAdmin && !isMod && <span className="rounded-full bg-accent px-3 py-0.5 text-xs text-muted-foreground">Member</span>}
