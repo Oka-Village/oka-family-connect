@@ -112,7 +112,7 @@ function Landing() {
         </h1>
         <p className="mx-auto mt-8 max-w-xl text-lg leading-relaxed text-muted-foreground">
           Oka is a circle of people who host each other and share their gifts in a credit economy.
-          One credit is one night&apos;s stay, or one hour of service. Never money.
+          One credit is one night&apos;s stay, or one hour of service.
         </p>
         <div className="mt-10 flex flex-col items-center gap-4">
           <Button size="lg" className="rounded-full px-8" onClick={handleGoogleSignIn} disabled={signingIn}>
