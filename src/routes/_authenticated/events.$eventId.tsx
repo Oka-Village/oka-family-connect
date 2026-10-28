@@ -50,6 +50,16 @@ function EventDetail() {
   const qc = useQueryClient();
   const { data: uid } = useCurrentUserId();
   const { data: isAdmin } = useIsStaff();
+  // The sharer's own active affiliate code, if any — used only to tag shared join links.
+  const myAffiliate = useQuery({
+    queryKey: ["affiliate", "my-code", uid],
+    queryFn: async () => {
+      const { data } = await supabase.from("affiliates").select("invite_code,status").eq("user_id", uid!).maybeSingle();
+      return data?.status === "active" ? data.invite_code : null;
+    },
+    enabled: !!uid,
+  });
+  const refCode = myAffiliate.data ?? null;
   const fetchVideoCfg = useServerFn(getVideoConfigured);
   const videoCfg = useQuery({ queryKey: ["video-configured"], queryFn: () => fetchVideoCfg(), staleTime: 5 * 60_000 });
 
