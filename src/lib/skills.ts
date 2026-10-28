@@ -39,12 +39,7 @@ export type SkillFilters = { q: string; category: string; format: string };
 
 const safe = (s: string) => s.replace(/[%_\\,()*]/g, " ").trim().slice(0, 80);
 
-export function formatDuration(min: number | null) {
-  if (!min) return null;
-  if (min < 60) return `${min} min`;
-  const h = Math.floor(min / 60), m = min % 60;
-  return m ? `${h} h ${m} min` : `${h} h`;
-}
+export { formatDuration } from "@/lib/duration";
 
 /** Sign many stored paths (avatars bucket) in one request; http URLs pass through. */
 export async function signPaths(paths: Array<string | null | undefined>) {
