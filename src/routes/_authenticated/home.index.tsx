@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { Postcard, SPACE_ART, type SpaceId, type TapeColor } from "@/components/oka/postcard";
 import { HomeThemes } from "@/components/oka/home-themes";
+import { HomeInspirations } from "@/components/oka/home-inspirations";
 import { HomeEvents } from "@/components/oka/home-events";
 import { HomeFeatured } from "@/components/oka/home-featured";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -82,6 +83,8 @@ function HomePage() {
         </div>
         <p className="font-serif text-xl italic text-postcard-label md:text-right">Three cards arrived<br />this morning.</p>
       </header>
+
+      <HomeInspirations />
 
       <HomeEvents />
 
