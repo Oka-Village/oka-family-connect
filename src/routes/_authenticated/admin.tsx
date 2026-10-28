@@ -280,9 +280,12 @@ function MembersSection() {
               <div>
                 <p className="font-serif text-xl text-foreground">{p.display_name || "Unnamed member"}{self && <span className="ml-2 text-sm text-muted-foreground">(you)</span>}</p>
                 <p className="text-sm text-muted-foreground">{[p.profession, p.location].filter(Boolean).join(" · ") || "—"}</p>
-                <div className="mt-2 flex gap-2">
+                <div className="mt-2 flex flex-wrap gap-2">
                   {isAdmin && <span className="rounded-full bg-primary/15 px-3 py-0.5 text-xs text-primary">Admin</span>}
                   {isMod && <span className="rounded-full bg-secondary px-3 py-0.5 text-xs text-secondary-foreground">Moderator</span>}
+                  {paid && <span className="rounded-full bg-sage-light px-3 py-0.5 text-xs text-foreground">Paid</span>}
+                  {trial === "active" && <span className="rounded-full bg-accent px-3 py-0.5 text-xs text-foreground">7-day trial</span>}
+                  {trial === "expired" && <span className="rounded-full bg-accent/40 px-3 py-0.5 text-xs text-muted-foreground">Trial ended</span>}
                   {p.affiliate === "active" && <span className="rounded-full bg-sage-light px-3 py-0.5 text-xs text-foreground">Affiliate</span>}
                   {suspendedIds?.has(p.id) && <span className="rounded-full bg-destructive/15 px-3 py-0.5 text-xs text-destructive">Suspended</span>}
                   {!isAdmin && !isMod && <span className="rounded-full bg-accent px-3 py-0.5 text-xs text-muted-foreground">Member</span>}
