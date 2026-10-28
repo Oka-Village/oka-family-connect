@@ -7,6 +7,8 @@ import {
 import heroImage from "@/assets/facilitators-hero.jpg";
 import { pillOutline, pillPrimary } from "@/components/oka/postcard";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { submitFacilitatorApplication } from "@/lib/facilitator-applications.functions";
 import {
   AGREEMENT_CONFIRMATION_COUNT, defaultConfirmations, ELIGIBILITY_CONFIRMATION_COUNT,
   MINIMUM_FACILITATOR_SESSIONS, PAYMENT_CONFIRMATION_COUNT, requiredConfirmationsComplete,
@@ -200,7 +202,14 @@ export function FacilitatorsPage() {
             onAcceptanceName={setAcceptanceName}
             newsOptIn={newsOptIn}
             onNewsOptIn={() => setNewsOptIn((v) => !v)}
-            onSubmit={() => setSubmitted(true)}
+            onSubmit={async () => {
+              try {
+                await submitFacilitatorApplication({ data: { answers: form, acceptanceName, newsOptIn } });
+                setSubmitted(true);
+              } catch (e) {
+                toast.error(e instanceof Error ? e.message : "We couldn’t send your application. Please try again.");
+              }
+            }}
             onBack={() => goTo(2)}
           />
         )}
@@ -1029,9 +1038,6 @@ function ConfirmationScreen({ form, acceptanceName }: { form: FormValues; accept
         <p className="max-w-[56ch] text-[15px] leading-relaxed text-muted-foreground">
           Your application has been received. We will review your background and proposed session and contact you
           about the next steps.
-        </p>
-        <p className="rounded-2xl border border-border bg-secondary/60 p-4 text-sm leading-relaxed text-muted-foreground">
-          Applications are currently stored only in this browser while the submission backend is being set up.
         </p>
       </header>
 
