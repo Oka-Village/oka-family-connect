@@ -65,9 +65,3 @@ export const setPreference = createServerFn({ method: "POST" })
       return { ok: false };
     }
   });
-
-// Intentionally inert: no transport, no provider call, no validation that can
-// throw. This is a server-only helper, not a publicly callable email endpoint.
-export const sendNotificationEmail = async (_to: string, _subject: string, _text: string) => {
-  return { skipped: true as const };
-};
