@@ -117,7 +117,7 @@ function AffiliatePage() {
                   <div className="flex items-center gap-3">
                     <MemberAvatar src={r.photo} name={r.display_name} className="size-10" />
                     <div>
-                      <p className="text-foreground">{r.display_name ?? "New member"}</p>
+                      <p className="text-foreground">{r.display_name ?? "Pending member"}</p>
                       <p className="text-xs text-muted-foreground">Joined {new Date(r.joined_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</p>
                     </div>
                   </div>
