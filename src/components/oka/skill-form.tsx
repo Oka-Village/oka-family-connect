@@ -33,6 +33,7 @@ export function SkillForm({ userId, initial }: { userId: string; initial?: Skill
   const [preview, setPreview] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [photoError, setPhotoError] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -51,12 +52,14 @@ export function SkillForm({ userId, initial }: { userId: string; initial?: Skill
     setUploading(false);
     if (error) { toast.error("That photo didn't upload. Please try again."); return; }
     setF((x) => ({ ...x, photo_url: path }));
+    setPhotoError(false);
   }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     const duration = Number.parseInt(f.duration, 10);
     if (!f.title.trim()) { toast.error("Please give your offering a title."); return; }
+    if (!f.photo_url) { setPhotoError(true); toast.error("Please add a photo for your offering."); return; }
     if (!Number.isFinite(duration) || duration < 15 || duration > 480) { toast.error("Duration should be between 15 and 480 minutes."); return; }
     setBusy(true);
     const payload = {
@@ -87,10 +90,11 @@ export function SkillForm({ userId, initial }: { userId: string; initial?: Skill
         <div className="flex flex-wrap gap-2">
           <Button type="button" variant="outline" className="rounded-full" disabled={uploading} onClick={() => fileRef.current?.click()}>
             {uploading ? <Loader2 className="size-4 animate-spin" strokeWidth={1.5} /> : <Camera className="size-4 text-primary" strokeWidth={1.5} />}
-            {f.photo_url ? "Change photo" : "Add a photo (optional)"}
+            {f.photo_url ? "Change photo" : "Add a photo (required)"}
           </Button>
           {f.photo_url && <Button type="button" variant="ghost" className="rounded-full" onClick={() => setF((x) => ({ ...x, photo_url: null }))}>Remove</Button>}
         </div>
+        {photoError && !f.photo_url && <p className="text-sm text-destructive">Please add a photo for your offering.</p>}
       </div>
       <div><L>Title</L><Input required maxLength={120} placeholder="e.g. Sourdough from scratch" value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} /></div>
       <div>

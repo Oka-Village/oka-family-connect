@@ -55,6 +55,7 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
   });
   const fileRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [photoError, setPhotoError] = useState(false);
   const [uploading, setUploading] = useState(false);
   useEffect(() => {
     let alive = true;
@@ -69,6 +70,7 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
     setUploading(false);
     if (error) return void toast.error("That photo didn't upload. Please try again.");
     setF((x) => ({ ...x, photo_url: path }));
+    setPhotoError(false);
   }
   const [saving, setSaving] = useState(false);
   const [repeat, setRepeat] = useState<Repeat>("none");
@@ -78,7 +80,7 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
   async function submit(e: React.FormEvent): Promise<unknown> {
     e.preventDefault();
     if (!f.title.trim() || !f.starts) return toast.error("Please add a title and a start time.");
-    if (!f.photo_url) return toast.error("Please add a photo for your event.");
+    if (!f.photo_url) { setPhotoError(true); return toast.error("Please add a photo for your event."); }
     if (f.video && !/^https?:\/\//.test(f.video)) return toast.error("The video link should start with https://");
     const starts_at = zonedInputToUtc(f.starts, f.timezone);
     const ends_at = f.ends ? zonedInputToUtc(f.ends, f.timezone) : null;
@@ -148,6 +150,7 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
           {uploading ? <Loader2 className="size-4 animate-spin" strokeWidth={1.5} /> : <Camera className="size-4 text-primary" strokeWidth={1.5} />}
           {f.photo_url ? "Change photo" : "Add a photo"}
         </Button>
+        {photoError && !f.photo_url && <p className="text-sm text-destructive">Please add a photo for your event.</p>}
       </div>
       <div className="grid gap-2">
         <Label htmlFor="title">Title</Label>
