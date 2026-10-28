@@ -1,5 +1,6 @@
 // Shareable event join links (/join/<slug>) and the "come back here after sign-in" memory.
 // The link carries only the event's public slug — never a token. Access is still gated by RSVP.
+import { PRODUCTION_ORIGIN } from "./affiliate-share";
 
 const RETURN_KEY = "oka:return-to";
 
@@ -10,7 +11,7 @@ export function joinPath(slug: string, refCode?: string | null) {
 }
 
 export function joinUrl(slug: string, refCode?: string | null) {
-  return `${window.location.origin}${joinPath(slug, refCode)}`;
+  return `${PRODUCTION_ORIGIN}${joinPath(slug, refCode)}`;
 }
 
 /** Who may see the share box: the host, staff, or any member holding an active affiliate code. */

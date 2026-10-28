@@ -72,11 +72,11 @@ export function LittleMomentFooter() {
         </div>
       </div>
 
-      <div className="relative mx-auto mt-10 flex max-w-[1180px] items-center justify-center gap-8 border-t border-dashed border-[var(--moment-rule)] pt-[18px] font-sans text-[13px] text-[var(--moment-muted)] md:justify-start">
+      <div className="relative mx-auto mt-10 flex max-w-[1180px] flex-col items-center justify-center gap-8 border-t border-dashed border-[var(--moment-rule)] pt-[18px] font-sans text-[13px] text-[var(--moment-muted)] md:flex-row md:justify-start">
         <Link to="/home" aria-label="Oka home" className="shrink-0 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
           <Wordmark className="h-7" />
         </Link>
-        <nav aria-label="Footer" className="hidden flex-wrap gap-x-6 gap-y-2 md:flex">
+        <nav aria-label="Footer" className="flex flex-wrap justify-center gap-x-6 gap-y-2 md:justify-start">
           {LINKS.map((l) => (
             <Link key={l.to} to={l.to} className="transition-colors hover:text-primary">{l.label}</Link>
           ))}

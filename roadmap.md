@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Use production event share URLs and expose Invite in mobile tabs/footer; verify and capture Daniel's Home and affiliate pages at 390px without publishing.
+
 - [x] Free Google signup to onboarding; require every member's photo, with an authorized onboarding-only root boundary exception.
 - [x] Add dismissible Support Oka choices with existing checkouts and one-time trial recording, leaving other access rules and direct membership visits unchanged.
 - [x] Verify 89 focused tests, signed-out landing and direct membership preview, nullable trial column and unchanged protected files; no publish or checkout created.

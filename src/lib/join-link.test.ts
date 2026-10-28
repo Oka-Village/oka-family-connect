@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { canShareEventLink, joinPath } from "./join-link";
+import { canShareEventLink, joinPath, joinUrl } from "./join-link";
+
+describe("joinUrl", () => {
+  it("always uses the production origin for tagged event links", () => {
+    expect(joinUrl("abc123", "DAN50")).toBe("https://www.oneworldfamily.app/join/abc123?ref=DAN50");
+  });
+  it("uses the production origin without adding a ref for plain event links", () => {
+    expect(joinUrl("abc123", null)).toBe("https://www.oneworldfamily.app/join/abc123");
+  });
+});
 
 describe("joinPath", () => {
   it("adds the sharer's affiliate code as ?ref=", () => {
