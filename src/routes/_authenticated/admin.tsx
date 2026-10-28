@@ -272,6 +272,7 @@ function MembersSection() {
         {q.data?.map((p) => {
           const isAdmin = p.roles.has("admin");
           const isMod = p.roles.has("moderator");
+          const { paid, trial } = memberStatusIndicators(p.membership, p.trial_started_at);
           const self = p.id === me;
           return (
             <Card key={p.id}>
