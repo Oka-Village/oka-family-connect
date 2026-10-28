@@ -35,6 +35,7 @@ const NAV_ITEMS = [
 ] as const;
 
 const PRIMARY_ITEMS = NAV_ITEMS.slice(0, 6);
+const MOBILE_ITEMS = [...PRIMARY_ITEMS, { to: "/affiliate", label: "Invite", icon: Gift } as const];
 
 /** Desktop left sidebar, mobile bottom tab bar. */
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -199,14 +200,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         }}
       />
 
-      <nav className="fixed inset-x-0 bottom-0 z-10 flex justify-between border-t border-border bg-sidebar px-2 py-2 lg:hidden">
-        {PRIMARY_ITEMS.map((item) => {
+      <nav aria-label="Mobile navigation" className="fixed inset-x-0 bottom-0 z-10 grid grid-cols-7 border-t border-border bg-sidebar px-1 py-2 lg:hidden">
+        {MOBILE_ITEMS.map((item) => {
           const active = pathname.startsWith(item.to);
           return (
             <Link
               key={item.to}
               to={item.to}
-              className={cn("flex flex-1 flex-col items-center gap-1 px-0.5 py-2 text-[0.6rem] whitespace-nowrap transition-colors", active ? "text-primary" : "text-muted-foreground")}
+              className={cn("flex min-w-0 flex-col items-center gap-1 py-2 text-[0.6rem] whitespace-nowrap transition-colors", active ? "text-primary" : "text-muted-foreground")}
             >
               <item.icon className={cn("size-5", active && "text-primary")} strokeWidth={1.5} />
               <span className="relative">{item.label}{item.to === "/home" && unreadCount > 0 && <span className="absolute -right-3 -top-1 flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[0.55rem] leading-4 text-primary-foreground" aria-label={`${unreadCount} unread appreciation letters`}>{unreadCount > 9 ? "9+" : unreadCount}</span>}</span>
