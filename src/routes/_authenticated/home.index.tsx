@@ -5,7 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 
 import { Postcard, SPACE_ART, type SpaceId, type TapeColor } from "@/components/oka/postcard";
-import { HomeThemes } from "@/components/oka/home-themes";
 import { HomeInspirations } from "@/components/oka/home-inspirations";
 import { HomeEvents } from "@/components/oka/home-events";
 import { HomeFeatured } from "@/components/oka/home-featured";
@@ -90,7 +89,6 @@ function HomePage() {
 
       <HomeFeatured />
 
-      <HomeThemes />
 
       <div className="postcard-scene flex flex-col items-center pb-5 pt-2.5 md:flex-row md:flex-nowrap md:justify-center md:gap-6 xl:gap-11">
 
