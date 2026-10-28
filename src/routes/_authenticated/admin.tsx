@@ -84,7 +84,7 @@ function AdminPage() {
         ))}
       </div>
       {active === "events" && <EventsSection />}
-      {active === "members" && roles.isAdmin && <MembersSection />}
+      {active === "members" && roles.isAdmin && <MembersSection viewerIsAdmin={roles.isAdmin} />}
       {active === "listings" && <ListingsSection />}
       {active === "affiliates" && roles.isAdmin && <AffiliatesSection />}
       {active === "facilitators" && roles.isAdmin && <FacilitatorsSection />}
@@ -201,14 +201,13 @@ function EventsSection() {
 }
 
 // ---------------- Members (admin only) ----------------
-function MembersSection() {
+function MembersSection({ viewerIsAdmin }: { viewerIsAdmin: boolean }) {
   const qc = useQueryClient();
   const { data: me } = useCurrentUserId();
   const [term, setTerm] = useState("");
   const [adjusting, setAdjusting] = useState<string | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
   const { data: suspendedIds } = useSuspendedIds();
-  const viewerIsAdmin = !!(me && q0Admin(me));
   const q = useQuery({
     queryKey: ["admin", "members", term],
     queryFn: async () => {
@@ -302,7 +301,7 @@ function MembersSection() {
                 <p className="font-serif text-xl text-foreground">{p.display_name || "Unnamed member"}{self && <span className="ml-2 text-sm text-muted-foreground">(you)</span>}</p>
                 <p className="text-sm text-muted-foreground">{[p.profession, p.location].filter(Boolean).join(" · ") || "—"}</p>
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {p.pendingApproval && <span className="rounded-full bg-golden/25 px-3 py-0.5 text-xs text-foreground">Pending approval</span>}
+                  {p.pendingApproval && <span className="rounded-full bg-golden-tint px-3 py-0.5 text-xs text-golden-ink">Pending approval</span>}
                   {isAdmin && <span className="rounded-full bg-primary/15 px-3 py-0.5 text-xs text-primary">Admin</span>}
                   {isMod && <span className="rounded-full bg-secondary px-3 py-0.5 text-xs text-secondary-foreground">Moderator</span>}
                   {paid && <span className="rounded-full bg-sage-light px-3 py-0.5 text-xs text-foreground">Paid</span>}
