@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Globe2, HeartHandshake, Home, Loader2, Sparkles } from "lucide-react";
+import { HeartHandshake, Home, Loader2, Sparkles } from "lucide-react";
 
 import { Wordmark } from "@/components/oka/wordmark";
+import { EmailAuthDialog } from "@/components/oka/email-auth";
 import { Button } from "@/components/ui/button";
 import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
@@ -77,6 +78,7 @@ function InvitePage() {
               {busy && <Loader2 className="size-4 animate-spin" strokeWidth={1.5} />}Join with Google
             </Button>
           )}
+          {!signedIn && <EmailAuthDialog label="Join with email" />}
           {!info.isLoading && !name && <p className="text-sm text-muted-foreground">This invitation link isn't active, but you're still very welcome.</p>}
         </div>
         <div className="mt-20 grid gap-5 text-left sm:grid-cols-3">
@@ -92,7 +94,6 @@ function InvitePage() {
             </div>
           ))}
         </div>
-        <p className="mt-16 flex items-center justify-center gap-2 text-sm text-muted-foreground"><Globe2 className="size-4 text-primary" strokeWidth={1.5} />No money between members. Ever.</p>
       </main>
     </div>
   );

@@ -4,6 +4,7 @@ import { Heart, Home, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 import { Wordmark } from "@/components/oka/wordmark";
+import { EmailAuthDialog } from "@/components/oka/email-auth";
 import { Button } from "@/components/ui/button";
 import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
@@ -125,6 +126,7 @@ function Landing() {
           >
             {signingIn ? "Opening Google…" : "Already a member? Sign in"}
           </Button>
+          <EmailAuthDialog label="Sign up or sign in with email" />
         </div>
       </section>
 
