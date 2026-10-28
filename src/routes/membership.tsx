@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { saveReturnTo } from "@/lib/join-link";
 import { beginSignupFlow } from "@/lib/signup-flow.functions";
 import { clearIntent, readIntent, resolveIntent, saveIntent } from "@/lib/membership-intent";
+import { chosenPlanToStart, planClickAction, termsPromptText } from "@/lib/membership-flow";
 
 export const Route = createFileRoute("/membership")({
   validateSearch: (s: Record<string, unknown>) => ({
@@ -42,6 +43,8 @@ function MembershipPage() {
   const roles = useRoles();
   const membership = useMembership(profile.data?.id);
   const [agreed, setAgreed] = useState(false);
+  const [needTerms, setNeedTerms] = useState(false);
+  const termsRef = useRef<HTMLDivElement>(null);
   const [busy, setBusy] = useState<MembershipKind | "confirm" | "signin" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -115,6 +118,23 @@ function MembershipPage() {
     } catch (e) { setError(e instanceof Error ? e.message : "Checkout could not be opened. Please try again."); }
     finally { setBusy(null); }
   }
+  // Plan choice comes first: a click without terms acceptance only points at the checkbox.
+  function choosePlan(choice: MembershipKind) {
+    setSelected(choice);
+    if (planClickAction(agreed) === "ask-terms") {
+      setNeedTerms(true);
+      requestAnimationFrame(() => termsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }));
+      return;
+    }
+    void pay(choice);
+  }
+  function onTermsChange(checked: boolean) {
+    setAgreed(checked);
+    if (!checked) return;
+    setNeedTerms(false);
+    const next = chosenPlanToStart(selected, true);
+    if (next) void pay(next);
+  }
   async function signOut() {
     await qc.cancelQueries(); qc.clear(); await supabase.auth.signOut();
     void navigate({ to: "/", replace: true });
@@ -132,7 +152,7 @@ function MembershipPage() {
           <p className="mt-5"><span className="font-serif text-5xl">$250</span><span className="ml-2 text-muted-foreground">one-time</span></p>
           <p className="mt-4 text-sm text-primary">Founding member deal - available until November 15.</p>
           <p className="mt-4 leading-relaxed text-muted-foreground">Lifetime membership. No renewals.</p>
-          <Button className="mt-8 w-full rounded-full" disabled={!agreed || busy !== null} onClick={() => void pay("founding")}>{busy === "founding" && <Loader2 className="size-4 animate-spin" />}Choose founding membership</Button>
+          <Button className="mt-8 w-full rounded-full" disabled={busy !== null} onClick={() => choosePlan("founding")}>{busy === "founding" && <Loader2 className="size-4 animate-spin" />}Choose founding membership</Button>
         </article>
         <article className={`surface-card flex flex-col p-7 sm:p-8 ${selected === "monthly" ? "ring-2 ring-primary" : ""}`}>
           <CalendarDays className="size-7 text-primary" strokeWidth={1.5} aria-hidden />
@@ -140,12 +160,15 @@ function MembershipPage() {
           <p className="mt-5"><span className="font-serif text-5xl">$29</span><span className="ml-2 text-muted-foreground">per month</span></p>
           <p className="mt-4 text-sm text-primary">Monthly membership · Cancel anytime.</p>
           <p className="mt-4 leading-relaxed text-muted-foreground">Your membership renews monthly until you cancel.</p>
-          <Button className="mt-auto w-full rounded-full translate-y-0" disabled={!agreed || busy !== null} onClick={() => void pay("monthly")}>{busy === "monthly" && <Loader2 className="size-4 animate-spin" />}Choose monthly membership</Button>
+          <Button className="mt-auto w-full rounded-full translate-y-0" disabled={busy !== null} onClick={() => choosePlan("monthly")}>{busy === "monthly" && <Loader2 className="size-4 animate-spin" />}Choose monthly membership</Button>
         </article>
       </div>
       <div className="mx-auto mt-8 max-w-2xl">
         <p className="text-sm leading-relaxed text-muted-foreground">Founding membership ends without a refund if Oka stops operating. You may request a refund within 14 days at liran@okavillage.com; after that, it is non-refundable except where required by law. Monthly membership is $29 USD, charged each month until cancelled. Payments are securely processed by Stripe.</p>
-        <label className="mt-5 flex cursor-pointer items-start gap-3 text-sm leading-relaxed"><input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-1 size-4 shrink-0 accent-primary" /><span>I agree to the membership terms above and the <Link to="/terms" target="_blank" className="underline underline-offset-4">Oka Terms of Service</Link>.</span></label>
+        <div ref={termsRef} className={`mt-5 -mx-3 rounded-xl px-3 py-3 transition-all duration-300 ${needTerms ? "bg-terracotta-tint ring-2 ring-primary" : ""}`}>
+          <label className="flex cursor-pointer items-start gap-3 text-sm leading-relaxed"><input type="checkbox" checked={agreed} onChange={(e) => onTermsChange(e.target.checked)} aria-describedby={needTerms ? "terms-notice" : undefined} className="mt-1 size-4 shrink-0 accent-primary" /><span>I agree to the membership terms above and the <Link to="/terms" target="_blank" className="underline underline-offset-4">Oka Terms of Service</Link>.</span></label>
+          {needTerms && <p id="terms-notice" role="alert" className="mt-2 text-sm font-medium text-primary">{termsPromptText(selected ?? kind)}</p>}
+        </div>
         {!profile.data && (
           <div className="mt-4 flex flex-col items-center gap-2">
             <Button variant="outline" className="rounded-full px-6" disabled={busy !== null} onClick={() => void signInGoogle()}>
