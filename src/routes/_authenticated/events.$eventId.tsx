@@ -15,6 +15,7 @@ import { VideoRoom } from "@/components/oka/video-room";
 import { useServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { CopyJoinLink } from "@/components/oka/copy-join-link";
+import { joinPath } from "@/lib/join-link";
 import {
   EVENT_SELECT,
   FORMAT_LABELS,
@@ -49,6 +50,16 @@ function EventDetail() {
   const qc = useQueryClient();
   const { data: uid } = useCurrentUserId();
   const { data: isAdmin } = useIsStaff();
+  // The sharer's own active affiliate code, if any — used only to tag shared join links.
+  const myAffiliate = useQuery({
+    queryKey: ["affiliate", "my-code", uid],
+    queryFn: async () => {
+      const { data } = await supabase.from("affiliates").select("invite_code,status").eq("user_id", uid!).maybeSingle();
+      return data?.status === "active" ? data.invite_code : null;
+    },
+    enabled: !!uid,
+  });
+  const refCode = myAffiliate.data ?? null;
   const fetchVideoCfg = useServerFn(getVideoConfigured);
   const videoCfg = useQuery({ queryKey: ["video-configured"], queryFn: () => fetchVideoCfg(), staleTime: 5 * 60_000 });
 
@@ -141,9 +152,12 @@ function EventDetail() {
         <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-card p-5 shadow-soft">
           <div>
             <p className="section-label">Share your call</p>
-            <p className="mt-2 break-all text-sm text-muted-foreground">{typeof window !== "undefined" ? `${window.location.origin}/join/${ev.join_slug}` : `/join/${ev.join_slug}`}</p>
+            <p className="mt-2 break-all text-sm text-muted-foreground">{typeof window !== "undefined" ? `${window.location.origin}${joinPath(ev.join_slug, refCode)}` : joinPath(ev.join_slug, refCode)}</p>
+            {refCode && (
+              <p className="mt-2 text-sm text-foreground">Your invite code is in this link — when someone new joins Oka through it and becomes a paying member, you earn credit.</p>
+            )}
           </div>
-          <CopyJoinLink slug={ev.join_slug} />
+          <CopyJoinLink slug={ev.join_slug} refCode={refCode} />
         </div>
       )}
 

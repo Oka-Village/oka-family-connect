@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
 import { saveReturnTo } from "@/lib/join-link";
+import { saveInviteCode } from "@/lib/affiliates";
 import { useServerFn } from "@tanstack/react-start";
 import { beginSignupFlow } from "@/lib/signup-flow.functions";
 
@@ -37,6 +38,9 @@ function JoinPage() {
   useEffect(() => {
     if (ran.current) return;
     ran.current = true;
+    // A sharer's affiliate code rides along as ?ref=; store it exactly like /invite/<code> does.
+    const ref = new URLSearchParams(window.location.search).get("ref");
+    if (ref?.trim()) saveInviteCode(ref);
     void (async () => {
       const { data: s } = await supabase.auth.getSession();
       const user = s.session?.user;
