@@ -405,6 +405,45 @@ export type Database = {
           },
         ]
       }
+      facilitator_applications: {
+        Row: {
+          acceptance_name: string
+          answers: Json
+          created_at: string
+          email: string
+          id: string
+          legal_name: string
+          news_opt_in: boolean
+          public_name: string | null
+          status: string
+          submitted_by: string | null
+        }
+        Insert: {
+          acceptance_name: string
+          answers?: Json
+          created_at?: string
+          email: string
+          id?: string
+          legal_name: string
+          news_opt_in?: boolean
+          public_name?: string | null
+          status?: string
+          submitted_by?: string | null
+        }
+        Update: {
+          acceptance_name?: string
+          answers?: Json
+          created_at?: string
+          email?: string
+          id?: string
+          legal_name?: string
+          news_opt_in?: boolean
+          public_name?: string | null
+          status?: string
+          submitted_by?: string | null
+        }
+        Relationships: []
+      }
       favorites: {
         Row: {
           created_at: string
