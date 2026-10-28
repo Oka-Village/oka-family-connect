@@ -57,8 +57,8 @@ function NotificationsPage() {
         const link = notificationLink(notification.link);
         const created = parseISO(notification.created_at);
         return <li key={notification.id} className="py-6">
-          <div className="flex items-start justify-between gap-4">
-            <h2 className="text-xl text-foreground">{notification.title}</h2>
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <h2 className="min-w-0 break-words text-xl text-foreground">{notification.title}</h2>
             {isValid(created) && <time dateTime={notification.created_at} className="shrink-0 text-xs text-muted-foreground">{formatDistanceToNow(created, { addSuffix: true })}</time>}
           </div>
           {notification.body && <p className="mt-2 whitespace-pre-wrap break-words text-sm text-muted-foreground">{notification.body}</p>}
