@@ -208,13 +208,23 @@ function MembersSection() {
   const [adjusting, setAdjusting] = useState<string | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
   const { data: suspendedIds } = useSuspendedIds();
+  const viewerIsAdmin = !!(me && q0Admin(me));
   const q = useQuery({
     queryKey: ["admin", "members", term],
     queryFn: async () => {
-      let pq = supabase.from("profiles").select("id,display_name,location,profession,photo_url,trial_started_at").order("display_name").limit(25);
-      if (term.trim()) pq = pq.ilike("display_name", `%${term.trim().replace(/[%_]/g, "")}%`);
-      const { data: people, error } = await pq;
-      if (error) throw error;
+      const BASE = "id,display_name,location,profession,photo_url,trial_started_at";
+      const run = (cols: string) => {
+        let pq = supabase.from("profiles").select(cols).order("display_name").limit(25);
+        if (term.trim()) pq = pq.ilike("display_name", `%${term.trim().replace(/[%_]/g, "")}%`);
+        return pq;
+      };
+      type Person = { id: string; display_name: string | null; location: string | null; profession: string | null; photo_url: string | null; trial_started_at: string | null; approved_at?: string | null };
+      // approved_at may not exist yet; fall back to today's query if it errors.
+      let hasApproval = true;
+      let res = await run(`${BASE},approved_at`);
+      if (res.error) { hasApproval = false; res = await run(BASE); }
+      if (res.error) throw res.error;
+      const people = (res.data ?? []) as unknown as Person[];
       const ids = (people ?? []).map((p) => p.id);
       const { data: roles } = ids.length
         ? await supabase.from("user_roles").select("user_id,role").in("user_id", ids)
@@ -231,6 +241,7 @@ function MembersSection() {
         roles: byUser.get(p.id) ?? new Set<string>(),
         affiliate: affBy.get(p.id) ?? null,
         membership: membershipBy[p.id] ?? null,
+        pendingApproval: hasApproval && p.approved_at == null,
       }));
     },
   });
@@ -261,6 +272,15 @@ function MembersSection() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const approve = useMutation({
+    mutationFn: async (userId: string) => {
+      const { error } = await supabase.from("profiles").update({ approved_at: new Date().toISOString() } as never).eq("id", userId).select("id").single();
+      if (error) throw error;
+    },
+    onSuccess: () => { toast.success("Member approved"); qc.invalidateQueries({ queryKey: ["admin", "members"] }); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   return (
     <section className="mt-10">
       <div className="relative max-w-md">
@@ -282,6 +302,7 @@ function MembersSection() {
                 <p className="font-serif text-xl text-foreground">{p.display_name || "Unnamed member"}{self && <span className="ml-2 text-sm text-muted-foreground">(you)</span>}</p>
                 <p className="text-sm text-muted-foreground">{[p.profession, p.location].filter(Boolean).join(" · ") || "—"}</p>
                 <div className="mt-2 flex flex-wrap gap-2">
+                  {p.pendingApproval && <span className="rounded-full bg-golden/25 px-3 py-0.5 text-xs text-foreground">Pending approval</span>}
                   {isAdmin && <span className="rounded-full bg-primary/15 px-3 py-0.5 text-xs text-primary">Admin</span>}
                   {isMod && <span className="rounded-full bg-secondary px-3 py-0.5 text-xs text-secondary-foreground">Moderator</span>}
                   {paid && <span className="rounded-full bg-sage-light px-3 py-0.5 text-xs text-foreground">Paid</span>}
@@ -294,6 +315,9 @@ function MembersSection() {
               </div>
               </div>
               <div className="flex flex-wrap gap-2">
+                {p.pendingApproval && viewerIsAdmin && (
+                  <Button size="sm" className="rounded-full" disabled={approve.isPending} onClick={() => approve.mutate(p.id)}>Approve</Button>
+                )}
                 <Button size="sm" variant={isMod ? "outline" : "default"} className="rounded-full" disabled={toggle.isPending}
                   onClick={() => toggle.mutate({ userId: p.id, role: "moderator", grant: !isMod })}>
                   {isMod ? "Demote to member" : "Make moderator"}
