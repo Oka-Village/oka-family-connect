@@ -99,5 +99,6 @@ export function dailyQuoteIndex(d: Date = new Date()) {
 }
 
 export function dailyQuote(d: Date = new Date()) {
-  return INSPIRATION_QUOTES[dailyQuoteIndex(d)];
+  const q = INSPIRATION_QUOTES[dailyQuoteIndex(d)];
+  return q ?? INSPIRATION_QUOTES[0]!;
 }
