@@ -149,7 +149,7 @@ function MemberPage() {
                     <Home className="mt-0.5 size-4 shrink-0 text-primary" strokeWidth={1.5} />
                     <span className="min-w-0">
                       <span className="block font-serif text-lg leading-snug text-foreground transition-colors group-hover:text-primary">{h.title}</span>
-                      {(h.location_text || h.property_type) && <span className="mt-0.5 block text-xs uppercase tracking-widest text-muted-foreground">{[h.location_text, h.property_type].filter(Boolean).join(" · ")}</span>}
+                      {(h.location_text || h.property_type) && <span className="mt-0.5 block text-xs uppercase tracking-widest text-muted-foreground">{[h.location_text, h.property_type?.replace(/_/g, " ").toLowerCase()].filter(Boolean).join(" · ")}</span>}
                     </span>
                   </Link>
                 </li>
