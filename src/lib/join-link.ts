@@ -3,8 +3,14 @@
 
 const RETURN_KEY = "oka:return-to";
 
-export function joinUrl(slug: string) {
-  return `${window.location.origin}/join/${slug}`;
+/** Path for an event join link; adds ?ref=<code> only when the sharer has an affiliate code. */
+export function joinPath(slug: string, refCode?: string | null) {
+  const ref = refCode?.trim();
+  return ref ? `/join/${slug}?ref=${encodeURIComponent(ref)}` : `/join/${slug}`;
+}
+
+export function joinUrl(slug: string, refCode?: string | null) {
+  return `${window.location.origin}${joinPath(slug, refCode)}`;
 }
 
 /** Remember a same-origin path to return to after the Google round-trip. */
