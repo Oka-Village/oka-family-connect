@@ -193,6 +193,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
+      <ProfileCompletionBanner />
+
       <main className="pb-28">{children}</main>
       <SupportOkaDialog
         open={supportOpen}
