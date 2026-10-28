@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useClaimInvite } from "@/lib/affiliates";
 import { cn } from "@/lib/utils";
 import { CreditPill } from "@/components/oka/credit-pill";
+import { NotificationsBell } from "@/components/oka/notifications-bell";
 import { useMemberAccess } from "@/hooks/use-member-access";
 import { MemberAccessGate } from "@/components/oka/member-access-gate";
 import { SupportOkaDialog } from "@/components/oka/support-oka-dialog";
@@ -150,6 +151,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </nav>
         <div className="ml-auto flex items-center gap-4">
           <CreditPill />
+          <NotificationsBell userId={profile?.id} />
           <details className="group relative">
             <Button asChild variant="secondary" size="icon" className="rounded-full">
               <summary aria-label="Open account menu" className="list-none [&::-webkit-details-marker]:hidden">
@@ -177,6 +179,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <header className="flex items-center justify-between border-b border-border px-6 py-4 lg:hidden">
         <Link to="/home" aria-label="Oka home"><Wordmark className="text-2xl" /></Link>
+        <div className="flex items-center gap-1">
+        <NotificationsBell userId={profile?.id} />
         <Button
           variant="ghost"
           size="icon"
@@ -186,6 +190,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         >
           <LogOut className="size-5 text-primary" strokeWidth={1.5} />
         </Button>
+        </div>
       </header>
 
       <main className="pb-28">{children}</main>

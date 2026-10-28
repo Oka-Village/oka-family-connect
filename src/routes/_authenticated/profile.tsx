@@ -8,6 +8,7 @@ import { MemberAvatar, ProfileSections } from "@/components/oka/profile-sections
 import { TagInput } from "@/components/oka/tag-input";
 import { MyOfferings } from "@/components/oka/my-offerings";
 import { MyHouses } from "@/components/oka/my-houses";
+import { NotificationPreferences } from "@/components/oka/notification-preferences";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
@@ -94,6 +95,7 @@ function ProfilePage() {
       <div className="mt-6">
         {editing ? <ProfileEditor profile={profile} onDone={() => setEditing(false)} /> : <><ProfileSections profile={profile} /><MyOfferings userId={profile.id} /><MyHouses userId={profile.id} /></>}
       </div>
+      <NotificationPreferences userId={profile.id} />
     </div>
   );
 }
