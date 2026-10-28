@@ -23,6 +23,7 @@ import {
   type EventRow,
   type EventType,
 } from "@/lib/events";
+import { MAX_OCCURRENCES, REPEAT_LABELS, occurrenceStarts, type Repeat } from "@/lib/recurrence";
 
 type Props = {
   mode: "create" | "edit";
@@ -70,6 +71,8 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
     setF((x) => ({ ...x, photo_url: path }));
   }
   const [saving, setSaving] = useState(false);
+  const [repeat, setRepeat] = useState<Repeat>("none");
+  const [until, setUntil] = useState("");
   const up = (k: keyof typeof f) => (e: { target: { value: string } }) => setF((s) => ({ ...s, [k]: e.target.value }));
 
   async function submit(e: React.FormEvent): Promise<unknown> {
@@ -95,24 +98,39 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
       description: f.description.trim() || null,
       photo_url: f.photo_url,
     };
+    const location = {
+      venue_address: f.format === "in_person" ? f.venue.trim() || null : null,
+      video_link: f.format === "virtual" ? f.video.trim() || null : null,
+    };
     let eventId = initial?.id;
     if (mode === "create") {
-      const { data, error } = await supabase
-        .from("events")
-        .insert({ ...payload, created_by: userId, status: isAdmin ? "published" : "pending_approval" })
-        .select("id")
-        .single();
-      if (error) { setSaving(false); return toast.error(error.message); }
-      eventId = data.id;
+      if (repeat !== "none" && (!until || until < f.starts.slice(0, 10))) { setSaving(false); return toast.error("Please choose when the repeating ends."); }
+      const durMs = ends_at ? new Date(ends_at).getTime() - new Date(starts_at).getTime() : null;
+      const rows = occurrenceStarts(f.starts, repeat, until).map((local) => {
+        const s = zonedInputToUtc(local, f.timezone);
+        return {
+          ...payload,
+          starts_at: s,
+          ends_at: durMs != null ? new Date(new Date(s).getTime() + durMs).toISOString() : null,
+          created_by: userId,
+          status: isAdmin ? "published" : "pending_approval",
+        };
+      });
+      const { data, error } = await supabase.from("events").insert(rows).select("id,starts_at").order("starts_at");
+      if (error || !data?.length) { setSaving(false); return toast.error(error?.message ?? "Couldn't save the event."); }
+      eventId = data[0].id;
+      const { error: locErr } = await supabase.from("event_locations").upsert(data.map((r) => ({ event_id: r.id, ...location })));
+      setSaving(false);
+      if (locErr) return toast.error(locErr.message);
+      await queryClient.invalidateQueries();
+      const n = data.length > 1 ? ` (${data.length} dates)` : "";
+      toast.success((isAdmin ? "Event published" : "Proposal sent for review") + n);
+      return navigate({ to: "/events/$eventId", params: { eventId: eventId! } });
     } else {
       const { error } = await supabase.from("events").update(payload).eq("id", eventId!);
       if (error) { setSaving(false); return toast.error(error.message); }
     }
-    const { error: locErr } = await supabase.from("event_locations").upsert({
-      event_id: eventId!,
-      venue_address: f.format === "in_person" ? f.venue.trim() || null : null,
-      video_link: f.format === "virtual" ? f.video.trim() || null : null,
-    });
+    const { error: locErr } = await supabase.from("event_locations").upsert({ event_id: eventId!, ...location });
     setSaving(false);
     if (locErr) return toast.error(locErr.message);
     await queryClient.invalidateQueries();
@@ -168,6 +186,23 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
           <Input id="capacity" type="number" min={1} value={f.capacity} onChange={up("capacity")} placeholder="Leave empty for unlimited" />
         </div>
       </div>
+      {mode === "create" && (
+        <div className="grid gap-6 sm:grid-cols-2">
+          <div className="grid gap-2">
+            <Label htmlFor="repeat">Repeats</Label>
+            <select id="repeat" className={selectCls} value={repeat} onChange={(e) => setRepeat(e.target.value as Repeat)}>
+              {(Object.keys(REPEAT_LABELS) as Repeat[]).map((r) => <option key={r} value={r}>{REPEAT_LABELS[r]}</option>)}
+            </select>
+          </div>
+          {repeat !== "none" && (
+            <div className="grid gap-2">
+              <Label htmlFor="until">Repeat until</Label>
+              <Input id="until" type="date" value={until} min={f.starts.slice(0, 10)} onChange={(e) => setUntil(e.target.value)} required />
+              <p className="text-xs text-muted-foreground">Each date becomes its own event, up to {MAX_OCCURRENCES} dates.</p>
+            </div>
+          )}
+        </div>
+      )}
       {f.format === "in_person" ? (
         <div className="grid gap-2">
           <Label htmlFor="venue">Venue address</Label>
