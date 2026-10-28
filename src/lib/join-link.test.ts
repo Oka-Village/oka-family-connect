@@ -8,6 +8,7 @@ describe("joinPath", () => {
   it("keeps the plain link when the sharer has no affiliate code", () => {
     expect(joinPath("abc123", null)).toBe("/join/abc123");
     expect(joinPath("abc123", "  ")).toBe("/join/abc123");
+  });
 });
 
 describe("canShareEventLink", () => {
