@@ -88,3 +88,16 @@ export const INSPIRATION_QUOTES = [
   { quote: "Do what you can, with what you have, where you are.", author: "Theodore Roosevelt" },
   { quote: "Every moment is a fresh beginning.", author: "T. S. Eliot" },
 ] as const;
+
+/** Day number since the epoch, in UTC, so the rotation is the same everywhere on earth. */
+const utcDayNumber = (d: Date) => Math.floor(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) / 86_400_000);
+
+/** Quote of the Day: deterministic rotation through INSPIRATION_QUOTES, one step per UTC day. */
+export function dailyQuoteIndex(d: Date = new Date()) {
+  const n = INSPIRATION_QUOTES.length;
+  return ((utcDayNumber(d) % n) + n) % n;
+}
+
+export function dailyQuote(d: Date = new Date()) {
+  return INSPIRATION_QUOTES[dailyQuoteIndex(d)];
+}
