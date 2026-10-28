@@ -13,8 +13,8 @@ const pad = (n: number) => String(n).padStart(2, "0");
 /** Wall-clock start times ("YYYY-MM-DDTHH:mm") from the first start through `until` (YYYY-MM-DD, inclusive). */
 export function occurrenceStarts(start: string, repeat: Repeat, until: string, max = MAX_OCCURRENCES): string[] {
   if (repeat === "none" || !until) return [start];
-  const [date, time] = start.split("T");
-  const [y, m, d] = date.split("-").map(Number);
+  const [date = "", time = ""] = start.split("T");
+  const [y = 0, m = 1, d = 1] = date.split("-").map(Number);
   const out: string[] = [];
   for (let i = 0; out.length < max; i++) {
     let dt: Date;
