@@ -68,7 +68,7 @@ function DirectoryPage() {
 
   const fanCard = (m: DirectoryMember, front: boolean) => <Link to="/members/$memberId" params={{ memberId: m.id }} className="flex h-full min-h-0 flex-col bg-card">
     <MemberAvatar src={m.photo} name={m.display_name} className="h-[48%] w-full rounded-none sm:h-[60%]" />
-    <div className="flex min-h-0 flex-1 flex-col p-3 sm:p-5"><h3 className="text-xl leading-none text-foreground sm:text-2xl">{m.display_name ?? "Oka member"}</h3><p className="mt-1 text-xs text-muted-foreground sm:mt-2">{m.location ?? "Somewhere in the family"}</p>{front && <span className="mt-auto w-fit shrink-0 rounded-full bg-primary px-3 py-1.5 text-xs text-primary-foreground sm:px-4 sm:py-2">Say hello</span>}</div>
+    <div className="flex min-h-0 flex-1 flex-col p-3 sm:p-5"><h3 className="text-xl leading-none text-foreground sm:text-2xl">{m.display_name ?? "Oka member"}</h3><p className="mt-1 text-xs text-muted-foreground sm:mt-2">{m.location ?? "Somewhere in the family"}</p></div>
   </Link>;
 
   return (
