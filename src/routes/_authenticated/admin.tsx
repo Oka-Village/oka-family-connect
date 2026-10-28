@@ -10,8 +10,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCurrentUserId, useRoles } from "@/hooks/use-is-admin";
 import { supabase } from "@/integrations/supabase/client";
+import { getAdminMemberStatuses } from "@/lib/admin-members.functions";
 import { deleteEvent, setEventStatus } from "@/lib/event-admin";
 import { EVENT_SELECT, TYPE_LABELS, formatEventDate, formatEventTime, hostName, type EventRow } from "@/lib/events";
+import { memberStatusIndicators } from "@/lib/member-status";
 import { CopyJoinLink } from "@/components/oka/copy-join-link";
 import { AffiliatesSection } from "@/components/oka/admin-affiliates";
 import { FacilitatorsSection } from "@/components/oka/admin-facilitators";
@@ -209,7 +211,7 @@ function MembersSection() {
   const q = useQuery({
     queryKey: ["admin", "members", term],
     queryFn: async () => {
-      let pq = supabase.from("profiles").select("id,display_name,location,profession,photo_url").order("display_name").limit(25);
+      let pq = supabase.from("profiles").select("id,display_name,location,profession,photo_url,trial_started_at").order("display_name").limit(25);
       if (term.trim()) pq = pq.ilike("display_name", `%${term.trim().replace(/[%_]/g, "")}%`);
       const { data: people, error } = await pq;
       if (error) throw error;
@@ -223,7 +225,13 @@ function MembersSection() {
         ? await supabase.from("affiliates").select("user_id,status").in("user_id", ids)
         : { data: [] as { user_id: string; status: string }[] };
       const affBy = new Map((affs ?? []).map((a) => [a.user_id, a.status]));
-      return (people ?? []).map((p) => ({ ...p, roles: byUser.get(p.id) ?? new Set<string>(), affiliate: affBy.get(p.id) ?? null }));
+      const membershipBy = ids.length ? await getAdminMemberStatuses({ data: { userIds: ids } }) : {};
+      return (people ?? []).map((p) => ({
+        ...p,
+        roles: byUser.get(p.id) ?? new Set<string>(),
+        affiliate: affBy.get(p.id) ?? null,
+        membership: membershipBy[p.id] ?? null,
+      }));
     },
   });
 
