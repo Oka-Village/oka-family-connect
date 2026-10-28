@@ -27,3 +27,4 @@
 - Free onboarding is the sole root payment-boundary exception; incomplete entry profiles route there without changing AppShell or member-access helpers. The post-onboarding support dialog reuses existing checkout functions, while authenticated trial recording atomically sets a write-once profile timestamp and never grants access.
 - Root session verification has a bounded failure exit that clears only this client's persisted session and reloads the landing page; abandon a stuck auth client rather than waiting for sign-out, preserving normal OAuth and sign-out behavior.
 - Displayed and copied event share URLs use the shared production-origin joinUrl helper, so preview hosts never leak into shared links.
+- Notification RPCs live in a client-safe *.functions.ts entry, re-exported from src/server/notifications.ts for server callers; all queries use the verified caller and fail gently until the future tables exist, and the email helper remains inert.
