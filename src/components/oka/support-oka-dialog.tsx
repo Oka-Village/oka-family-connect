@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { useQueryClient } from "@tanstack/react-query";
 import { CalendarDays, Infinity as InfinityIcon, Loader2, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -9,15 +10,17 @@ import { createMonthlyCheckout } from "@/lib/stripe/membership.functions";
 import { startTrial } from "@/lib/trial.functions";
 import { type MembershipKind } from "@/lib/membership";
 import { TRIAL_DAYS } from "@/lib/onboarding-rules";
+import { type OkaProfile } from "@/lib/profile";
 
 export function SupportOkaDialog({ open, onProceed, trialStartedAt }: {
   open: boolean;
   onProceed: () => void;
   trialStartedAt: string | null;
 }) {
-  const [agreed, setAgreed] = useState(false);
+  const [agreed, setAgreed] = useState(true);
   const [busy, setBusy] = useState<MembershipKind | "trial" | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
   const founding = useServerFn(createFoundingCheckout);
   const monthly = useServerFn(createMonthlyCheckout);
   const trial = useServerFn(startTrial);
@@ -37,7 +40,13 @@ export function SupportOkaDialog({ open, onProceed, trialStartedAt }: {
   async function beginTrial() {
     if (busy || trialStartedAt) return;
     setBusy("trial"); setError(null);
-    try { await trial(); onProceed(); }
+    try {
+      const { trial_started_at } = await trial();
+      queryClient.setQueryData<OkaProfile | null>(["profile"], (current) =>
+        current && trial_started_at ? { ...current, trial_started_at } : current,
+      );
+      onProceed();
+    }
     catch (e) { setError(e instanceof Error ? e.message : "Your trial could not be started. Please try again."); }
     finally { setBusy(null); }
   }
