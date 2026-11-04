@@ -3,9 +3,11 @@ import { needsOnboardingPhoto, showSupportOffer, TRIAL_DAYS } from "./onboarding
 import { recordTrialOnce } from "./trial-recording";
 
 describe("free signup requirements", () => {
-  it("requires a photo regardless of member status", () => {
+  it("treats only a stored path as an uploaded photo", () => {
     expect(needsOnboardingPhoto(null)).toBe(true);
     expect(needsOnboardingPhoto(" ")).toBe(true);
+    expect(needsOnboardingPhoto("https://lh3.googleusercontent.com/a/photo")).toBe(true);
+    expect(needsOnboardingPhoto("http://example.com/a.jpg")).toBe(true);
     expect(needsOnboardingPhoto("member/photo.jpg")).toBe(false);
   });
   it("does not offer payment to paid members", () => {

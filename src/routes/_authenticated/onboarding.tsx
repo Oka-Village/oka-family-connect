@@ -1,14 +1,15 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { Camera, Loader2, User } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
+import { MemberAvatar } from "@/components/oka/profile-sections";
 import { Wordmark } from "@/components/oka/wordmark";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { useProfile } from "@/hooks/use-profile";
+import { resolvePhotoUrl, useProfile } from "@/hooks/use-profile";
 import { supabase } from "@/integrations/supabase/client";
 import { useClaimInvite } from "@/lib/affiliates";
 import { AGE_RANGES } from "@/lib/profile";
@@ -67,15 +68,28 @@ function Onboarding() {
     age_range: "",
     profession: "",
   });
+  const [localPreview, setLocalPreview] = useState<string | null>(null);
+  const [signedPreview, setSignedPreview] = useState<string | null>(null);
   const seeded = useRef(false);
   const fileInput = useRef<HTMLInputElement>(null);
+  const localPreviewRef = useRef<string | null>(null);
+
+  function replaceLocalPreview(next: string | null) {
+    if (localPreviewRef.current) URL.revokeObjectURL(localPreviewRef.current);
+    localPreviewRef.current = next;
+    setLocalPreview(next);
+  }
+
+  useEffect(() => () => {
+    if (localPreviewRef.current) URL.revokeObjectURL(localPreviewRef.current);
+  }, []);
 
   useEffect(() => {
     if (profile && !seeded.current) {
       seeded.current = true;
       setDraft({
         display_name: profile.display_name ?? "",
-        photo_url: profile.photo_url,
+        photo_url: needsOnboardingPhoto(profile.photo_url) ? null : profile.photo_url,
         location: profile.location ?? "",
         age_range: profile.age_range ?? "",
         profession: profile.profession ?? "",
@@ -83,23 +97,68 @@ function Onboarding() {
     }
   }, [profile]);
 
+  useEffect(() => {
+    let alive = true;
+    const previewAtStart = localPreviewRef.current;
+    if (!draft.photo_url) {
+      setSignedPreview(null);
+      return () => { alive = false; };
+    }
+    void resolvePhotoUrl(draft.photo_url).then((url) => {
+      if (!alive) return;
+      setSignedPreview(url);
+      if (url && localPreviewRef.current && localPreviewRef.current === previewAtStart) {
+        URL.revokeObjectURL(localPreviewRef.current);
+        localPreviewRef.current = null;
+        setLocalPreview(null);
+      }
+    });
+    return () => { alive = false; };
+  }, [draft.photo_url]);
+
   async function handleUpload(file: File) {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please choose an image.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Please choose a photo under 5 MB.");
+      return;
+    }
+
+    const localUrl = URL.createObjectURL(file);
+    replaceLocalPreview(localUrl);
     setUploading(true);
     const { data: auth } = await supabase.auth.getUser();
-    if (!auth.user) { setUploading(false); return; }
+    if (!auth.user) {
+      setUploading(false);
+      replaceLocalPreview(null);
+      toast.error("Your photo was not saved. Please sign in and try again.");
+      return;
+    }
     const path = `${auth.user.id}/${Date.now()}-${file.name.replace(/[^\w.-]/g, "_")}`;
     const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
-    setUploading(false);
     if (error) {
-      toast.error("That photo didn't upload. Please try again to continue.");
+      setUploading(false);
+      replaceLocalPreview(null);
+      toast.error(error.message ? `That photo didn't upload. ${error.message}` : "That photo didn't upload. Please try again to continue.");
+      return;
+    }
+
+    const { error: saveError } = await supabase.from("profiles").update({ photo_url: path }).eq("id", auth.user.id);
+    setUploading(false);
+    if (saveError) {
+      replaceLocalPreview(null);
+      toast.error("We couldn't save that just now. Please try again.");
       return;
     }
     setDraft((d) => ({ ...d, photo_url: path }));
+    await queryClient.invalidateQueries({ queryKey: ["profile"] });
+    await queryClient.invalidateQueries({ queryKey: ["profile-photo"] });
     toast.success("Photo received.");
   }
 
   async function finish() {
-    if (needsOnboardingPhoto(draft.photo_url)) { setStep(STEPS.indexOf("photo")); return; }
     if (membership.isPending || roles.isPending || membership.isError || roles.isError) return;
     setSaving(true);
     const { data: auth } = await supabase.auth.getUser();
@@ -109,11 +168,11 @@ function Onboarding() {
       .from("profiles")
       .update({
         display_name: draft.display_name.trim() || null,
-        photo_url: draft.photo_url,
         location: draft.location.trim() || null,
         age_range: draft.age_range || null,
         profession: draft.profession.trim() || null,
         onboarded_at: new Date().toISOString(),
+        ...(needsOnboardingPhoto(draft.photo_url) ? {} : { photo_url: draft.photo_url }),
       })
       .eq("id", auth.user.id);
 
@@ -123,18 +182,16 @@ function Onboarding() {
       return;
     }
     await queryClient.invalidateQueries({ queryKey: ["profile"] });
+    await queryClient.invalidateQueries({ queryKey: ["profile-photo"] });
     if (showSupportOffer(hasPaidMembership(membership.data), isPaymentExempt(profile, roles.data?.isStaff === true), profile?.trial_started_at)) {
       setSupportOpen(true);
     } else navigate({ to: "/home", replace: true });
   }
 
   const current = STEPS[step];
-  const photoIndex = STEPS.indexOf("photo");
-  const photoBlocked = current === "photo" && needsOnboardingPhoto(draft.photo_url);
   const progress = Math.round((step / (STEPS.length - 1)) * 100);
   const next = () => (step === STEPS.length - 1 ? finish() : setStep((s) => s + 1));
-  // All members must visit the photo step before finishing skipped questions.
-  const skip = () => (needsOnboardingPhoto(draft.photo_url) ? setStep(photoIndex) : void finish());
+  const skip = () => void finish();
 
   if (isLoading) {
     return (
@@ -186,13 +243,7 @@ function Onboarding() {
           {current === "photo" && (
             <StepShell label="Your face" title="A photo helps people say hello">
               <div className="flex items-center gap-5">
-                <span className="flex size-20 items-center justify-center rounded-full bg-secondary">
-                  {draft.photo_url ? (
-                    <Camera className="size-7 text-primary" strokeWidth={1.5} />
-                  ) : (
-                    <User className="size-8 text-primary" strokeWidth={1.5} />
-                  )}
-                </span>
+                <MemberAvatar src={localPreview ?? signedPreview} name={draft.display_name} className="size-20" />
                 <div>
                   <Button
                     variant="outline"
@@ -209,16 +260,12 @@ function Onboarding() {
                     className="hidden"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
+                      e.target.value = "";
                       if (file) void handleUpload(file);
                     }}
                   />
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    {draft.photo_url ? "Photo saved to your profile." : "Up to 5 MB."}
-                  </p>
-                  {photoBlocked && (
-                    <p className="mt-2 text-sm text-muted-foreground">
-                      A photo is needed to continue — people want to recognise who&apos;s arriving.
-                    </p>
+                  {draft.photo_url && (
+                    <p className="mt-2 text-sm text-muted-foreground">Photo saved to your profile.</p>
                   )}
                 </div>
               </div>
@@ -278,7 +325,7 @@ function Onboarding() {
           >
             {step === 0 ? "Skip for now" : "Back"}
           </Button>
-          <Button className="rounded-full px-8" onClick={next} disabled={saving || uploading || photoBlocked || (step === STEPS.length - 1 && (membership.isPending || roles.isPending || membership.isError || roles.isError))}>
+          <Button className="rounded-full px-8" onClick={next} disabled={saving || uploading || (step === STEPS.length - 1 && (membership.isPending || roles.isPending || membership.isError || roles.isError))}>
             {step === STEPS.length - 1 ? (saving ? "Saving…" : "Enter Oka") : "Continue"}
           </Button>
         </div>
