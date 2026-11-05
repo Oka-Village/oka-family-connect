@@ -38,6 +38,46 @@ const NAV_ITEMS = [
 const PRIMARY_ITEMS = NAV_ITEMS.slice(0, 6);
 const MOBILE_ITEMS = [...PRIMARY_ITEMS, { to: "/affiliate", label: "Invite", icon: Gift } as const];
 
+type AccountMenuItem = (typeof NAV_ITEMS)[number] | { readonly to: "/admin"; readonly label: string; readonly icon: typeof ShieldCheck };
+
+/** Avatar menu shared by the desktop and mobile headers. */
+function AccountMenu({
+  photo,
+  name,
+  items,
+  onSignOut,
+}: {
+  photo: string | null;
+  name: string | null | undefined;
+  items: readonly AccountMenuItem[];
+  onSignOut: () => void;
+}) {
+  return (
+    <details className="group relative">
+      <Button asChild variant="secondary" size="icon" className="rounded-full">
+        <summary aria-label="Open account menu" className="list-none [&::-webkit-details-marker]:hidden">
+          {photo ? (
+            <MemberAvatar src={photo} name={name} className="size-9" />
+          ) : (
+            <span className="font-serif text-lg">{name?.trim().charAt(0).toUpperCase() || <Menu className="size-4" />}</span>
+          )}
+        </summary>
+      </Button>
+      <div className="absolute right-0 top-12 z-50 hidden w-56 rounded-2xl border border-border bg-popover p-2 text-popover-foreground shadow-card group-open:block">
+        <p className="px-3 py-2 text-sm text-muted-foreground">{name ?? "Your Oka"}</p>
+        <div className="my-1 h-px bg-border" />
+        {items.map((item) => (
+          <Link key={item.to} to={item.to} className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm hover:bg-accent">
+            <item.icon className="size-4 text-primary" strokeWidth={1.5} />{item.label}
+          </Link>
+        ))}
+        <div className="my-1 h-px bg-border" />
+        <Button variant="ghost" className="w-full justify-start rounded-xl px-3" onClick={onSignOut}><LogOut className="text-primary" strokeWidth={1.5} />Sign out</Button>
+      </div>
+    </details>
+  );
+}
+
 /** Desktop left sidebar, mobile bottom tab bar. */
 export function AppShell({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
@@ -152,44 +192,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="ml-auto flex items-center gap-4">
           <CreditPill />
           <NotificationsBell userId={profile?.id} />
-          <details className="group relative">
-            <Button asChild variant="secondary" size="icon" className="rounded-full">
-              <summary aria-label="Open account menu" className="list-none [&::-webkit-details-marker]:hidden">
-                {photo ? (
-                  <MemberAvatar src={photo} name={profile?.display_name} className="size-9" />
-                ) : (
-                  <span className="font-serif text-lg">{profile?.display_name?.trim().charAt(0).toUpperCase() || <Menu className="size-4" />}</span>
-                )}
-              </summary>
-            </Button>
-            <div className="absolute right-0 top-12 z-50 hidden w-56 rounded-2xl border border-border bg-popover p-2 text-popover-foreground shadow-card group-open:block">
-              <p className="px-3 py-2 text-sm text-muted-foreground">{profile?.display_name ?? "Your Oka"}</p>
-              <div className="my-1 h-px bg-border" />
-              {items.slice(6).map((item) => (
-                <Link key={item.to} to={item.to} className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm hover:bg-accent">
-                  <item.icon className="size-4 text-primary" strokeWidth={1.5} />{item.label}
-                </Link>
-              ))}
-              <div className="my-1 h-px bg-border" />
-              <Button variant="ghost" className="w-full justify-start rounded-xl px-3" onClick={handleSignOut}><LogOut className="text-primary" strokeWidth={1.5} />Sign out</Button>
-            </div>
-          </details>
+          <AccountMenu photo={photo} name={profile?.display_name} items={items.slice(6)} onSignOut={handleSignOut} />
         </div>
       </header>
 
       <header className="flex items-center justify-between border-b border-border px-6 py-4 lg:hidden">
         <Link to="/home" aria-label="Oka home"><Wordmark className="text-2xl" /></Link>
         <div className="flex items-center gap-1">
-        <NotificationsBell userId={profile?.id} />
-        <Button
-          variant="ghost"
-          size="icon"
-          className="rounded-full"
-          aria-label="Sign out"
-          onClick={handleSignOut}
-        >
-          <LogOut className="size-5 text-primary" strokeWidth={1.5} />
-        </Button>
+          <NotificationsBell userId={profile?.id} />
+          <AccountMenu photo={photo} name={profile?.display_name} items={items.slice(6)} onSignOut={handleSignOut} />
         </div>
       </header>
 
