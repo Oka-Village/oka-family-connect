@@ -161,7 +161,7 @@ function EventDetail() {
         </div>
       )}
 
-      {cover && <img src={cover} alt="" className="mt-8 aspect-[21/9] w-full rounded-3xl object-cover shadow-soft" />}
+      {cover && <img src={cover} alt="" className="mt-8 aspect-[2/1] w-full rounded-3xl object-cover object-center shadow-soft" />}
 
       <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_320px]">
         <div>
@@ -178,7 +178,7 @@ function EventDetail() {
               {formatEventTime(ev.starts_at, ev.timezone)}
               {ev.ends_at && ` – ${formatEventTime(ev.ends_at, ev.timezone)}`}
             </Detail>
-            {duration && <Detail icon={Hourglass}>{duration}</Detail>}
+            {duration && <Detail icon={Hourglass}>Duration · {duration}</Detail>}
             {ev.timezone && <Detail icon={Clock}>{ev.timezone}</Detail>}
           </div>
 

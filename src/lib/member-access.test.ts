@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canAccessMemberRoute, isFullMember, ownEditTarget } from "./member-access";
+import { canAccessMemberRoute, isFullMember, ownEditTarget, ownEventViewTarget } from "./member-access";
 
 describe("membership soft launch", () => {
   it("keeps existing full members full before launch", () => {
@@ -29,6 +29,13 @@ describe("membership soft launch", () => {
     expect(canAccessMemberRoute(path, false, true)).toBe(true);
     expect(canAccessMemberRoute(path, false, false)).toBe(false);
     expect(ownEditTarget(path)?.id).toBe("own");
+  });
+  it("lets a limited member open only an event they created or host", () => {
+    expect(canAccessMemberRoute("/events/own-gathering", false, true)).toBe(true);
+    expect(canAccessMemberRoute("/events/own-gathering", false, false)).toBe(false);
+    expect(ownEventViewTarget("/events/own-gathering")?.id).toBe("own-gathering");
+    expect(ownEventViewTarget("/events/new")).toBeNull();
+    expect(ownEventViewTarget("/events")).toBeNull();
   });
   it("leaves full members and staff unrestricted", () => {
     expect(canAccessMemberRoute("/home", true)).toBe(true);

@@ -90,14 +90,22 @@ describe("membership payment rules", () => {
     expect(paymentRedirect(path, false, false, "active")).toBeNull();
     expect(paymentRedirect(path, false, false, "none")).toBeNull();
   });
-  it.each(["/skills/new", "/houses/new", "/events/new"])("allows content adding at %s only during an active trial", (path) => {
+  it.each(["/skills/new", "/houses/new"])("allows content adding at %s only during an active trial", (path) => {
     expect(paymentRedirect(path, false, false, "active")).toBeNull();
     expect(paymentRedirect(path, false, false, "none")).toBe("/welcome");
   });
-  it.each(["/skills/edit/own", "/houses/edit/own", "/events/edit/own"])("allows editing own content at %s only during an active trial", (path) => {
+  it.each(["/skills/edit/own", "/houses/edit/own"])("allows editing own content at %s only during an active trial", (path) => {
     expect(paymentRedirect(path, false, false, "active")).toBeNull();
     expect(paymentRedirect(path, false, false, "none")).toBe("/welcome");
   });
+  it.each(["/events/new", "/events/edit/own", "/events/own-gathering"] as const)(
+    "lets every unpaid member propose or open their event at %s",
+    (path) => {
+      expect(paymentRedirect(path, false, false, "none")).toBeNull();
+      expect(paymentRedirect(path, false, false, "active")).toBeNull();
+      expect(paymentRedirect(path, false, false, "expired")).toBeNull();
+    },
+  );
   it.each(["/membership", "/privacy", "/terms", "/founding", "/affiliate"])("always allows %s", (path) => {
     expect(paymentRedirect(path, false, false, "none")).toBeNull();
     expect(paymentRedirect(path, false, false, "active")).toBeNull();
@@ -110,7 +118,7 @@ describe("membership payment rules", () => {
     expect(paymentRedirect("/affiliate", false, true, "expired")).toBeNull();
     expect(paymentRedirect("/affiliate", true, false, "none")).toBeNull();
   });
-  it.each(["/home", "/profile", "/welcome", "/skills/new", "/onboarding", "/"])(
+  it.each(["/home", "/profile", "/welcome", "/skills/new", "/onboarding", "/", "/events"])(
     "sends expired-trial members from %s to /membership",
     (path) => {
       expect(paymentRedirect(path, false, false, "expired")).toBe("/membership");

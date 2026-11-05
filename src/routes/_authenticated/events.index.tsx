@@ -17,9 +17,8 @@ import { useState } from "react";
 import { z } from "zod";
 
 import { EventCard } from "@/components/oka/event-card";
+import { MyEvents } from "@/components/oka/my-events";
 import { Button } from "@/components/ui/button";
-import { useCurrentUserId } from "@/hooks/use-is-admin";
-import { supabase } from "@/integrations/supabase/client";
 import {
   EVENT_FORMATS,
   EVENT_TYPES,
@@ -27,7 +26,6 @@ import {
   TYPE_LABELS,
   fetchEvents,
   fetchMyRsvps,
-  formatEventDate,
   type EventRow,
 } from "@/lib/events";
 import { cn } from "@/lib/utils";
@@ -139,7 +137,7 @@ function EventsPage() {
         )}
       </div>
 
-      <MyProposals />
+      <MyEvents />
 
       {view === "list" ? <ListView search={search} onCalendar={() => set({ view: "calendar" })} /> : <CalendarView search={search} onMonth={(m) => set({ month: m })} />}
     </div>
@@ -344,40 +342,3 @@ function CalendarView({ search, onMonth }: { search: Search; onMonth: (m: string
   );
 }
 
-/** A member's own proposals, which aren't publicly listed until an admin approves them. */
-function MyProposals() {
-  const { data: uid } = useCurrentUserId();
-  const q = useQuery({
-    queryKey: ["my-proposals", uid],
-    enabled: !!uid,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("events")
-        .select("id,title,status,starts_at,timezone")
-        .eq("created_by", uid!)
-        .in("status", ["pending_approval", "rejected"])
-        .order("starts_at")
-        .limit(20);
-      if (error) throw error;
-      return data;
-    },
-  });
-  if (!q.data?.length) return null;
-  return (
-    <div className="mt-8 rounded-2xl bg-accent/60 p-5">
-      <p className="section-label">Your proposals</p>
-      <ul className="mt-3 grid gap-2">
-        {q.data.map((e) => (
-          <li key={e.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
-            <Link to="/events/$eventId" params={{ eventId: e.id }} className="font-medium text-foreground hover:underline">
-              {e.title}
-            </Link>
-            <span className="text-muted-foreground">
-              {formatEventDate(e.starts_at, e.timezone)} · {e.status === "rejected" ? "Not approved" : "Awaiting review"}
-            </span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}

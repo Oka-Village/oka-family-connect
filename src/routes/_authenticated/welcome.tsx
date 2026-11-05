@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { CalendarPlus, Check, Copy, Gift, Home, Sparkles, type LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 
+import { MyEvents } from "@/components/oka/my-events";
 import { Button } from "@/components/ui/button";
 import { useProfile } from "@/hooks/use-profile";
 import { useRoles } from "@/hooks/use-is-admin";
@@ -90,6 +91,8 @@ function Welcome() {
           )}
         </Item>
       </div>
+
+      <MyEvents />
 
       {!fullAccess && (
         <section className="surface-card mt-10 p-7 text-center sm:p-10">

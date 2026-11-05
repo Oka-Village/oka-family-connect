@@ -17,8 +17,21 @@ export function ownEditTarget(pathname: string): { table: "skills" | "houses" | 
   return { table, id };
 }
 
+/** One event page, not the schedule. /events/new is a separate allow-list route. */
+export function ownEventViewTarget(pathname: string): { id: string } | null {
+  const match = /^\/events\/([^/]+)$/.exec(pathname.replace(/\/+$/, "") || "/");
+  if (!match?.[1] || match[1] === "new") return null;
+  return { id: match[1] };
+}
+
+/** Propose, edit, or open one event. The schedule index stays behind payment access. */
+export function isEventProposalRoute(pathname: string): boolean {
+  const path = pathname.replace(/\/+$/, "") || "/";
+  return path === "/events/new" || Boolean(ownEditTarget(path)?.table === "events") || Boolean(ownEventViewTarget(path));
+}
+
 export function canAccessMemberRoute(pathname: string, fullAccess: boolean, ownsEdit = false): boolean {
   if (fullAccess) return true;
   const path = pathname.replace(/\/+$/, "") || "/";
-  return ALLOWED_ROUTES.has(path) || Boolean(ownsEdit && ownEditTarget(path));
+  return ALLOWED_ROUTES.has(path) || Boolean(ownsEdit && (ownEditTarget(path) || ownEventViewTarget(path)));
 }
