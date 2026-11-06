@@ -30,7 +30,7 @@ type Props = {
   isAdmin: boolean;
   userId: string;
   initial?: EventRow;
-  initialLocation?: { venue_address: string | null; video_link: string | null } | null;
+  initialLocation?: { venue_address: string | null; video_link: string | null; meeting_link: string | null } | null;
 };
 
 const selectCls =
@@ -43,13 +43,14 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
   const [f, setF] = useState({
     title: initial?.title ?? "",
     event_type: (initial?.event_type ?? "gathering") as EventType,
-    format: (initial?.format ?? "in_person") as EventFormat,
+    format: (initial?.format ?? "virtual") as EventFormat,
     timezone: tz0,
     starts: initial ? utcToZonedInput(initial.starts_at, tz0) : "",
     ends: initial?.ends_at ? utcToZonedInput(initial.ends_at, tz0) : "",
     capacity: initial?.capacity?.toString() ?? "",
     venue: initialLocation?.venue_address ?? "",
     video: initialLocation?.video_link ?? "",
+    meeting: initialLocation?.meeting_link ?? "",
     description: initial?.description ?? "",
     photo_url: initial?.photo_url ?? null as string | null,
   });
@@ -82,6 +83,7 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
     if (!f.title.trim() || !f.starts) return toast.error("Please add a title and a start time.");
     if (!f.photo_url) { setPhotoError(true); return toast.error("Please add a photo for your event."); }
     if (f.video && !/^https?:\/\//.test(f.video)) return toast.error("The video link should start with https://");
+    if (f.format === "virtual" && f.meeting && !/^https?:\/\//.test(f.meeting)) return toast.error("The meeting link should start with https://");
     const starts_at = zonedInputToUtc(f.starts, f.timezone);
     const ends_at = f.ends ? zonedInputToUtc(f.ends, f.timezone) : null;
     if (ends_at && ends_at < starts_at) return toast.error("The end time must be after the start.");
@@ -103,6 +105,7 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
     const location = {
       venue_address: f.format === "in_person" ? f.venue.trim() || null : null,
       video_link: f.format === "virtual" ? f.video.trim() || null : null,
+      meeting_link: f.format === "virtual" ? f.meeting.trim() || null : null,
     };
     let eventId = initial?.id;
     if (mode === "create") {
@@ -213,11 +216,18 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
           <p className="text-xs text-muted-foreground">Only shown to confirmed guests.</p>
         </div>
       ) : (
-        <div className="grid gap-2">
-          <Label htmlFor="video">Video link</Label>
-          <Input id="video" value={f.video} onChange={up("video")} placeholder="https://" />
-          <p className="text-xs text-muted-foreground">Only shown to confirmed guests.</p>
-        </div>
+        <>
+          <div className="grid gap-2">
+            <Label htmlFor="meeting">Zoom/Google Meet/Riverside link</Label>
+            <Input id="meeting" value={f.meeting} onChange={up("meeting")} placeholder="https://" />
+            <p className="text-xs text-muted-foreground">Only shown to confirmed guests.</p>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="video">Video link</Label>
+            <Input id="video" value={f.video} onChange={up("video")} placeholder="https://" />
+            <p className="text-xs text-muted-foreground">Only shown to confirmed guests.</p>
+          </div>
+        </>
       )}
       <div className="grid gap-2">
         <Label htmlFor="description">Description</Label>

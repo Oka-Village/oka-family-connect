@@ -260,6 +260,7 @@ export type Database = {
         Row: {
           created_at: string
           event_id: string
+          meeting_link: string | null
           updated_at: string
           venue_address: string | null
           video_link: string | null
@@ -267,6 +268,7 @@ export type Database = {
         Insert: {
           created_at?: string
           event_id: string
+          meeting_link?: string | null
           updated_at?: string
           venue_address?: string | null
           video_link?: string | null
@@ -274,6 +276,7 @@ export type Database = {
         Update: {
           created_at?: string
           event_id?: string
+          meeting_link?: string | null
           updated_at?: string
           venue_address?: string | null
           video_link?: string | null

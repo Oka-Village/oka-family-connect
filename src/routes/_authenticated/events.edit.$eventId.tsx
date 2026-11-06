@@ -29,7 +29,7 @@ function EditEvent() {
     queryFn: async () => {
       const [ev, loc] = await Promise.all([
         supabase.from("events").select(EVENT_SELECT).eq("id", eventId).maybeSingle(),
-        supabase.from("event_locations").select("venue_address,video_link").eq("event_id", eventId).maybeSingle(),
+        supabase.from("event_locations").select("venue_address,video_link,meeting_link").eq("event_id", eventId).maybeSingle(),
       ]);
       if (ev.error) throw ev.error;
       return { event: ev.data as unknown as EventRow | null, location: loc.data };

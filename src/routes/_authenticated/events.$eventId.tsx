@@ -69,7 +69,7 @@ function EventDetail() {
       const [ev, loc, mine] = await Promise.all([
         supabase.from("events").select(EVENT_SELECT).eq("id", eventId).maybeSingle(),
         // RLS returns nothing unless you're confirmed, the host, or an admin.
-        supabase.from("event_locations").select("venue_address,video_link").eq("event_id", eventId).maybeSingle(),
+        supabase.from("event_locations").select("venue_address,video_link,meeting_link").eq("event_id", eventId).maybeSingle(),
         supabase.from("event_rsvps").select("status").eq("event_id", eventId).eq("user_id", uid!).maybeSingle(),
       ]);
       if (ev.error) throw ev.error;
@@ -184,6 +184,12 @@ function EventDetail() {
 
           <div className="mt-8 rounded-2xl bg-secondary/50 p-5">
             <p className="section-label">{ev.format === "virtual" ? (useRoom ? "Event room" : "Video link") : "Location"}</p>
+            {loc?.meeting_link && (
+              <p className="mt-3 flex items-start gap-2 break-all">
+                <Video className="mt-0.5 size-4 shrink-0 text-primary" strokeWidth={1.5} />
+                <a href={loc.meeting_link} target="_blank" rel="noreferrer" className="text-primary underline-offset-4 hover:underline">{loc.meeting_link}</a>
+              </p>
+            )}
             {useRoom ? (
               status === "going" || isManager || isAdmin ? (
                 <VideoRoom eventId={ev.id} startsAt={ev.starts_at} bypassTiming={!!isAdmin} autoJoin={via === "link"} />
@@ -202,7 +208,7 @@ function EventDetail() {
                   loc.venue_address
                 )}
               </p>
-            ) : (
+            ) : loc?.meeting_link ? null : (
               <p className="mt-3 flex items-center gap-2 text-muted-foreground">
                 <Lock className="size-4 text-primary" strokeWidth={1.5} />
                 {loc ? "Details coming soon." : "Shared with confirmed guests once you're going."}
