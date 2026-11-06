@@ -62,7 +62,7 @@ export function SupportOkaDialog({ open, onProceed, trialStartedAt }: {
           <InfinityIcon className="size-6 text-primary" strokeWidth={1.5} aria-hidden />
           <h2 className="mt-3 font-serif text-2xl">Founding membership</h2>
           <p className="mt-3"><span className="font-serif text-4xl">$250</span><span className="ml-2 text-sm text-muted-foreground">one-time</span></p>
-          <p className="mt-3 text-sm text-primary">Founding member deal - available until November 15.</p>
+          <p className="mt-3 text-sm text-primary">Founding member deal - available until November 30.</p>
           <p className="mt-2 text-sm text-muted-foreground">Lifetime membership. No renewals.</p>
           <Button className="mt-5 rounded-full" disabled={!agreed || busy !== null} onClick={() => void pay("founding")}>
             {busy === "founding" && <Loader2 className="size-4 animate-spin" />}Choose founding membership
