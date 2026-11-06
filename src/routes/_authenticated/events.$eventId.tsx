@@ -66,13 +66,18 @@ function EventDetail() {
   const q = useQuery({
     queryKey: ["event", eventId],
     queryFn: async () => {
+      const { data: auth, error: authError } = await supabase.auth.getUser();
+      if (authError) throw authError;
+      const callerId = auth.user?.id;
+      if (!callerId) throw new Error("Sign in to see this event.");
       const [ev, loc, mine] = await Promise.all([
         supabase.from("events").select(EVENT_SELECT).eq("id", eventId).maybeSingle(),
         // RLS returns nothing unless you're confirmed, the host, or an admin.
         supabase.from("event_locations").select("venue_address,video_link,meeting_link").eq("event_id", eventId).maybeSingle(),
-        supabase.from("event_rsvps").select("status").eq("event_id", eventId).eq("user_id", uid!).maybeSingle(),
+        supabase.from("event_rsvps").select("status").eq("event_id", eventId).eq("user_id", callerId).maybeSingle(),
       ]);
       if (ev.error) throw ev.error;
+      if (mine.error) throw mine.error;
       return { event: ev.data as unknown as EventRow | null, location: loc.data, rsvp: mine.data?.status };
     },
     enabled: !!uid,
@@ -94,7 +99,11 @@ function EventDetail() {
     },
     onSuccess: (status) => {
       toast.success(status === "going" ? "You're going — see you there" : status === "waitlist" ? "It's full, so you're on the waitlist" : "Your RSVP is cancelled");
-      qc.invalidateQueries({ queryKey: ["event", eventId] });
+      const applyStatus = (current: { rsvp?: string } | undefined) => (current ? { ...current, rsvp: status } : current);
+      qc.setQueryData(["event", eventId], applyStatus);
+      void qc.invalidateQueries({ queryKey: ["event", eventId] }).then(() => {
+        qc.setQueryData(["event", eventId], applyStatus);
+      });
       qc.invalidateQueries({ queryKey: ["events"] });
       qc.invalidateQueries({ queryKey: ["my-rsvps"] });
     },

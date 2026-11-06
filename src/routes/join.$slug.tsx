@@ -2,11 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Loader2, Video } from "lucide-react";
 
+import { toast } from "sonner";
 import { Wordmark } from "@/components/oka/wordmark";
 import { Button } from "@/components/ui/button";
-import { lovable } from "@/integrations/lovable/index";
+import { signInWithGoogle } from "@/integrations/auth-sign-in";
 import { supabase } from "@/integrations/supabase/client";
 import { saveReturnTo } from "@/lib/join-link";
+import { claimEventInvite, saveEventJoinSlug } from "@/lib/event-invite";
 import { saveInviteCode } from "@/lib/affiliates";
 import { useServerFn } from "@tanstack/react-start";
 import { beginSignupFlow } from "@/lib/signup-flow.functions";
@@ -36,6 +38,10 @@ function JoinPage() {
   const ran = useRef(false);
 
   useEffect(() => {
+    saveEventJoinSlug(slug);
+  }, [slug]);
+
+  useEffect(() => {
     if (ran.current) return;
     ran.current = true;
     // A sharer's affiliate code rides along as ?ref=; store it exactly like /invite/<code> does.
@@ -46,31 +52,34 @@ function JoinPage() {
       const user = s.session?.user;
       if (!user) { setState("signed_out"); return; }
       setState("joining");
-      const { data: ev } = await supabase
-        .from("events").select("id,status,format,host_id,created_by,starts_at,ends_at").eq("join_slug", slug).maybeSingle();
-      if (!ev || ev.status !== "published" || ev.format !== "virtual") { setState("not_found"); return; }
-
-      const isHost = ev.host_id === user.id || ev.created_by === user.id;
-      const past = new Date(ev.ends_at ?? ev.starts_at).getTime() < Date.now();
-      if (!isHost && !past) {
-        const { data: mine } = await supabase.from("event_rsvps").select("status").eq("event_id", ev.id).eq("user_id", user.id).maybeSingle();
-        // Same RPC as the RSVP button: capacity and waitlist rules are enforced in the database.
-        if (mine?.status !== "going" && mine?.status !== "waitlist") await supabase.rpc("rsvp_event", { _event_id: ev.id });
+      try {
+        const eventId = await claimEventInvite(slug, user.id);
+        if (!eventId) { setState("not_found"); return; }
+        const dest = `/events/${eventId}?via=link`;
+        const { data: prof } = await supabase.from("profiles").select("onboarded_at").eq("id", user.id).maybeSingle();
+        if (!prof?.onboarded_at) saveReturnTo(dest); // new members finish the welcome steps, then come back here
+        void navigate({ to: "/events/$eventId", params: { eventId }, search: { via: "link" }, replace: true });
+      } catch (e) {
+        setState("not_found");
+        toast.error(e instanceof Error ? e.message : "We couldn't open this gathering. Please try again.");
       }
-      const dest = `/events/${ev.id}?via=link`;
-      const { data: prof } = await supabase.from("profiles").select("onboarded_at").eq("id", user.id).maybeSingle();
-      if (!prof?.onboarded_at) saveReturnTo(dest); // new members finish the welcome steps, then come back here
-      void navigate({ to: "/events/$eventId", params: { eventId: ev.id }, search: { via: "link" }, replace: true });
     })();
   }, [slug, navigate]);
 
   async function signIn() {
     setBusy(true);
     saveReturnTo(`/join/${slug}`);
-    await beginSignup();
-    const res = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-    if (res.error) setBusy(false);
-    else if (!res.redirected) window.location.replace(`/join/${slug}`);
+    try {
+      await beginSignup();
+      const res = await signInWithGoogle(window.location.origin);
+      if (res.error) {
+        setBusy(false);
+        toast.error(res.error instanceof Error ? res.error.message : "We couldn't open Google sign-in. Please try again.");
+      } else if (!res.redirected) window.location.replace(`/join/${slug}`);
+    } catch (e) {
+      setBusy(false);
+      toast.error(e instanceof Error ? e.message : "We couldn't open Google sign-in. Please try again.");
+    }
   }
 
   return (

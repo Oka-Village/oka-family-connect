@@ -44,11 +44,23 @@ export function useMemberAccess(pathname: string) {
       return data?.owner_id === profile.data.id;
     },
   });
+  const invited = useQuery({
+    queryKey: ["event-link-visit", profile.data?.id, eventView?.id],
+    enabled: Boolean(!fullAccess && profile.data && eventView),
+    retry: false,
+    queryFn: async () => {
+      if (!eventView || !profile.data) return false;
+      const { data, error } = await supabase.from("event_link_visits").select("event_id").eq("user_id", profile.data.id).eq("event_id", eventView.id).maybeSingle();
+      // The visit table may not exist on the live database yet. That hides only this exception.
+      if (error) return false;
+      return Boolean(data);
+    },
+  });
   return {
     fullAccess,
-    isLoading: profile.isPending || roles.isPending || Boolean(profile.data?.member_status === "limited" && membership.isPending) || Boolean(!fullAccess && owned && ownership.isPending && profile.data),
+    isLoading: profile.isPending || roles.isPending || Boolean(profile.data?.member_status === "limited" && membership.isPending) || Boolean(!fullAccess && owned && ownership.isPending && profile.data) || Boolean(!fullAccess && eventView && invited.isPending && profile.data),
     isError: profile.isError || roles.isError || ownership.isError || Boolean(profile.data?.member_status === "limited" && membership.isError),
-    allowed: Boolean(profile.data && canAccessMemberRoute(pathname, fullAccess, ownership.data === true)),
-    retry: () => { void profile.refetch(); void roles.refetch(); void membership.refetch(); if (owned) void ownership.refetch(); },
+    allowed: Boolean(profile.data && canAccessMemberRoute(pathname, fullAccess, ownership.data === true, invited.data === true)),
+    retry: () => { void profile.refetch(); void roles.refetch(); void membership.refetch(); if (owned) void ownership.refetch(); if (eventView) void invited.refetch(); },
   };
 }

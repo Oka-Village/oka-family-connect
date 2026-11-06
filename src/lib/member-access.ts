@@ -30,8 +30,10 @@ export function isEventProposalRoute(pathname: string): boolean {
   return path === "/events/new" || Boolean(ownEditTarget(path)?.table === "events") || Boolean(ownEventViewTarget(path));
 }
 
-export function canAccessMemberRoute(pathname: string, fullAccess: boolean, ownsEdit = false): boolean {
+export function canAccessMemberRoute(pathname: string, fullAccess: boolean, ownsEdit = false, invitedToEvent = false): boolean {
   if (fullAccess) return true;
   const path = pathname.replace(/\/+$/, "") || "/";
-  return ALLOWED_ROUTES.has(path) || Boolean(ownsEdit && (ownEditTarget(path) || ownEventViewTarget(path)));
+  if (ALLOWED_ROUTES.has(path)) return true;
+  if (ownsEdit && (ownEditTarget(path) || ownEventViewTarget(path))) return true;
+  return Boolean(invitedToEvent && ownEventViewTarget(path));
 }

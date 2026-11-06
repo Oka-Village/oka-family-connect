@@ -37,6 +37,13 @@ describe("membership soft launch", () => {
     expect(ownEventViewTarget("/events/new")).toBeNull();
     expect(ownEventViewTarget("/events")).toBeNull();
   });
+  it("lets a limited member open only an event they were invited to", () => {
+    expect(canAccessMemberRoute("/events/invited-gathering", false, false, true)).toBe(true);
+    expect(canAccessMemberRoute("/events/invited-gathering", false, false, false)).toBe(false);
+    expect(canAccessMemberRoute("/events", false, false, true)).toBe(false);
+    expect(canAccessMemberRoute("/events/edit/invited-gathering", false, false, true)).toBe(false);
+    expect(canAccessMemberRoute("/home", false, false, true)).toBe(false);
+  });
   it("leaves full members and staff unrestricted", () => {
     expect(canAccessMemberRoute("/home", true)).toBe(true);
     expect(canAccessMemberRoute("/admin", true)).toBe(true);

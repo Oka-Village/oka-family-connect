@@ -256,6 +256,39 @@ export type Database = {
           },
         ]
       }
+      event_link_visits: {
+        Row: {
+          created_at: string
+          event_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_link_visits_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_link_visits_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_locations: {
         Row: {
           created_at: string
@@ -1039,6 +1072,7 @@ export type Database = {
         }
         Returns: string
       }
+      remember_event_invite: { Args: { _slug: string }; Returns: string }
       request_skill_session: {
         Args: { _message: string; _proposed_at: string; _skill_id: string }
         Returns: string

@@ -1,5 +1,6 @@
+import { useEffect, useRef } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CalendarPlus, Check, Copy, Gift, Home, Sparkles, type LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 
@@ -11,6 +12,8 @@ import { useMembership } from "@/hooks/use-membership";
 import { hasPaidMembership } from "@/lib/membership";
 import { isFullMember } from "@/lib/member-access";
 import { inviteUrl } from "@/lib/affiliate-share";
+import { claimEventInvite, peekEventJoinSlug, pickInviteCard } from "@/lib/event-invite";
+import { formatEventDate } from "@/lib/events";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/welcome")({
@@ -38,7 +41,39 @@ function Welcome() {
   const profile = useProfile();
   const roles = useRoles();
   const membership = useMembership(profile.data?.id);
+  const qc = useQueryClient();
+  const claimed = useRef(false);
   const fullAccess = roles.data?.isStaff === true || isFullMember(profile.data, new Date(), hasPaidMembership(membership.data));
+  useEffect(() => {
+    if (!uid || claimed.current) return;
+    const slug = peekEventJoinSlug();
+    if (!slug) return;
+    claimed.current = true;
+    void claimEventInvite(slug, uid).then(() => {
+      void qc.invalidateQueries({ queryKey: ["event-invite-card", uid] });
+    }).catch(() => { /* one attempt per visit */ });
+  }, [uid, qc]);
+  const invite = useQuery({
+    queryKey: ["event-invite-card", uid],
+    enabled: Boolean(uid),
+    queryFn: async () => {
+      if (!uid) return null;
+      const { data: visits, error } = await supabase
+        .from("event_link_visits")
+        .select("event_id,created_at")
+        .eq("user_id", uid)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (error) return null;
+      if (!visits?.length) return null;
+      const { data: events, error: eventError } = await supabase
+        .from("events")
+        .select("id,title,starts_at,ends_at,timezone,status")
+        .in("id", visits.map((visit) => visit.event_id));
+      if (eventError) throw eventError;
+      return pickInviteCard(visits, events ?? []);
+    },
+  });
   const progress = useQuery({
     queryKey: ["welcome-checklist", uid],
     enabled: Boolean(uid),
@@ -77,6 +112,18 @@ function Welcome() {
       </p>
       <h1 className="mt-4 text-4xl text-foreground sm:text-5xl">Make yourself at home</h1>
       <p className="mt-4 text-base leading-relaxed text-muted-foreground">Four small ways to begin, whenever you're ready.</p>
+
+      {invite.data && (
+        <section className="surface-card mt-10 p-6">
+          <p className="section-label">You're invited</p>
+          <h2 className="mt-2 font-serif text-2xl text-foreground">{invite.data.title}</h2>
+          <p className="mt-2 text-sm text-muted-foreground">{formatEventDate(invite.data.starts_at, invite.data.timezone)}</p>
+          <p className="mt-3 text-foreground">You're invited to this event.</p>
+          <Button asChild className="mt-5 rounded-full">
+            <Link to="/events/$eventId" params={{ eventId: invite.data.id }}>See the event</Link>
+          </Button>
+        </section>
+      )}
 
       <div className="mt-10 grid gap-4 sm:grid-cols-2">
         <Item to="/skills/new" icon={Sparkles} title="Add a skill" hint="Something you'd love to share." done={p?.skill} />
