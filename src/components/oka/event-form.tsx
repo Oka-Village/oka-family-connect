@@ -54,6 +54,21 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
     description: initial?.description ?? "",
     photo_url: initial?.photo_url ?? null as string | null,
   });
+  // Create-mode drafts survive tab switches, reloads and accidental navigation.
+  const DRAFT_KEY = `oka:event-draft:${userId}`;
+  const draftReady = useRef(false);
+  useEffect(() => {
+    if (mode !== "create") return;
+    try {
+      const raw = sessionStorage.getItem(DRAFT_KEY);
+      if (raw) setF((s) => ({ ...s, ...JSON.parse(raw) }));
+    } catch { /* ignore */ }
+    draftReady.current = true;
+  }, [mode, DRAFT_KEY]);
+  useEffect(() => {
+    if (mode !== "create" || !draftReady.current) return;
+    try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify(f)); } catch { /* ignore */ }
+  }, [f, mode, DRAFT_KEY]);
   const fileRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [photoError, setPhotoError] = useState(false);
@@ -129,6 +144,7 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
       if (locErr) return toast.error(locErr.message);
       await queryClient.invalidateQueries();
       const n = data.length > 1 ? ` (${data.length} dates)` : "";
+      try { sessionStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
       toast.success((isAdmin ? "Event published" : "Proposal sent for review") + n);
       return navigate({ to: "/events/$eventId", params: { eventId: firstId } });
     } else {

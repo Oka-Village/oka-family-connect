@@ -170,7 +170,7 @@ function EventDetail() {
         </div>
       )}
 
-      {cover && <img src={cover} alt="" className="mt-8 aspect-[2/1] w-full rounded-3xl object-cover object-center shadow-soft" />}
+      {cover && <img src={cover} alt="" className="mt-8 h-auto w-full rounded-3xl object-contain object-center shadow-soft" />}
 
       <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_320px]">
         <div>

@@ -1063,6 +1063,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      remember_event_invite: { Args: { _slug: string }; Returns: string }
       request_booking: {
         Args: {
           _check_in: string
@@ -1072,7 +1073,6 @@ export type Database = {
         }
         Returns: string
       }
-      remember_event_invite: { Args: { _slug: string }; Returns: string }
       request_skill_session: {
         Args: { _message: string; _proposed_at: string; _skill_id: string }
         Returns: string

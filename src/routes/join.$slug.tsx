@@ -5,7 +5,7 @@ import { Loader2, Video } from "lucide-react";
 import { toast } from "sonner";
 import { Wordmark } from "@/components/oka/wordmark";
 import { Button } from "@/components/ui/button";
-import { signInWithGoogle } from "@/integrations/auth-sign-in";
+import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
 import { saveReturnTo } from "@/lib/join-link";
 import { claimEventInvite, saveEventJoinSlug } from "@/lib/event-invite";
@@ -71,7 +71,7 @@ function JoinPage() {
     saveReturnTo(`/join/${slug}`);
     try {
       await beginSignup();
-      const res = await signInWithGoogle(window.location.origin);
+      const res = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
       if (res.error) {
         setBusy(false);
         toast.error(res.error instanceof Error ? res.error.message : "We couldn't open Google sign-in. Please try again.");
