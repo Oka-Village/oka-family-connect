@@ -6,6 +6,7 @@ import { signPaths } from "@/lib/skills";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { ImageCropDialog } from "@/components/oka/image-crop-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -73,6 +74,7 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
   const [preview, setPreview] = useState<string | null>(null);
   const [photoError, setPhotoError] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [cropFile, setCropFile] = useState<File | null>(null);
   useEffect(() => {
     let alive = true;
     void signPaths([f.photo_url]).then((sign) => alive && setPreview(sign(f.photo_url) ?? null));
@@ -164,11 +166,12 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
       <div className="grid gap-3">
         <Label>Event photo (required)</Label>
         {preview ? <img src={preview} alt="" className="aspect-[16/9] w-full rounded-2xl object-cover" /> : <div className="aspect-[16/9] w-full rounded-2xl bg-accent/60" />}
-        <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const x = e.target.files?.[0]; if (x) void upload(x); e.target.value = ""; }} />
+        <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const x = e.target.files?.[0]; if (x) { if (!x.type.startsWith("image/")) toast.error("Please choose an image."); else setCropFile(x); } e.target.value = ""; }} />
         <Button type="button" variant="outline" className="justify-self-start rounded-full" disabled={uploading} onClick={() => fileRef.current?.click()}>
           {uploading ? <Loader2 className="size-4 animate-spin" strokeWidth={1.5} /> : <Camera className="size-4 text-primary" strokeWidth={1.5} />}
           {f.photo_url ? "Change photo" : "Add a photo"}
         </Button>
+        <ImageCropDialog file={cropFile} onCancel={() => setCropFile(null)} onDone={(file) => { setCropFile(null); void upload(file); }} />
         {photoError && !f.photo_url && <p className="text-sm text-destructive">Please add a photo for your event.</p>}
       </div>
       <div className="grid gap-2">
