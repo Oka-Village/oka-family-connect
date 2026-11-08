@@ -118,10 +118,10 @@ function Welcome() {
           <div>
             <p className="section-label">Founding membership</p>
             <h2 className="mt-2 font-serif text-2xl text-foreground">Support Oka's chosen family</h2>
-            <p className="mt-1 text-sm text-muted-foreground">One payment of $250 — membership for life.</p>
+            <p className="mt-1 text-sm text-muted-foreground">$29 per month, or $250 once for lifetime membership.</p>
           </div>
           <Button asChild className="shrink-0 rounded-full">
-            <Link to="/founding" search={{ session_id: undefined }}>Become a founding member</Link>
+            <Link to="/membership" search={{ session_id: undefined, kind: undefined }}>See membership plans</Link>
           </Button>
         </section>
       )}
