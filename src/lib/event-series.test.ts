@@ -167,4 +167,72 @@ describe("groupEventSeries", () => {
     expect(grouped.map((item) => item.event.id)).toEqual(["other", "w2"]);
     expect(grouped[1]?.label).toContain("Weekly · Next:");
   });
+
+  it("keeps a daily series when a 2-day hole and a 3-day hole were skipped", () => {
+    const dates = [
+      "2026-12-01", "2026-12-02", "2026-12-03", "2026-12-04", "2026-12-05",
+      "2026-12-06", "2026-12-07", "2026-12-08", "2026-12-09", "2026-12-11",
+      "2026-12-12", "2026-12-13", "2026-12-14", "2026-12-17", "2026-12-18",
+    ];
+    const grouped = groupEventSeries(
+      dates.map((date, i) => row(`${date}T17:00`, { id: `d${i}` })),
+      "upcoming",
+      NOW,
+    );
+    expect(grouped).toHaveLength(1);
+    expect(grouped[0]).toMatchObject({ cadence: "daily", count: dates.length, event: { id: "d0" } });
+    expect(grouped[0]?.label).toContain("Daily · Next:");
+    expect(grouped[0]?.label).toContain(`${dates.length - 1} more dates`);
+  });
+
+  it("keeps a weekly series when one week was skipped", () => {
+    const grouped = groupEventSeries(
+      [
+        row("2026-11-02T18:00", { id: "w1" }),
+        row("2026-11-09T18:00", { id: "w2" }),
+        row("2026-11-16T18:00", { id: "w3" }),
+        row("2026-11-23T18:00", { id: "w4" }),
+        row("2026-12-07T18:00", { id: "w5" }),
+        row("2026-12-14T18:00", { id: "w6" }),
+      ],
+      "upcoming",
+      NOW,
+    );
+    expect(grouped).toHaveLength(1);
+    expect(grouped[0]).toMatchObject({ cadence: "weekly", count: 6, event: { id: "w1" } });
+    expect(grouped[0]?.label).toContain("Weekly · Next:");
+  });
+
+  it("keeps a monthly series when one month was skipped", () => {
+    const grouped = groupEventSeries(
+      [
+        row("2026-01-15T10:00", { id: "jan" }),
+        row("2026-02-15T10:00", { id: "feb" }),
+        row("2026-03-15T10:00", { id: "mar" }),
+        row("2026-04-15T10:00", { id: "apr" }),
+        row("2026-06-15T10:00", { id: "jun" }),
+        row("2026-07-15T10:00", { id: "jul" }),
+      ],
+      "upcoming",
+      NOW,
+    );
+    expect(grouped).toHaveLength(1);
+    expect(grouped[0]).toMatchObject({ cadence: "monthly", count: 6, event: { id: "jan" } });
+    expect(grouped[0]?.label).toContain("Monthly · Next:");
+  });
+
+  it("leaves a same-batch set of irregular gaps as separate cards", () => {
+    const grouped = groupEventSeries(
+      [
+        row("2026-11-02T18:00", { id: "a" }),
+        row("2026-11-03T18:00", { id: "b" }),
+        row("2026-11-04T18:00", { id: "c" }),
+        row("2026-11-07T18:00", { id: "d" }),
+      ],
+      "upcoming",
+      NOW,
+    );
+    expect(grouped.map((item) => item.event.id)).toEqual(["a", "b", "c", "d"]);
+    expect(grouped.every((item) => item.cadence === null)).toBe(true);
+  });
 });

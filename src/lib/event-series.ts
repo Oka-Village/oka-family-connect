@@ -79,22 +79,39 @@ function monthIndex(date: LocalDate): number {
   return date.y * 12 + (date.m - 1);
 }
 
-function isStep(dates: LocalDate[], step: number): boolean {
-  for (let i = 1; i < dates.length; i++) {
-    if (dates[i]!.ordinal - dates[i - 1]!.ordinal !== step) return false;
+/** A skipped occurrence still counts when this share of the gaps are the base step. */
+const DOMINANT_GAP = 0.8;
+
+/**
+ * A step matches when every gap is a positive multiple of it (a skip, not a different rhythm)
+ * and at least 80% of the gaps are exactly that step. A perfect run still matches.
+ */
+function matchesStep(gaps: number[], step: number): boolean {
+  if (gaps.length === 0) return false;
+  let exact = 0;
+  for (const gap of gaps) {
+    if (gap < step || gap % step !== 0) return false;
+    if (gap === step) exact++;
   }
-  return true;
+  return exact / gaps.length >= DOMINANT_GAP;
+}
+
+function dayGaps(dates: LocalDate[]): number[] {
+  const gaps: number[] = [];
+  for (let i = 1; i < dates.length; i++) gaps.push(dates[i]!.ordinal - dates[i - 1]!.ordinal);
+  return gaps;
 }
 
 /**
- * Monthly matches the generator: consecutive months, same local time, and one anchor
- * day-of-month clamped with min(anchor, last day of that month). The anchor is inferred
- * so a future-only slice of a month-end series still matches, while Jan 31 / Feb 28 / Mar 28 does not.
+ * Monthly matches the generator: mostly consecutive months, same local time, and one anchor
+ * day-of-month clamped with min(anchor, last day of that month). A skipped month still matches
+ * when at least 80% of the month gaps are exactly one. The anchor is inferred so a future-only
+ * slice of a month-end series still matches, while Jan 31 / Feb 28 / Mar 28 does not.
  */
 function isMonthly(dates: LocalDate[]): boolean {
-  for (let i = 1; i < dates.length; i++) {
-    if (monthIndex(dates[i]!) - monthIndex(dates[i - 1]!) !== 1) return false;
-  }
+  const gaps: number[] = [];
+  for (let i = 1; i < dates.length; i++) gaps.push(monthIndex(dates[i]!) - monthIndex(dates[i - 1]!));
+  if (!matchesStep(gaps, 1)) return false;
   for (let anchor = 1; anchor <= 31; anchor++) {
     if (dates.every((date) => date.d === Math.min(anchor, lastDay(date.y, date.m)))) return true;
   }
@@ -113,9 +130,10 @@ function detectCadence(members: SeriesEvent[]): SeriesCadence | null {
   dates.sort((a, b) => a.ordinal - b.ordinal || a.time.localeCompare(b.time));
   if (dates.some((date) => date.time !== dates[0]?.time)) return null;
   if (new Set(dates.map((date) => date.ordinal)).size !== dates.length) return null;
-  if (isStep(dates, 1)) return "daily";
-  if (isStep(dates, 7)) return "weekly";
-  if (isStep(dates, 14)) return "biweekly";
+  const gaps = dayGaps(dates);
+  if (matchesStep(gaps, 1)) return "daily";
+  if (matchesStep(gaps, 7)) return "weekly";
+  if (matchesStep(gaps, 14)) return "biweekly";
   if (isMonthly(dates)) return "monthly";
   return null;
 }
