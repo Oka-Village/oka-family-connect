@@ -113,6 +113,19 @@ function Welcome() {
       <h1 className="mt-4 text-4xl text-foreground sm:text-5xl">Make yourself at home</h1>
       <p className="mt-4 text-base leading-relaxed text-muted-foreground">Four small ways to begin, whenever you're ready.</p>
 
+      {membership.isSuccess && !hasPaidMembership(membership.data) && roles.data?.isStaff !== true && (
+        <section className="mt-8 flex flex-col gap-4 rounded-2xl border border-border bg-accent/40 p-6 shadow-soft sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="section-label">Founding membership</p>
+            <h2 className="mt-2 font-serif text-2xl text-foreground">Support Oka's chosen family</h2>
+            <p className="mt-1 text-sm text-muted-foreground">One payment of $250 — membership for life.</p>
+          </div>
+          <Button asChild className="shrink-0 rounded-full">
+            <Link to="/founding">Become a founding member</Link>
+          </Button>
+        </section>
+      )}
+
       {invite.data && (
         <section className="surface-card mt-10 p-6">
           <p className="section-label">You're invited</p>
