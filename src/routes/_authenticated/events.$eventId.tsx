@@ -163,7 +163,7 @@ function EventDetail() {
             <p className="section-label">Share your call</p>
             <p className="mt-2 break-all text-sm text-muted-foreground">{joinUrl(ev.join_slug, refCode)}</p>
             {refCode && (
-              <p className="mt-2 text-sm text-foreground">Your invite code is in this link.</p>
+              <p className="mt-2 text-sm text-foreground">Your invite code is in this link — when someone new joins Oka through it and becomes a paying member.</p>
             )}
           </div>
           <CopyJoinLink slug={ev.join_slug} refCode={refCode} />
