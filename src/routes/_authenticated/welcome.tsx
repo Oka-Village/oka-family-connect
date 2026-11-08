@@ -121,7 +121,7 @@ function Welcome() {
             <p className="mt-1 text-sm text-muted-foreground">One payment of $250 — membership for life.</p>
           </div>
           <Button asChild className="shrink-0 rounded-full">
-            <Link to="/founding">Become a founding member</Link>
+            <Link to="/founding" search={{ session_id: undefined }}>Become a founding member</Link>
           </Button>
         </section>
       )}
