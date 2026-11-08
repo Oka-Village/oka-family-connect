@@ -51,7 +51,8 @@ export function MembershipBoundary({ children }: { children: ReactNode }) {
   const membership = useMembership(profile.data?.id);
   const exempt = isPaymentExempt(profile.data, roles.data?.isStaff === true);
   const paid = hasPaidMembership(membership.data);
-  const loading = session.isPending || session.isFetching || profile.isPending || Boolean(session.data && (roles.isPending || (!exempt && profile.data && membership.isPending)));
+  // Background refetches (e.g. on tab focus) must not unmount the page and wipe forms.
+  const loading = session.isPending || (session.isFetching && session.data === undefined) || profile.isPending || Boolean(session.data && (roles.isPending || (!exempt && profile.data && membership.isPending)));
   const failed = session.isError || profile.isError || Boolean(session.data && (roles.isError || (!exempt && membership.isError) || !profile.isPending && !profile.data));
   // Free profile creation is the sole exception; member content remains gated.
   const destination = session.data
