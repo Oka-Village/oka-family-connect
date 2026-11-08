@@ -17,7 +17,8 @@ async function cropToFile(src: string, area: Area, name: string): Promise<File> 
   return new File([blob], name.replace(/\.[^.]+$/, "") + ".jpg", { type: "image/jpeg" });
 }
 
-export function ImageCropDialog({ file, aspect = 16 / 9, onCancel, onDone }: Props) {
+export function ImageCropDialog({ file, aspect, onCancel, onDone }: Props) {
+  const [natural, setNatural] = useState<number>(4 / 3);
   const [src, setSrc] = useState<string | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
@@ -40,7 +41,7 @@ export function ImageCropDialog({ file, aspect = 16 / 9, onCancel, onDone }: Pro
         <DialogHeader><DialogTitle className="font-display text-2xl">Crop your photo</DialogTitle></DialogHeader>
         <p className="text-sm text-muted-foreground">Drag to move the photo, scroll or use the slider to zoom.</p>
         <div className="relative h-72 w-full overflow-hidden rounded-2xl bg-muted sm:h-96">
-          {src && <Cropper image={src} crop={crop} zoom={zoom} aspect={aspect} onCropChange={setCrop} onZoomChange={setZoom} onCropComplete={(_, px) => setArea(px)} />}
+          {src && <Cropper image={src} crop={crop} zoom={zoom} aspect={aspect ?? natural} onMediaLoaded={(m) => setNatural(m.naturalWidth / m.naturalHeight)} onCropChange={setCrop} onZoomChange={setZoom} onCropComplete={(_, px) => setArea(px)} />}
         </div>
         <div className="flex items-center gap-3">
           <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Zoom</span>

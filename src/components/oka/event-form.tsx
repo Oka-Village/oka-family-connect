@@ -165,7 +165,7 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
     <form onSubmit={submit} className="mt-10 grid gap-6 rounded-2xl border border-border bg-card p-6 shadow-soft sm:p-8">
       <div className="grid gap-3">
         <Label>Event photo (required)</Label>
-        {preview ? <img src={preview} alt="" className="aspect-[16/9] w-full rounded-2xl object-cover" /> : <div className="aspect-[16/9] w-full rounded-2xl bg-accent/60" />}
+        {preview ? <img src={preview} alt="" className="h-auto w-full rounded-2xl object-contain" /> : <div className="aspect-[16/9] w-full rounded-2xl bg-accent/60" />}
         <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const x = e.target.files?.[0]; if (x) { if (!x.type.startsWith("image/")) toast.error("Please choose an image."); else setCropFile(x); } e.target.value = ""; }} />
         <Button type="button" variant="outline" className="justify-self-start rounded-full" disabled={uploading} onClick={() => fileRef.current?.click()}>
           {uploading ? <Loader2 className="size-4 animate-spin" strokeWidth={1.5} /> : <Camera className="size-4 text-primary" strokeWidth={1.5} />}
