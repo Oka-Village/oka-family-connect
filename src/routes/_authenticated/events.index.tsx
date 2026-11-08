@@ -31,6 +31,7 @@ import {
 import { cn } from "@/lib/utils";
 import { DealtHand } from "@/components/oka/dealt-hand";
 import { hostName, spotsLeft } from "@/lib/events";
+import { groupEventSeries } from "@/lib/event-series";
 
 const searchSchema = z.object({
   view: z.enum(["list", "calendar"]).optional().catch(undefined),
@@ -165,7 +166,7 @@ function QuietCalendar() {
   );
 }
 
-function EventFanCard({ event, front }: { event: EventRow; front: boolean }) {
+function EventFanCard({ event, front, seriesLabel }: { event: EventRow; front: boolean; seriesLabel?: string | null | undefined }) {
   const d = new Date(event.starts_at);
   const FormatIcon = event.format === "virtual" ? Video : MapPin;
   return <Link to="/events/$eventId" params={{ eventId: event.id }} className="flex h-full flex-col bg-card">
@@ -175,6 +176,7 @@ function EventFanCard({ event, front }: { event: EventRow; front: boolean }) {
     <div className="flex flex-1 flex-col p-5">
       <p className="text-[0.65rem] uppercase tracking-[.2em] text-terracotta-ink">{d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}</p>
       <h3 className="mt-2 text-2xl leading-[1.05] text-foreground">{event.title}</h3>
+      {seriesLabel && <p className="mt-2 text-xs text-muted-foreground">{seriesLabel}</p>}
       <p className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground"><FormatIcon className="size-3.5 text-primary" strokeWidth={1.5} />{FORMAT_LABELS[event.format]} · {hostName(event.host)}</p>
       {front && <span className="mt-auto inline-flex w-fit rounded-full bg-primary px-4 py-2 text-xs text-primary-foreground">{spotsLeft(event) === 0 ? "Join waitlist" : "Save me a seat"}</span>}
     </div>
@@ -184,17 +186,18 @@ function EventFanCard({ event, front }: { event: EventRow; front: boolean }) {
 function ListView({ search, onCalendar }: { search: Search; onCalendar: () => void }) {
   const filters = { type: search.type, format: search.format, from: search.from, to: search.to };
   const [showPast, setShowPast] = useState(false);
-  const upcoming = useQuery({ queryKey: ["events", "upcoming", filters], queryFn: () => fetchEvents(filters) });
+  const upcoming = useQuery({ queryKey: ["events", "upcoming", filters], queryFn: () => fetchEvents(filters, { limit: 400 }) });
   const past = useQuery({
     queryKey: ["events", "past", filters],
-    queryFn: () => fetchEvents(filters, { past: true, limit: 50 }),
+    queryFn: () => fetchEvents(filters, { past: true, limit: 400 }),
     enabled: showPast,
   });
-  const rsvps = useRsvpMap([...(upcoming.data ?? []), ...(past.data ?? [])]);
-  const list = upcoming.data ?? [];
-  const groups: [string, EventRow[]][] = [];
+  const list = groupEventSeries(upcoming.data ?? [], "upcoming");
+  const pastList = groupEventSeries(past.data ?? [], "past");
+  const rsvps = useRsvpMap([...list.map((item) => item.event), ...pastList.map((item) => item.event)]);
+  const groups: [string, typeof list][] = [];
   for (const e of list) {
-    const label = fmt(new Date(e.starts_at), "MMMM yyyy");
+    const label = fmt(new Date(e.event.starts_at), "MMMM yyyy");
     const g = groups.at(-1);
     if (g && g[0] === label) g[1].push(e);
     else groups.push([label, [e]]);
@@ -211,12 +214,12 @@ function ListView({ search, onCalendar }: { search: Search; onCalendar: () => vo
         <>
           <DealtHand
             items={list}
-            itemKey={(event) => event.id}
+            itemKey={(item) => item.event.id}
             label="Events · dealt for you"
             title={<>Three gatherings<br />you might love</>}
             description="Picked from what you're seeking, and the people already gathering around you."
             secondaryAction={<Button variant="secondary" className="rounded-full px-6" onClick={onCalendar}><CalendarDays strokeWidth={1.5} />See calendar</Button>}
-            renderCard={(event, front) => <EventFanCard event={event} front={front} />}
+            renderCard={(item, front) => <EventFanCard event={item.event} seriesLabel={item.label} front={front} />}
           />
           <div className="flex justify-end"><Button asChild variant="outline" className="rounded-full"><Link to="/events/new"><Plus strokeWidth={1.5} />Propose an event</Link></Button></div>
           {groups.map(([label, items]) => (
@@ -226,7 +229,7 @@ function ListView({ search, onCalendar }: { search: Search; onCalendar: () => vo
                 <span className="h-px flex-1 bg-border" />
               </div>
               <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-                {items.map((e) => <EventCard key={e.id} event={e} rsvp={rsvps.data?.[e.id]} />)}
+                {items.map((item) => <EventCard key={item.event.id} event={item.event} seriesLabel={item.label} rsvp={rsvps.data?.[item.event.id]} />)}
               </div>
             </section>
           ))}
@@ -243,7 +246,7 @@ function ListView({ search, onCalendar }: { search: Search; onCalendar: () => vo
         <div className="mt-5 grid gap-5 opacity-80">
           {past.isLoading && <p className="text-muted-foreground">Looking back…</p>}
           {past.data?.length === 0 && <p className="text-muted-foreground">No past events yet.</p>}
-          {past.data?.map((e) => <EventCard key={e.id} event={e} rsvp={rsvps.data?.[e.id]} />)}
+          {pastList.map((item) => <EventCard key={item.event.id} event={item.event} seriesLabel={item.label} rsvp={rsvps.data?.[item.event.id]} />)}
         </div>
       )}
     </div>

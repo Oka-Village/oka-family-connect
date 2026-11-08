@@ -76,7 +76,7 @@ export function useEventPhoto(path: string | null | undefined) {
 }
 
 /** An event rendered like an invitation card. */
-export function EventCard({ event, rsvp }: { event: EventRow; rsvp?: string | undefined }) {
+export function EventCard({ event, rsvp, seriesLabel }: { event: EventRow; rsvp?: string | undefined; seriesLabel?: string | null | undefined }) {
   const cancelled = event.status === "cancelled";
   const photo = useEventPhoto(event.photo_url);
   return (
@@ -98,6 +98,7 @@ export function EventCard({ event, rsvp }: { event: EventRow; rsvp?: string | un
           <span className="ml-auto"><RsvpBadge status={rsvp} /></span>
         </div>
         <h3 className={cn("mt-2 text-xl leading-[1.08] text-foreground", cancelled && "line-through")}>{event.title}</h3>
+        {seriesLabel && <p className="mt-2 text-xs text-muted-foreground">{seriesLabel}</p>}
         <p className="mt-4 text-xs text-muted-foreground">{TYPE_LABELS[event.event_type]} · {spotsText(event)}</p>
       </div>
     </Link>

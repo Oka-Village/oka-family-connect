@@ -10,6 +10,7 @@ import { useRoles } from "@/hooks/use-is-admin";
 import { MemberAvatar, ProfileSections } from "@/components/oka/profile-sections";
 import { resolvePhotoUrl } from "@/hooks/use-profile";
 import { supabase } from "@/integrations/supabase/client";
+import { groupEventSeries, type SeriesEvent } from "@/lib/event-series";
 import { formatEventDate, formatEventTime } from "@/lib/events";
 import type { OkaProfile } from "@/lib/profile";
 
@@ -38,7 +39,7 @@ function MemberPage() {
         supabase.from("profiles").select("*").eq("id", memberId).maybeSingle(),
         supabase.from("skills").select("id,title,category,format").eq("owner_id", memberId).eq("status", "published").order("created_at", { ascending: false }).limit(12),
         supabase.from("houses").select("id,title,location_text,property_type").eq("owner_id", memberId).eq("status", "published").order("created_at", { ascending: false }).limit(12),
-        supabase.from("events").select("id,title,starts_at,timezone").eq("host_id", memberId).eq("status", "published").gte("starts_at", new Date().toISOString()).order("starts_at").limit(10),
+        supabase.from("events").select("id,title,description,event_type,format,starts_at,timezone,capacity,created_by,created_at,photo_url,status").eq("host_id", memberId).eq("status", "published").gte("starts_at", new Date().toISOString()).order("starts_at").limit(200),
       ]);
       if (p.error) throw p.error;
       const profile = p.data as OkaProfile | null;
@@ -47,7 +48,7 @@ function MemberPage() {
         photo: profile ? await resolvePhotoUrl(profile.photo_url) : null,
         skills: skills.data ?? [],
         houses: houses.data ?? [],
-        events: events.data ?? [],
+        events: groupEventSeries((events.data ?? []) as SeriesEvent[], "upcoming").slice(0, 10),
       };
     },
   });
@@ -102,11 +103,14 @@ function MemberPage() {
         <p className="section-label flex items-center gap-2"><CalendarDays className="size-4 text-primary" strokeWidth={1.5} />Gatherings {firstName} hosts</p>
         {d.events.length ? (
           <ul className="mt-5 divide-y divide-border">
-            {d.events.map((e) => (
-              <li key={e.id}>
-                <Link to="/events/$eventId" params={{ eventId: e.id }} className="group flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-3.5">
-                  <span className="font-serif text-xl text-foreground transition-colors group-hover:text-primary">{e.title}</span>
-                  <span className="text-sm text-muted-foreground">{formatEventDate(e.starts_at, e.timezone)} · {formatEventTime(e.starts_at, e.timezone)}</span>
+            {d.events.map((item) => (
+              <li key={item.event.id}>
+                <Link to="/events/$eventId" params={{ eventId: item.event.id }} className="group flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-3.5">
+                  <span className="min-w-0">
+                    <span className="block font-serif text-xl text-foreground transition-colors group-hover:text-primary">{item.event.title}</span>
+                    {item.label && <span className="mt-1 block text-xs text-muted-foreground">{item.label}</span>}
+                  </span>
+                  <span className="text-sm text-muted-foreground">{formatEventDate(item.event.starts_at, item.event.timezone)} · {formatEventTime(item.event.starts_at, item.event.timezone)}</span>
                 </Link>
               </li>
             ))}

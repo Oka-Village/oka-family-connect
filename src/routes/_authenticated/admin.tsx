@@ -12,6 +12,7 @@ import { useCurrentUserId, useRoles } from "@/hooks/use-is-admin";
 import { supabase } from "@/integrations/supabase/client";
 import { getAdminMemberStatuses } from "@/lib/admin-members.functions";
 import { deleteEvent, setEventStatus } from "@/lib/event-admin";
+import { groupEventSeries, type GroupedEvent } from "@/lib/event-series";
 import { EVENT_SELECT, TYPE_LABELS, formatEventDate, formatEventTime, hostName, type EventRow } from "@/lib/events";
 import { memberStatusIndicators } from "@/lib/member-status";
 import { CopyJoinLink } from "@/components/oka/copy-join-link";
@@ -100,7 +101,7 @@ function Card({ children }: { children: React.ReactNode }) {
 
 // ---------------- Events ----------------
 async function loadEvents(statuses: string[], upcomingOnly: boolean) {
-  let q = supabase.from("events").select(EVENT_SELECT).in("status", statuses).order("starts_at").limit(100);
+  let q = supabase.from("events").select(EVENT_SELECT).in("status", statuses).order("starts_at").limit(400);
   if (upcomingOnly) q = q.gte("starts_at", new Date().toISOString());
   const { data, error } = await q;
   if (error) throw error;
@@ -113,46 +114,62 @@ function EventsSection() {
   const live = useQuery({ queryKey: ["admin", "live"], queryFn: () => loadEvents(["published"], true) });
   const cancelled = useQuery({ queryKey: ["admin", "cancelled"], queryFn: () => loadEvents(["cancelled"], false) });
   const act = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: "published" | "rejected" | "cancelled" }) => setEventStatus(id, status),
+    mutationFn: async ({ ids, status }: { ids: string[]; status: "published" | "rejected" | "cancelled" }) => {
+      for (const id of ids) await setEventStatus(id, status);
+    },
     onSuccess: () => { toast.success("Event updated"); qc.invalidateQueries(); },
     onError: (e: Error) => toast.error(e.message),
   });
   const del = useMutation({
-    mutationFn: (id: string) => deleteEvent(id),
+    mutationFn: async (ids: string[]) => {
+      for (const id of ids) await deleteEvent(id);
+    },
     onSuccess: () => { toast.success("Event deleted"); qc.invalidateQueries(); },
     onError: (e: Error) => toast.error(e.message),
   });
+  const pendingList = groupEventSeries(pending.data ?? [], "upcoming");
+  const liveList = groupEventSeries(live.data ?? [], "upcoming");
+  const cancelledList = groupEventSeries(cancelled.data ?? [], "upcoming");
 
-  const DeleteButton = ({ e }: { e: EventRow }) => (
+  const DeleteButton = ({ item }: { item: GroupedEvent<EventRow> }) => (
     <Button
       size="sm"
       variant="outline"
       className="rounded-full text-destructive"
-      disabled={del.isPending && del.variables === e.id}
-      onClick={() => confirm(`Delete "${e.title}" for good? It disappears from the schedule for everyone, along with its sign-ups and its private location. This cannot be undone.`) && del.mutate(e.id)}
+      disabled={del.isPending && del.variables?.includes(item.event.id)}
+      onClick={() => {
+        const message = item.count > 1
+          ? `Delete all ${item.count} dates of "${item.event.title}" for good? They disappear from the schedule for everyone, along with their sign-ups and private locations. This cannot be undone.`
+          : `Delete "${item.event.title}" for good? It disappears from the schedule for everyone, along with its sign-ups and its private location. This cannot be undone.`;
+        if (confirm(message)) del.mutate(item.ids);
+      }}
     >
       <Trash2 className="size-4" strokeWidth={1.5} /> Delete
     </Button>
   );
 
-  const Row = ({ e, children }: { e: EventRow; children: React.ReactNode }) => (
-    <Card>
-      <div>
-        <p className="text-xs uppercase tracking-widest text-muted-foreground">{TYPE_LABELS[e.event_type]}</p>
-        <Link to="/events/$eventId" params={{ eventId: e.id }} className="font-serif mt-1 block text-xl text-foreground hover:underline">{e.title}</Link>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {formatEventDate(e.starts_at, e.timezone)} · {formatEventTime(e.starts_at, e.timezone)} · by {hostName(e.host)}
-          {e.capacity ? ` · ${e.going_count}/${e.capacity} going` : ""}
-        </p>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        <Button asChild variant="outline" size="sm" className="rounded-full">
-          <Link to="/events/edit/$eventId" params={{ eventId: e.id }}>Edit</Link>
-        </Button>
-        {children}
-      </div>
-    </Card>
-  );
+  const Row = ({ item, children }: { item: GroupedEvent<EventRow>; children: React.ReactNode }) => {
+    const e = item.event;
+    return (
+      <Card>
+        <div>
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">{TYPE_LABELS[e.event_type]}</p>
+          <Link to="/events/$eventId" params={{ eventId: e.id }} className="font-serif mt-1 block text-xl text-foreground hover:underline">{e.title}</Link>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {formatEventDate(e.starts_at, e.timezone)} · {formatEventTime(e.starts_at, e.timezone)} · by {hostName(e.host)}
+            {e.capacity ? ` · ${e.going_count}/${e.capacity} going` : ""}
+          </p>
+          {item.label && <p className="mt-1 text-xs text-muted-foreground">{item.label}</p>}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline" size="sm" className="rounded-full">
+            <Link to="/events/edit/$eventId" params={{ eventId: e.id }}>Edit</Link>
+          </Button>
+          {children}
+        </div>
+      </Card>
+    );
+  };
 
   return (
     <section className="mt-10">
@@ -164,22 +181,31 @@ function EventsSection() {
       <p className="section-label mt-6">Awaiting review</p>
       <ul className="mt-4 grid gap-4">
         {pending.data?.length === 0 && <p className="text-muted-foreground">Nothing waiting — all caught up.</p>}
-        {pending.data?.map((e) => (
-          <Row key={e.id} e={e}>
-            <Button size="sm" className="rounded-full" onClick={() => act.mutate({ id: e.id, status: "published" })}>Approve</Button>
-            <Button size="sm" variant="outline" className="rounded-full" onClick={() => act.mutate({ id: e.id, status: "rejected" })}>Reject</Button>
-            <DeleteButton e={e} />
+        {pendingList.map((item) => (
+          <Row key={item.event.id} item={item}>
+            <Button size="sm" className="rounded-full" onClick={() => {
+              const ok = item.count === 1 || confirm(`Approve all ${item.count} dates of "${item.event.title}"?`);
+              if (ok) act.mutate({ ids: item.ids, status: "published" });
+            }}>Approve</Button>
+            <Button size="sm" variant="outline" className="rounded-full" onClick={() => {
+              const ok = item.count === 1 || confirm(`Reject all ${item.count} dates of "${item.event.title}"?`);
+              if (ok) act.mutate({ ids: item.ids, status: "rejected" });
+            }}>Reject</Button>
+            <DeleteButton item={item} />
           </Row>
         ))}
       </ul>
       <p className="section-label mt-12">Upcoming published</p>
       <ul className="mt-4 grid gap-4">
         {live.data?.length === 0 && <p className="text-muted-foreground">No upcoming events yet.</p>}
-        {live.data?.map((e) => (
-          <Row key={e.id} e={e}>
-            {e.format === "virtual" && <CopyJoinLink slug={e.join_slug} />}
-            <Button size="sm" variant="outline" className="rounded-full text-destructive" onClick={() => confirm("Cancel this event for everyone?") && act.mutate({ id: e.id, status: "cancelled" })}>Cancel</Button>
-            <DeleteButton e={e} />
+        {liveList.map((item) => (
+          <Row key={item.event.id} item={item}>
+            {item.event.format === "virtual" && <CopyJoinLink slug={item.event.join_slug} />}
+            <Button size="sm" variant="outline" className="rounded-full text-destructive" onClick={() => {
+              const message = item.count > 1 ? `Cancel all ${item.count} dates of "${item.event.title}" for everyone?` : "Cancel this event for everyone?";
+              if (confirm(message)) act.mutate({ ids: item.ids, status: "cancelled" });
+            }}>Cancel</Button>
+            <DeleteButton item={item} />
           </Row>
         ))}
       </ul>
@@ -188,9 +214,9 @@ function EventsSection() {
           <p className="section-label mt-12">Cancelled</p>
           <p className="mt-2 text-sm text-muted-foreground">Off the schedule, but still visible to the people who signed up. Deleting takes it away for good.</p>
           <ul className="mt-4 grid gap-4">
-            {cancelled.data?.map((e) => (
-              <Row key={e.id} e={e}>
-                <DeleteButton e={e} />
+            {cancelledList.map((item) => (
+              <Row key={item.event.id} item={item}>
+                <DeleteButton item={item} />
               </Row>
             ))}
           </ul>
