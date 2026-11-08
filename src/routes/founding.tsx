@@ -126,7 +126,7 @@ function FoundingPage() {
               <InfinityIcon className="size-4 text-primary" strokeWidth={1.5} aria-hidden /> once, lifetime membership
             </span>
           </div>
-          <p className="mt-4 text-sm text-primary">The founding member deal is available until November 15.</p>
+          <p className="mt-4 text-sm text-primary">The founding member deal is available until November 30.</p>
           <ul className="mt-6 flex flex-col gap-3">
             {PERKS.map((p) => (
               <li key={p} className="flex gap-3 text-[15px] text-foreground">

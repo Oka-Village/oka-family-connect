@@ -42,7 +42,7 @@ function MembershipPage() {
   const profile = useProfile();
   const roles = useRoles();
   const membership = useMembership(profile.data?.id);
-  const [agreed, setAgreed] = useState(false);
+  const [agreed, setAgreed] = useState(true);
   const [needTerms, setNeedTerms] = useState(false);
   const termsRef = useRef<HTMLDivElement>(null);
   const [busy, setBusy] = useState<MembershipKind | "confirm" | "signin" | null>(null);
@@ -150,7 +150,7 @@ function MembershipPage() {
           <InfinityIcon className="size-7 text-primary" strokeWidth={1.5} aria-hidden />
           <h2 className="mt-5 font-serif text-3xl">Founding membership</h2>
           <p className="mt-5"><span className="font-serif text-5xl">$250</span><span className="ml-2 text-muted-foreground">one-time</span></p>
-          <p className="mt-4 text-sm text-primary">Founding member deal - available until November 15.</p>
+          <p className="mt-4 text-sm text-primary">Founding member deal - available until November 30.</p>
           <p className="mt-4 leading-relaxed text-muted-foreground">Lifetime membership. No renewals.</p>
           <Button className="mt-8 w-full rounded-full" disabled={busy !== null} onClick={() => choosePlan("founding")}>{busy === "founding" && <Loader2 className="size-4 animate-spin" />}Choose founding membership</Button>
         </article>
