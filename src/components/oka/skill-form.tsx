@@ -79,7 +79,9 @@ export function SkillForm({ userId, initial }: { userId: string; initial?: Skill
     await qc.invalidateQueries({ queryKey: ["skill", res.data.id] });
     await qc.invalidateQueries({ queryKey: ["my-skills"] });
     toast.success(initial ? "Your offering is updated" : "Your offering is live");
-    void navigate({ to: "/skills/$skillId", params: { skillId: res.data.id } });
+    // New offerings land on My Profile, which every member can open before launch.
+    if (initial) void navigate({ to: "/skills/$skillId", params: { skillId: res.data.id } });
+    else void navigate({ to: "/profile" });
   }
 
   return (

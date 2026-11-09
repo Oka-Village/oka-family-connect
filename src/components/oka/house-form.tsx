@@ -85,7 +85,9 @@ export function HouseForm({ userId, initial }: { userId: string; initial?: House
       qc.invalidateQueries({ queryKey: ["my-houses"] }),
     ]);
     toast.success(initial ? "Your home is updated" : "Your home is open to the family");
-    void navigate({ to: "/houses/$houseId", params: { houseId: res.data.id } });
+    // New homes land on My Profile, which every member can open before launch.
+    if (initial) void navigate({ to: "/houses/$houseId", params: { houseId: res.data.id } });
+    else void navigate({ to: "/profile" });
   }
 
   return (

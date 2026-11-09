@@ -120,6 +120,13 @@
       "when": 1794203981981,
       "tag": "0016_events_open_to_members",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1794207375424,
+      "tag": "0017_listing_owner_read",
+      "breakpoints": true
     }
   ]
 }
