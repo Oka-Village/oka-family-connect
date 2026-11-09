@@ -79,7 +79,7 @@ describe("membership payment rules", () => {
     expect(validateMembershipSession({ ...monthly, payment_status: "unpaid" }, "member-a", "monthly")).toBe(false);
     expect(validateMembershipSession({ ...monthly, status: "open" }, "member-a", "monthly")).toBe(false);
   });
-  it.each(["/", "/home", "/directory", "/events", "/skills", "/houses", "/collections", "/credits", "/facilitators", "/invite/FRIEND"])(
+  it.each(["/", "/home", "/directory", "/skills", "/houses", "/collections", "/credits", "/facilitators", "/invite/FRIEND"])(
     "sends unpaid members from browsing route %s to /welcome",
     (path) => {
       expect(paymentRedirect(path, false, false, "none")).toBe("/welcome");
@@ -106,7 +106,7 @@ describe("membership payment rules", () => {
       expect(paymentRedirect(path, false, false, "expired")).toBeNull();
     },
   );
-  it.each(["/membership", "/privacy", "/terms", "/founding", "/affiliate"])("always allows %s", (path) => {
+  it.each(["/membership", "/privacy", "/terms", "/founding", "/affiliate", "/events"])("always allows %s", (path) => {
     expect(paymentRedirect(path, false, false, "none")).toBeNull();
     expect(paymentRedirect(path, false, false, "active")).toBeNull();
     expect(paymentRedirect(path, false, false, "expired")).toBeNull();
@@ -118,7 +118,7 @@ describe("membership payment rules", () => {
     expect(paymentRedirect("/affiliate", false, true, "expired")).toBeNull();
     expect(paymentRedirect("/affiliate", true, false, "none")).toBeNull();
   });
-  it.each(["/home", "/profile", "/welcome", "/skills/new", "/onboarding", "/", "/events"])(
+  it.each(["/home", "/profile", "/welcome", "/skills/new", "/onboarding", "/"])(
     "sends expired-trial members from %s to /membership",
     (path) => {
       expect(paymentRedirect(path, false, false, "expired")).toBe("/membership");

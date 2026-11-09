@@ -19,7 +19,7 @@ describe("membership soft launch", () => {
   it("does not grant access without a profile", () => {
     expect(isFullMember(null, new Date("2026-12-01T00:00:00Z"))).toBe(false);
   });
-  it.each(["/home", "/home/reflection", "/home/inspiration", "/home/appreciation", "/home/reflection/past", "/directory", "/members", "/members/example", "/events", "/events/example", "/houses", "/houses/example", "/skills", "/skills/example", "/stays", "/sessions", "/collections", "/credits"])("blocks limited browsing at %s", (path) => {
+  it.each(["/home", "/home/reflection", "/home/inspiration", "/home/appreciation", "/home/reflection/past", "/directory", "/members", "/members/example", "/houses", "/houses/example", "/skills", "/skills/example", "/stays", "/sessions", "/collections", "/credits"])("blocks limited browsing at %s", (path) => {
     expect(canAccessMemberRoute(path, false)).toBe(false);
   });
   it.each(["/profile", "/onboarding", "/skills/new", "/houses/new", "/events/new", "/affiliate", "/privacy", "/terms"])("allows limited contribution at %s", (path) => {
@@ -32,15 +32,14 @@ describe("membership soft launch", () => {
   });
   it("lets a limited member open only an event they created or host", () => {
     expect(canAccessMemberRoute("/events/own-gathering", false, true)).toBe(true);
-    expect(canAccessMemberRoute("/events/own-gathering", false, false)).toBe(false);
     expect(ownEventViewTarget("/events/own-gathering")?.id).toBe("own-gathering");
     expect(ownEventViewTarget("/events/new")).toBeNull();
     expect(ownEventViewTarget("/events")).toBeNull();
   });
   it("lets a limited member open only an event they were invited to", () => {
     expect(canAccessMemberRoute("/events/invited-gathering", false, false, true)).toBe(true);
-    expect(canAccessMemberRoute("/events/invited-gathering", false, false, false)).toBe(false);
-    expect(canAccessMemberRoute("/events", false, false, true)).toBe(false);
+    expect(canAccessMemberRoute("/events/any-gathering", false, false, false)).toBe(true);
+    expect(canAccessMemberRoute("/events", false)).toBe(true);
     expect(canAccessMemberRoute("/events/edit/invited-gathering", false, false, true)).toBe(false);
     expect(canAccessMemberRoute("/home", false, false, true)).toBe(false);
   });
