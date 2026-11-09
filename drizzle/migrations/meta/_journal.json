@@ -113,6 +113,13 @@
       "when": 1793179513962,
       "tag": "0015_facilitator_applications",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1794203981981,
+      "tag": "0016_events_open_to_members",
+      "breakpoints": true
     }
   ]
 }
