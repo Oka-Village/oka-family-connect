@@ -90,9 +90,10 @@ describe("membership payment rules", () => {
     expect(paymentRedirect(path, false, false, "active")).toBeNull();
     expect(paymentRedirect(path, false, false, "none")).toBeNull();
   });
-  it.each(["/skills/new", "/houses/new"])("allows content adding at %s only during an active trial", (path) => {
+  it.each(["/skills/new", "/houses/new"])("lets every member add content at %s", (path) => {
     expect(paymentRedirect(path, false, false, "active")).toBeNull();
-    expect(paymentRedirect(path, false, false, "none")).toBe("/welcome");
+    expect(paymentRedirect(path, false, false, "none")).toBeNull();
+    expect(paymentRedirect(path, false, false, "expired")).toBeNull();
   });
   it.each(["/skills/edit/own", "/houses/edit/own"])("allows editing own content at %s only during an active trial", (path) => {
     expect(paymentRedirect(path, false, false, "active")).toBeNull();
