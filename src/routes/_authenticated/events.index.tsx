@@ -274,7 +274,6 @@ function CalendarView({ search, onMonth }: { search: Search; onMonth: (m: string
     byDay.set(k, [...(byDay.get(k) ?? []), e]);
   }
   const days = eachDayOfInterval({ start: gridStart, end: gridEnd });
-  const [selected, setSelected] = useState<string | null>(null);
 
   return (
     <div className="mt-10">
@@ -298,15 +297,16 @@ function CalendarView({ search, onMonth }: { search: Search; onMonth: (m: string
             const key = fmt(d, "yyyy-MM-dd");
             const list = byDay.get(key) ?? [];
             const inMonth = isSameMonth(d, month);
-            const isSel = selected === key;
             return (
-              <button
+              <Link
                 key={key}
-                onClick={() => setSelected(isSel ? null : key)}
+                to="/events/day/$date"
+                params={{ date: key }}
+                aria-label={`Events on ${fmt(d, "EEEE, MMMM d")}`}
                 className={cn(
                   "flex aspect-square flex-col items-center justify-start rounded-2xl p-1 text-left transition-colors sm:aspect-auto sm:min-h-24 sm:items-stretch sm:p-2",
                   !inMonth && "opacity-35",
-                  isSel ? "bg-secondary" : list.length ? "bg-accent/50 hover:bg-accent" : "hover:bg-accent/40",
+                  list.length ? "bg-accent/50 hover:bg-accent" : "hover:bg-accent/40",
                 )}
               >
                 <span className={cn("font-serif inline-flex size-7 items-center justify-center rounded-full text-lg", isToday(d) ? "bg-primary text-primary-foreground" : "text-foreground")}>
@@ -326,20 +326,11 @@ function CalendarView({ search, onMonth }: { search: Search; onMonth: (m: string
                   ))}
                   {list.length > 2 && <span className="text-[0.65rem] text-muted-foreground">+{list.length - 2} more</span>}
                 </span>
-              </button>
+              </Link>
             );
           })}
         </div>
       </div>
-      {selected && (
-        <div className="mt-8">
-          <p className="section-label">{fmt(parse(selected, "yyyy-MM-dd", new Date()), "EEEE, MMMM d")}</p>
-          <div className="mt-4 grid gap-4">
-            {(byDay.get(selected) ?? []).length === 0 && <p className="text-muted-foreground">Nothing planned this day.</p>}
-            {(byDay.get(selected) ?? []).map((e) => <EventCard key={e.id} event={e} rsvp={rsvps.data?.[e.id]} />)}
-          </div>
-        </div>
-      )}
       {q.data?.length === 0 && <p className="font-serif mt-8 text-center text-2xl text-muted-foreground">The calendar is quiet this month — new gatherings are coming.</p>}
     </div>
   );

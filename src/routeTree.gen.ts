@@ -45,6 +45,7 @@ import { Route as AuthenticatedMembersMemberIdRouteImport } from './routes/_auth
 import { Route as AuthenticatedSkillsIndexRouteImport } from './routes/_authenticated/skills.index'
 import { Route as AuthenticatedSkillsSkillIdRouteImport } from './routes/_authenticated/skills.$skillId'
 import { Route as AuthenticatedSkillsNewRouteImport } from './routes/_authenticated/skills.new'
+import { Route as AuthenticatedEventsDayDateRouteImport } from './routes/_authenticated/events.day.$date'
 import { Route as AuthenticatedEventsEditEventIdRouteImport } from './routes/_authenticated/events.edit.$eventId'
 import { Route as AuthenticatedHomeReflectionPastRouteImport } from './routes/_authenticated/home.reflection_.past'
 import { Route as AuthenticatedHousesEditHouseIdRouteImport } from './routes/_authenticated/houses.edit.$houseId'
@@ -241,6 +242,12 @@ const AuthenticatedSkillsNewRoute = AuthenticatedSkillsNewRouteImport.update({
   path: '/skills/new',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedEventsDayDateRoute =
+  AuthenticatedEventsDayDateRouteImport.update({
+    id: '/events/day/$date',
+    path: '/events/day/$date',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedEventsEditEventIdRoute =
   AuthenticatedEventsEditEventIdRouteImport.update({
     id: '/events/edit/$eventId',
@@ -302,6 +309,7 @@ export interface FileRoutesByFullPath {
   '/home/': typeof AuthenticatedHomeIndexRoute
   '/houses/': typeof AuthenticatedHousesIndexRoute
   '/skills/': typeof AuthenticatedSkillsIndexRoute
+  '/events/day/$date': typeof AuthenticatedEventsDayDateRoute
   '/events/edit/$eventId': typeof AuthenticatedEventsEditEventIdRoute
   '/home/reflection/past': typeof AuthenticatedHomeReflectionPastRoute
   '/houses/edit/$houseId': typeof AuthenticatedHousesEditHouseIdRoute
@@ -343,6 +351,7 @@ export interface FileRoutesByTo {
   '/home': typeof AuthenticatedHomeIndexRoute
   '/houses': typeof AuthenticatedHousesIndexRoute
   '/skills': typeof AuthenticatedSkillsIndexRoute
+  '/events/day/$date': typeof AuthenticatedEventsDayDateRoute
   '/events/edit/$eventId': typeof AuthenticatedEventsEditEventIdRoute
   '/home/reflection/past': typeof AuthenticatedHomeReflectionPastRoute
   '/houses/edit/$houseId': typeof AuthenticatedHousesEditHouseIdRoute
@@ -386,6 +395,7 @@ export interface FileRoutesById {
   '/_authenticated/home/': typeof AuthenticatedHomeIndexRoute
   '/_authenticated/houses/': typeof AuthenticatedHousesIndexRoute
   '/_authenticated/skills/': typeof AuthenticatedSkillsIndexRoute
+  '/_authenticated/events/day/$date': typeof AuthenticatedEventsDayDateRoute
   '/_authenticated/events/edit/$eventId': typeof AuthenticatedEventsEditEventIdRoute
   '/_authenticated/home/reflection_/past': typeof AuthenticatedHomeReflectionPastRoute
   '/_authenticated/houses/edit/$houseId': typeof AuthenticatedHousesEditHouseIdRoute
@@ -429,6 +439,7 @@ export interface FileRouteTypes {
     | '/home/'
     | '/houses/'
     | '/skills/'
+    | '/events/day/$date'
     | '/events/edit/$eventId'
     | '/home/reflection/past'
     | '/houses/edit/$houseId'
@@ -470,6 +481,7 @@ export interface FileRouteTypes {
     | '/home'
     | '/houses'
     | '/skills'
+    | '/events/day/$date'
     | '/events/edit/$eventId'
     | '/home/reflection/past'
     | '/houses/edit/$houseId'
@@ -512,6 +524,7 @@ export interface FileRouteTypes {
     | '/_authenticated/home/'
     | '/_authenticated/houses/'
     | '/_authenticated/skills/'
+    | '/_authenticated/events/day/$date'
     | '/_authenticated/events/edit/$eventId'
     | '/_authenticated/home/reflection_/past'
     | '/_authenticated/houses/edit/$houseId'
@@ -786,6 +799,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSkillsNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/events/day/$date': {
+      id: '/_authenticated/events/day/$date'
+      path: '/events/day/$date'
+      fullPath: '/events/day/$date'
+      preLoaderRoute: typeof AuthenticatedEventsDayDateRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/events/edit/$eventId': {
       id: '/_authenticated/events/edit/$eventId'
       path: '/events/edit/$eventId'
@@ -843,6 +863,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedHomeIndexRoute: typeof AuthenticatedHomeIndexRoute
   AuthenticatedHousesIndexRoute: typeof AuthenticatedHousesIndexRoute
   AuthenticatedSkillsIndexRoute: typeof AuthenticatedSkillsIndexRoute
+  AuthenticatedEventsDayDateRoute: typeof AuthenticatedEventsDayDateRoute
   AuthenticatedEventsEditEventIdRoute: typeof AuthenticatedEventsEditEventIdRoute
   AuthenticatedHomeReflectionPastRoute: typeof AuthenticatedHomeReflectionPastRoute
   AuthenticatedHousesEditHouseIdRoute: typeof AuthenticatedHousesEditHouseIdRoute
@@ -875,6 +896,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedHomeIndexRoute: AuthenticatedHomeIndexRoute,
   AuthenticatedHousesIndexRoute: AuthenticatedHousesIndexRoute,
   AuthenticatedSkillsIndexRoute: AuthenticatedSkillsIndexRoute,
+  AuthenticatedEventsDayDateRoute: AuthenticatedEventsDayDateRoute,
   AuthenticatedEventsEditEventIdRoute: AuthenticatedEventsEditEventIdRoute,
   AuthenticatedHomeReflectionPastRoute: AuthenticatedHomeReflectionPastRoute,
   AuthenticatedHousesEditHouseIdRoute: AuthenticatedHousesEditHouseIdRoute,
