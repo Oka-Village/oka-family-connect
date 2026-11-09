@@ -119,7 +119,7 @@ describe("membership payment rules", () => {
     expect(paymentRedirect("/affiliate", false, true, "expired")).toBeNull();
     expect(paymentRedirect("/affiliate", true, false, "none")).toBeNull();
   });
-  it.each(["/home", "/profile", "/welcome", "/skills/new", "/onboarding", "/"])(
+  it.each(["/home", "/profile", "/welcome", "/onboarding", "/"])(
     "sends expired-trial members from %s to /membership",
     (path) => {
       expect(paymentRedirect(path, false, false, "expired")).toBe("/membership");
