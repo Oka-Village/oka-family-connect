@@ -5,6 +5,7 @@ import { ImagePlus, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { DeleteListingButton } from "@/components/oka/delete-listing-button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
@@ -123,7 +124,8 @@ export function HouseForm({ userId, initial }: { userId: string; initial?: House
       <div><L>Description</L><Textarea rows={6} maxLength={4000} placeholder="What's it like to stay with you?" value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} /></div>
       <div><L>House rules</L><Textarea rows={4} maxLength={2000} placeholder="Shoes off, quiet after 10, the cat is in charge…" value={f.house_rules} onChange={(e) => setF({ ...f, house_rules: e.target.value })} /></div>
       <p className="text-sm text-muted-foreground">Each night hosted earns you one credit.</p>
-      <div className="flex justify-end">
+      <div className="flex flex-wrap justify-end gap-3">
+        {initial && <DeleteListingButton kind="houses" id={initial.id} title={initial.title} ownerId={initial.owner_id} userId={userId} disabled={busy || uploading > 0} />}
         <Button type="submit" className="rounded-full px-8" disabled={busy || uploading > 0}>
           {busy && <Loader2 className="size-4 animate-spin" strokeWidth={1.5} />}{initial ? "Save changes" : "Open my home"}
         </Button>

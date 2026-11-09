@@ -5,6 +5,7 @@ import { Archive, ArchiveRestore, ArrowLeft, CalendarDays, Coins, Home, Loader2,
 import { toast } from "sonner";
 
 import { FavoriteButton } from "@/components/oka/favorite-button";
+import { DeleteListingButton } from "@/components/oka/delete-listing-button";
 import { MemberAvatar } from "@/components/oka/profile-sections";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -114,6 +115,7 @@ function HouseDetail() {
                 {h.status === "published" ? <><Archive className="size-4 text-primary" strokeWidth={1.5} />Unlist</> : <><ArchiveRestore className="size-4 text-primary" strokeWidth={1.5} />List again</>}
               </Button>
               <Button asChild className="rounded-full"><Link to="/stays">Stay requests</Link></Button>
+              <DeleteListingButton kind="houses" id={h.id} title={h.title} ownerId={h.owner_id} userId={uid} />
             </div>
           ) : h.status === "published" ? <BookingForm houseId={h.id} /> : null}
         </aside>

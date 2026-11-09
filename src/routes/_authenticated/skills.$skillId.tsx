@@ -5,6 +5,7 @@ import { Archive, ArchiveRestore, ArrowLeft, Clock, Coins, Loader2, MapPin, Penc
 import { toast } from "sonner";
 
 import { FavoriteButton } from "@/components/oka/favorite-button";
+import { DeleteListingButton } from "@/components/oka/delete-listing-button";
 import { MemberAvatar } from "@/components/oka/profile-sections";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -112,6 +113,7 @@ function SkillDetail() {
                 ) : (
                   <Button variant="outline" className="rounded-full" onClick={() => void setStatus("published")}><ArchiveRestore className="size-4 text-primary" strokeWidth={1.5} />Publish again</Button>
                 )}
+                <DeleteListingButton kind="skills" id={skill.id} title={skill.title} ownerId={skill.owner_id} userId={uid} />
               </div>
               <Link to="/sessions" className="mt-4 inline-block text-sm text-primary hover:underline">See requests in Sessions</Link>
             </div>

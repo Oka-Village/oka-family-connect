@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Add confirmed creator-only skill/home deletion on detail and edit pages; nine ownership/deletion tests passed, cancellation and persisted removal verified with temporary listings in the requesting account on desktop/mobile, all temporary rows removed; no publishing. Ordinary-member session not separately exercised.
+
 - [x] Surface "Complete your profile and earn 3 credits" as a mobile-only banner under the mobile header linking to My Profile; verified at 390px and hidden at 768px and up, with desktop pill unchanged and no database changes or publishing.
 - [x] Add header notifications, member updates page, and profile preferences with missing-table fallbacks; eight focused tests and signed-in desktop/mobile empty states verified without database changes, emails, or publishing.
 

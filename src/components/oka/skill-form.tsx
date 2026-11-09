@@ -5,6 +5,7 @@ import { Camera, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { DeleteListingButton } from "@/components/oka/delete-listing-button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
@@ -116,7 +117,8 @@ export function SkillForm({ userId, initial }: { userId: string; initial?: Skill
       </div>
       <div><L>Description</L><Textarea rows={6} maxLength={3000} placeholder="What will you share, and what might someone take away?" value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} /></div>
       <p className="text-sm text-muted-foreground">Each session is exchanged for one credit.</p>
-      <div className="flex justify-end">
+      <div className="flex flex-wrap justify-end gap-3">
+        {initial && <DeleteListingButton kind="skills" id={initial.id} title={initial.title} ownerId={initial.owner_id} userId={userId} disabled={busy || uploading} />}
         <Button type="submit" className="rounded-full px-8" disabled={busy || uploading}>
           {busy && <Loader2 className="size-4 animate-spin" strokeWidth={1.5} />}{initial ? "Save changes" : "Publish offering"}
         </Button>
