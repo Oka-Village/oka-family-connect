@@ -6,7 +6,7 @@ export function isFullMember(profile: { member_status: MemberStatus } | null | u
   return Boolean(profile && (profile.member_status === "full" || (profile.member_status === "limited" && hasVerifiedPaymentAccess && now.getTime() >= Date.parse(FULL_ACCESS_OPENS_AT))));
 }
 
-const ALLOWED_ROUTES = new Set(["/profile", "/onboarding", "/welcome", "/skills/new", "/houses/new", "/events", "/events/new", "/affiliate", "/privacy", "/terms"]);
+const ALLOWED_ROUTES = new Set(["/profile", "/onboarding", "/welcome", "/skills/new", "/houses/new", "/events", "/events/new", "/skills", "/houses", "/affiliate", "/privacy", "/terms"]);
 
 export function ownEditTarget(pathname: string): { table: "skills" | "houses" | "events"; id: string } | null {
   const match = /^\/(skills|houses|events)\/edit\/([^/]+)$/.exec(pathname.replace(/\/+$/, ""));
@@ -49,5 +49,5 @@ export function canAccessMemberRoute(pathname: string, fullAccess: boolean, owns
   if (ownsEdit && (ownEditTarget(path) || ownEventViewTarget(path) || ownListingViewTarget(path))) return true;
   // The events schedule and every event page are open to all members; private locations stay gated in the database.
   void invitedToEvent;
-  return Boolean(ownEventViewTarget(path)) || isEventDayRoute(path);
+  return Boolean(ownEventViewTarget(path)) || isEventDayRoute(path) || Boolean(ownListingViewTarget(path));
 }

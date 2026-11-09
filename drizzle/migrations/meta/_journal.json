@@ -127,6 +127,13 @@
       "when": 1794207375424,
       "tag": "0017_listing_owner_read",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1794219455388,
+      "tag": "0018_skills_houses_open_to_members",
+      "breakpoints": true
     }
   ]
 }
