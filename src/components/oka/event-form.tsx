@@ -93,10 +93,55 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
   const [saving, setSaving] = useState(false);
   const [repeat, setRepeat] = useState<Repeat>("none");
   const [until, setUntil] = useState("");
+  const [pods, setPods] = useState(() => [1, 2, 3].map(() => ({ topic: "", starts: "", ends: "" })));
+  const isPod = mode === "create" && f.event_type === "pod_session";
+  const upPod = (i: number, k: "topic" | "starts" | "ends") => (e: { target: { value: string } }) =>
+    setPods((p) => p.map((x, j) => (j === i ? { ...x, [k]: e.target.value } : x)));
   const up = (k: keyof typeof f) => (e: { target: { value: string } }) => setF((s) => ({ ...s, [k]: e.target.value }));
+
+  async function submitPods(): Promise<unknown> {
+    if (!f.title.trim()) return toast.error("Please add a title.");
+    if (!f.photo_url) { setPhotoError(true); return toast.error("Please add a photo for your event."); }
+    for (const [i, p] of pods.entries()) {
+      if (!p.topic.trim() || !p.starts) return toast.error(`Please add a topic and start time for Session ${i + 1}.`);
+      if (p.ends && p.ends < p.starts) return toast.error(`Session ${i + 1} must end after it starts.`);
+    }
+    if (f.meeting && !/^https?:\/\//.test(f.meeting) && f.format === "virtual") return toast.error("The meeting link should start with https://");
+    const capacity = f.capacity ? Number(f.capacity) : null;
+    if (capacity != null && (!Number.isInteger(capacity) || capacity < 1)) return toast.error("Capacity must be a whole number above zero.");
+    setSaving(true);
+    const rows = pods.map((p, i) => ({
+      title: `${f.title.trim()} · Session ${i + 1}: ${p.topic.trim()}`.slice(0, 140),
+      event_type: f.event_type,
+      format: f.format,
+      timezone: f.timezone,
+      starts_at: zonedInputToUtc(p.starts, f.timezone),
+      ends_at: p.ends ? zonedInputToUtc(p.ends, f.timezone) : null,
+      capacity,
+      description: f.description.trim() || null,
+      photo_url: f.photo_url,
+      created_by: userId,
+      status: isAdmin ? "published" : "pending_approval",
+    }));
+    const { data, error } = await supabase.from("events").insert(rows).select("id,starts_at").order("starts_at");
+    if (error || !data?.length) { setSaving(false); return toast.error(error?.message ?? "Couldn't save the pod."); }
+    const location = {
+      venue_address: f.format === "in_person" ? f.venue.trim() || null : null,
+      video_link: f.format === "virtual" ? f.video.trim() || null : null,
+      meeting_link: f.format === "virtual" ? f.meeting.trim() || null : null,
+    };
+    const { error: locErr } = await supabase.from("event_locations").upsert(data.map((r) => ({ event_id: r.id, ...location })));
+    setSaving(false);
+    if (locErr) return toast.error(locErr.message);
+    await queryClient.invalidateQueries();
+    try { sessionStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
+    toast.success((isAdmin ? "Pod published" : "Pod sent for review") + " (3 sessions)");
+    return navigate({ to: "/events/$eventId", params: { eventId: data[0]!.id } });
+  }
 
   async function submit(e: React.FormEvent): Promise<unknown> {
     e.preventDefault();
+    if (isPod) return submitPods();
     if (!f.title.trim() || !f.starts) return toast.error("Please add a title and a start time.");
     if (!f.photo_url) { setPhotoError(true); return toast.error("Please add a photo for your event."); }
     if (f.video && !/^https?:\/\//.test(f.video)) return toast.error("The video link should start with https://");
@@ -191,14 +236,18 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
             {EVENT_FORMATS.map((t) => <option key={t} value={t}>{FORMAT_LABELS[t]}</option>)}
           </select>
         </div>
-        <div className="grid gap-2">
-          <Label htmlFor="starts">Starts</Label>
-          <Input id="starts" type="datetime-local" value={f.starts} onChange={up("starts")} required />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="ends">Ends</Label>
-          <Input id="ends" type="datetime-local" value={f.ends} onChange={up("ends")} />
-        </div>
+        {!isPod && (
+          <>
+            <div className="grid gap-2">
+              <Label htmlFor="starts">Starts</Label>
+              <Input id="starts" type="datetime-local" value={f.starts} onChange={up("starts")} required />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="ends">Ends</Label>
+              <Input id="ends" type="datetime-local" value={f.ends} onChange={up("ends")} />
+            </div>
+          </>
+        )}
         <div className="grid gap-2">
           <Label htmlFor="tz">Timezone</Label>
           <Input id="tz" list="tz-list" value={f.timezone} onChange={up("timezone")} />
@@ -211,7 +260,28 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
           <Input id="capacity" type="number" min={1} value={f.capacity} onChange={up("capacity")} placeholder="Leave empty for unlimited" />
         </div>
       </div>
-      {mode === "create" && (
+      {isPod && (
+        <div className="grid gap-4">
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">Pod sessions</p>
+          {pods.map((p, i) => (
+            <div key={i} className="grid gap-4 rounded-2xl border border-border bg-background p-4 sm:grid-cols-2">
+              <div className="grid gap-2 sm:col-span-2">
+                <Label htmlFor={`pod-topic-${i}`}>Session {i + 1} topic</Label>
+                <Input id={`pod-topic-${i}`} value={p.topic} onChange={upPod(i, "topic")} maxLength={80} required />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor={`pod-starts-${i}`}>Starts</Label>
+                <Input id={`pod-starts-${i}`} type="datetime-local" value={p.starts} onChange={upPod(i, "starts")} required />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor={`pod-ends-${i}`}>Ends</Label>
+                <Input id={`pod-ends-${i}`} type="datetime-local" value={p.ends} onChange={upPod(i, "ends")} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      {mode === "create" && !isPod && (
         <div className="grid gap-6 sm:grid-cols-2">
           <div className="grid gap-2">
             <Label htmlFor="repeat">Repeats</Label>
