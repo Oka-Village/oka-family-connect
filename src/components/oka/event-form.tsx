@@ -250,10 +250,9 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
         )}
         <div className="grid gap-2">
           <Label htmlFor="tz">Timezone</Label>
-          <Input id="tz" list="tz-list" value={f.timezone} onChange={up("timezone")} />
-          <datalist id="tz-list">
-            {listTimezones().map((z) => <option key={z} value={z} />)}
-          </datalist>
+          <select id="tz" className={selectCls} value={f.timezone} onChange={(e) => setF((p) => ({ ...p, timezone: e.target.value }))}>
+            {Array.from(new Set([f.timezone, ...listTimezones()])).map((z) => <option key={z} value={z}>{z.replace(/_/g, " ")}</option>)}
+          </select>
         </div>
         <div className="grid gap-2">
           <Label htmlFor="capacity">Max amount of participants</Label>
