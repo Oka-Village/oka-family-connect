@@ -52,3 +52,10 @@ describe("membership soft launch", () => {
     expect(canAccessMemberRoute("/admin", true)).toBe(true);
   });
 });
+import { canAccessMemberRoute as canAccessDay } from "./member-access";
+import { paymentRedirect as redirectDay } from "./membership";
+import { test as dayTest, expect as dayExpect } from "vitest";
+dayTest("limited members can open a calendar day list", () => {
+  dayExpect(canAccessDay("/events/day/2026-11-20", false)).toBe(true);
+  dayExpect(redirectDay("/events/day/2026-11-20", false, false, "none" as never)).toBeNull();
+});

@@ -31,10 +31,15 @@ export function ownEventViewTarget(pathname: string): { id: string } | null {
   return { id: match[1] };
 }
 
-/** Propose, edit, or open one event. The schedule index stays behind payment access. */
+/** The calendar's one-day list, /events/day/YYYY-MM-DD; open to every member. */
+export function isEventDayRoute(pathname: string): boolean {
+  return /^\/events\/day\/[^/]+$/.test(pathname.replace(/\/+$/, ""));
+}
+
+/** Propose, edit, or open one event, or a calendar day list. */
 export function isEventProposalRoute(pathname: string): boolean {
   const path = pathname.replace(/\/+$/, "") || "/";
-  return path === "/events/new" || Boolean(ownEditTarget(path)?.table === "events") || Boolean(ownEventViewTarget(path));
+  return path === "/events/new" || isEventDayRoute(path) || Boolean(ownEditTarget(path)?.table === "events") || Boolean(ownEventViewTarget(path));
 }
 
 export function canAccessMemberRoute(pathname: string, fullAccess: boolean, ownsEdit = false, invitedToEvent = false): boolean {
@@ -44,5 +49,5 @@ export function canAccessMemberRoute(pathname: string, fullAccess: boolean, owns
   if (ownsEdit && (ownEditTarget(path) || ownEventViewTarget(path) || ownListingViewTarget(path))) return true;
   // The events schedule and every event page are open to all members; private locations stay gated in the database.
   void invitedToEvent;
-  return Boolean(ownEventViewTarget(path));
+  return Boolean(ownEventViewTarget(path)) || isEventDayRoute(path);
 }
