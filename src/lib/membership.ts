@@ -1,4 +1,4 @@
-import { isEventProposalRoute, ownEditTarget } from "./member-access";
+import { isEventProposalRoute, ownEditTarget, ownListingViewTarget } from "./member-access";
 import { TRIAL_DAYS } from "./onboarding-rules";
 
 export const MONTHLY_PRICE_CENTS = 2900;
@@ -53,8 +53,10 @@ export function paymentRedirect(pathname: string, fullAccess: boolean, paid: boo
   if (fullAccess) return path === "/membership" ? "/home" : null;
   if (paid) return null;
   if (ALWAYS_ALLOWED_ROUTES.has(path) || isEventProposalRoute(path)) return null;
+  // Own skill/home pages and edits: the member-access gate verifies ownership before rendering.
+  if (ownListingViewTarget(path) || ownEditTarget(path)) return null;
   if (trial === "expired") return "/membership";
-  if (trial === "active" && (CONTENT_ADDING_ROUTES.has(path) || ownEditTarget(path))) return null;
+  if (trial === "active" && CONTENT_ADDING_ROUTES.has(path)) return null;
   if (PROFILE_ONLY_ROUTES.has(path)) return null;
   return "/welcome";
 }

@@ -17,6 +17,13 @@ export function ownEditTarget(pathname: string): { table: "skills" | "houses" | 
   return { table, id };
 }
 
+/** One skill or home page (not new/edit); limited members may open only their own. */
+export function ownListingViewTarget(pathname: string): { table: "skills" | "houses"; id: string } | null {
+  const match = /^\/(skills|houses)\/([^/]+)$/.exec(pathname.replace(/\/+$/, ""));
+  if (!match?.[2] || match[2] === "new" || match[2] === "edit") return null;
+  return { table: match[1] as "skills" | "houses", id: match[2] };
+}
+
 /** One event page, not the schedule. /events/new is a separate allow-list route. */
 export function ownEventViewTarget(pathname: string): { id: string } | null {
   const match = /^\/events\/([^/]+)$/.exec(pathname.replace(/\/+$/, "") || "/");
@@ -34,7 +41,7 @@ export function canAccessMemberRoute(pathname: string, fullAccess: boolean, owns
   if (fullAccess) return true;
   const path = pathname.replace(/\/+$/, "") || "/";
   if (ALLOWED_ROUTES.has(path)) return true;
-  if (ownsEdit && (ownEditTarget(path) || ownEventViewTarget(path))) return true;
+  if (ownsEdit && (ownEditTarget(path) || ownEventViewTarget(path) || ownListingViewTarget(path))) return true;
   // The events schedule and every event page are open to all members; private locations stay gated in the database.
   void invitedToEvent;
   return Boolean(ownEventViewTarget(path));

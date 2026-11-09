@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
+import { Pencil, Plus } from "lucide-react";
+import { DeleteListingButton } from "@/components/oka/delete-listing-button";
 
 import { SkillCard } from "@/components/oka/skill-card";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,10 @@ export function MyOfferings({ userId }: { userId: string }) {
             <div key={s.id} className="relative">
               {s.status !== "published" && <span className="absolute right-3 top-3 z-10 rounded-full bg-card px-3 py-1 text-xs uppercase tracking-widest text-muted-foreground shadow-soft">Archived</span>}
               <SkillCard skill={s} />
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button asChild variant="outline" size="sm" className="rounded-full"><Link to="/skills/edit/$skillId" params={{ skillId: s.id }}><Pencil className="size-4 text-primary" strokeWidth={1.5} />Edit</Link></Button>
+                <DeleteListingButton kind="skills" id={s.id} title={s.title} ownerId={s.owner_id} userId={userId} />
+              </div>
             </div>
           ))}
         </div>

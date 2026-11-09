@@ -95,9 +95,9 @@ describe("membership payment rules", () => {
     expect(paymentRedirect(path, false, false, "none")).toBeNull();
     expect(paymentRedirect(path, false, false, "expired")).toBeNull();
   });
-  it.each(["/skills/edit/own", "/houses/edit/own"])("allows editing own content at %s only during an active trial", (path) => {
+  it.each(["/skills/edit/own", "/houses/edit/own", "/skills/own", "/houses/own"])("leaves own listing pages at %s to the ownership gate", (path) => {
     expect(paymentRedirect(path, false, false, "active")).toBeNull();
-    expect(paymentRedirect(path, false, false, "none")).toBe("/welcome");
+    expect(paymentRedirect(path, false, false, "none")).toBeNull();
   });
   it.each(["/events/new", "/events/edit/own", "/events/own-gathering"] as const)(
     "lets every unpaid member propose or open their event at %s",

@@ -43,6 +43,10 @@ describe("membership soft launch", () => {
     expect(canAccessMemberRoute("/events/edit/invited-gathering", false, false, true)).toBe(false);
     expect(canAccessMemberRoute("/home", false, false, true)).toBe(false);
   });
+  it.each(["/skills/own", "/houses/own"])("lets a limited member open only their own listing at %s", (path) => {
+    expect(canAccessMemberRoute(path, false, true)).toBe(true);
+    expect(canAccessMemberRoute(path, false, false)).toBe(false);
+  });
   it("leaves full members and staff unrestricted", () => {
     expect(canAccessMemberRoute("/home", true)).toBe(true);
     expect(canAccessMemberRoute("/admin", true)).toBe(true);

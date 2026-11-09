@@ -5,7 +5,7 @@ import { useRoles } from "@/hooks/use-is-admin";
 import { useMembership } from "@/hooks/use-membership";
 import { hasPaidMembership } from "@/lib/membership";
 import { supabase } from "@/integrations/supabase/client";
-import { canAccessMemberRoute, FULL_ACCESS_OPENS_AT, isFullMember, ownEditTarget, ownEventViewTarget } from "@/lib/member-access";
+import { canAccessMemberRoute, FULL_ACCESS_OPENS_AT, isFullMember, ownEditTarget, ownEventViewTarget, ownListingViewTarget } from "@/lib/member-access";
 
 export function useMemberAccess(pathname: string) {
   const profile = useProfile();
@@ -28,7 +28,7 @@ export function useMemberAccess(pathname: string) {
   const fullAccess = roles.data?.isStaff === true || isFullMember(profile.data, now, hasPaidMembership(membership.data, now));
   const edit = ownEditTarget(pathname);
   const eventView = ownEventViewTarget(pathname);
-  const owned = edit ?? (eventView ? { table: "events" as const, id: eventView.id } : null);
+  const owned = edit ?? ownListingViewTarget(pathname) ?? (eventView ? { table: "events" as const, id: eventView.id } : null);
   const ownership = useQuery({
     queryKey: ["member-edit-access", profile.data?.id, owned?.table, owned?.id],
     enabled: Boolean(!fullAccess && profile.data && owned),
