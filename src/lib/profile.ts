@@ -50,11 +50,47 @@ function hasValue(value: unknown): boolean {
   return typeof value === "string" ? value.trim().length > 0 : Boolean(value);
 }
 
+/** Stable DOM ids for profile-edit sections — keep in sync with ProfileEditor Blocks. */
+export const PROFILE_EDIT_SECTIONS = [
+  "profile-edit-basic",
+  "profile-edit-intentions",
+  "profile-edit-gifts",
+  "profile-edit-skills",
+  "profile-edit-travel",
+] as const;
+
+export type ProfileEditSectionId = (typeof PROFILE_EDIT_SECTIONS)[number];
+
+/** Maps each completeness field to the edit section that contains it. */
+export const FIELD_TO_EDIT_SECTION = {
+  display_name: "profile-edit-basic",
+  photo_url: "profile-edit-basic",
+  age_range: "profile-edit-basic",
+  location: "profile-edit-basic",
+  relationship_status: "profile-edit-basic",
+  profession: "profile-edit-basic",
+  intentions: "profile-edit-intentions",
+  gift_excited_to_give: "profile-edit-gifts",
+  gift_loved_gestures: "profile-edit-gifts",
+  skill_tags: "profile-edit-skills",
+  travel_frequent: "profile-edit-travel",
+  travel_desired: "profile-edit-travel",
+} as const satisfies Record<(typeof COMPLETENESS_FIELDS)[number], ProfileEditSectionId>;
+
 /** 0-100 score describing how filled-in a profile is. */
 export function profileCompleteness(profile: Partial<OkaProfile> | null | undefined): number {
   if (!profile) return 0;
   const filled = COMPLETENESS_FIELDS.filter((field) => hasValue(profile[field])).length;
   return Math.round((filled / COMPLETENESS_FIELDS.length) * 100);
+}
+
+/** First edit section that still has at least one empty completeness field, or null when whole. */
+export function nextIncompleteSection(profile: Partial<OkaProfile> | null | undefined): ProfileEditSectionId | null {
+  if (!profile) return PROFILE_EDIT_SECTIONS[0];
+  for (const field of COMPLETENESS_FIELDS) {
+    if (!hasValue(profile[field])) return FIELD_TO_EDIT_SECTION[field];
+  }
+  return null;
 }
 
 export const AGE_RANGES = ["18-24", "25-34", "35-44", "45-54", "55-64", "65+"] as const;

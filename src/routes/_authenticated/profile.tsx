@@ -14,7 +14,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { resolvePhotoUrl, useProfile } from "@/hooks/use-profile";
 import { supabase } from "@/integrations/supabase/client";
-import { AGE_RANGES, INTENTIONS, RELATIONSHIP_STATUSES, profileCompleteness, type OkaProfile } from "@/lib/profile";
+import {
+  AGE_RANGES,
+  INTENTIONS,
+  RELATIONSHIP_STATUSES,
+  nextIncompleteSection,
+  profileCompleteness,
+  type OkaProfile,
+  type ProfileEditSectionId,
+} from "@/lib/profile";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/profile")({
@@ -54,6 +62,7 @@ const sageButton = "rounded-full bg-sage text-cream hover:bg-sage/90";
 function ProfilePage() {
   const { data: profile, isLoading } = useProfile();
   const [editing, setEditing] = useState(false);
+  const [focusSection, setFocusSection] = useState<ProfileEditSectionId | null>(null);
   const { data: photo } = useQuery({
     queryKey: ["profile-photo", profile?.photo_url],
     queryFn: () => resolvePhotoUrl(profile?.photo_url ?? null),
@@ -69,6 +78,16 @@ function ProfilePage() {
   }
 
   const completeness = profileCompleteness(profile);
+
+  function openEditor(section: ProfileEditSectionId | null = null) {
+    setFocusSection(section);
+    setEditing(true);
+  }
+
+  function closeEditor() {
+    setFocusSection(null);
+    setEditing(false);
+  }
 
   return (
     <div className="mx-auto flex max-w-[1280px] flex-col px-5 pb-20 pt-12 md:px-10 md:pt-[84px] xl:px-24">
@@ -86,16 +105,28 @@ function ProfilePage() {
             </div>
           </div>
           {!editing && (
-            <Button className={cn(sageButton, "px-6")} onClick={() => setEditing(true)}>
+            <Button className={cn(sageButton, "px-6")} onClick={() => openEditor()}>
               <Pencil className="size-4" strokeWidth={1.5} /> Edit profile
             </Button>
           )}
         </div>
 
-        <PresenceBanner completeness={completeness} />
+        <PresenceBanner
+          completeness={completeness}
+          onContinue={() => openEditor(nextIncompleteSection(profile))}
+        />
 
         <div className="mt-8">
-          {editing ? <ProfileEditor profile={profile} onDone={() => setEditing(false)} /> : <><ProfileSections profile={profile} /><MyOfferings userId={profile.id} /><MyHouses userId={profile.id} /></>}
+          {editing ? (
+            <ProfileEditor
+              profile={profile}
+              focusSection={focusSection}
+              onFocusApplied={() => setFocusSection(null)}
+              onDone={closeEditor}
+            />
+          ) : (
+            <><ProfileSections profile={profile} /><MyOfferings userId={profile.id} /><MyHouses userId={profile.id} /></>
+          )}
         </div>
         <NotificationPreferences userId={profile.id} />
       </div>
@@ -103,9 +134,14 @@ function ProfilePage() {
   );
 }
 
-function PresenceBanner({ completeness }: { completeness: number }) {
+function PresenceBanner({ completeness, onContinue }: { completeness: number; onContinue: () => void }) {
   return (
-    <section className="mt-8 rounded-3xl bg-sage-light/40 p-6">
+    <button
+      type="button"
+      onClick={onContinue}
+      className="mt-8 w-full cursor-pointer rounded-3xl bg-sage-light/40 p-6 text-left transition-colors hover:bg-sage-light/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage"
+      aria-label={completeness === 100 ? "Edit profile" : "Continue filling your profile"}
+    >
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0 flex-1">
           <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-sage-ink">Your presence</p>
@@ -127,7 +163,7 @@ function PresenceBanner({ completeness }: { completeness: number }) {
       >
         <div className="h-full rounded-full bg-sage" style={{ width: `${completeness}%` }} />
       </div>
-    </section>
+    </button>
   );
 }
 
@@ -151,9 +187,9 @@ function Pills({ options, value, onChange }: { options: readonly string[]; value
   );
 }
 
-function Block({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+function Block({ id, label, hint, children }: { id?: string; label: string; hint?: string; children: React.ReactNode }) {
   return (
-    <section className="surface-card space-y-5 p-6 md:p-8">
+    <section id={id} className="surface-card scroll-mt-28 space-y-5 p-6 md:p-8">
       <div>
         <p className="section-label">{label}</p>
         {hint && <p className="mt-2 text-sm text-muted-foreground">{hint}</p>}
@@ -167,7 +203,17 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
   return <p className="mb-2 text-xs uppercase tracking-widest text-muted-foreground">{children}</p>;
 }
 
-function ProfileEditor({ profile, onDone }: { profile: OkaProfile; onDone: () => void }) {
+function ProfileEditor({
+  profile,
+  focusSection,
+  onFocusApplied,
+  onDone,
+}: {
+  profile: OkaProfile;
+  focusSection: ProfileEditSectionId | null;
+  onFocusApplied: () => void;
+  onDone: () => void;
+}) {
   const qc = useQueryClient();
   const [draft, setDraft] = useState<Draft>(() => toDraft(profile));
   const [saving, setSaving] = useState(false);
@@ -181,6 +227,26 @@ function ProfileEditor({ profile, onDone }: { profile: OkaProfile; onDone: () =>
     void resolvePhotoUrl(draft.photo_url).then((u) => alive && setPreview(u));
     return () => { alive = false; };
   }, [draft.photo_url]);
+
+  useEffect(() => {
+    if (!focusSection) return;
+    const sectionId = focusSection;
+    const frame = requestAnimationFrame(() => {
+      const section = document.getElementById(sectionId);
+      if (!section) {
+        onFocusApplied();
+        return;
+      }
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      section.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+      const focusable = section.querySelector<HTMLElement>(
+        'button:not([disabled]), input:not([type="file"]):not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+      focusable?.focus({ preventScroll: true });
+      onFocusApplied();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [focusSection, onFocusApplied]);
 
   async function upload(file: File) {
     if (!file.type.startsWith("image/")) return void toast.error("Please choose an image.");
@@ -219,7 +285,7 @@ function ProfileEditor({ profile, onDone }: { profile: OkaProfile; onDone: () =>
 
   return (
     <div className="grid gap-6">
-      <Block label="Basic details">
+      <Block id="profile-edit-basic" label="Basic details">
         <div className="flex items-center gap-5">
           <MemberAvatar src={preview} name={draft.display_name} className="size-20" />
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void upload(f); e.target.value = ""; }} />
@@ -237,11 +303,11 @@ function ProfileEditor({ profile, onDone }: { profile: OkaProfile; onDone: () =>
         <div><FieldLabel>Relationship status</FieldLabel><Pills options={RELATIONSHIP_STATUSES} value={draft.relationship_status} onChange={(v) => set("relationship_status", v)} /></div>
       </Block>
 
-      <Block label="Intentions & seeking" hint="What draws you to the family? Choose any, or add your own.">
+      <Block id="profile-edit-intentions" label="Intentions & seeking" hint="What draws you to the family? Choose any, or add your own.">
         <TagInput value={draft.intentions} onChange={(v) => set("intentions", v)} suggestions={INTENTIONS} />
       </Block>
 
-      <Block label="The gift economy" hint="In Oka, we give freely. What would you love to offer, and what makes you feel cared for?">
+      <Block id="profile-edit-gifts" label="The gift economy" hint="In Oka, we give freely. What would you love to offer, and what makes you feel cared for?">
         <div>
           <FieldLabel>What I'm excited to give</FieldLabel>
           <Textarea className={areaClass} rows={4} maxLength={1000} placeholder="Professional expertise, physical gifts, acts of service…" value={draft.gift_excited_to_give ?? ""} onChange={(e) => set("gift_excited_to_give", e.target.value)} />
@@ -252,11 +318,11 @@ function ProfileEditor({ profile, onDone }: { profile: OkaProfile; onDone: () =>
         </div>
       </Block>
 
-      <Block label="Skills & expertise" hint="Press Enter after each one.">
+      <Block id="profile-edit-skills" label="Skills & expertise" hint="Press Enter after each one.">
         <TagInput value={draft.skill_tags} onChange={(v) => set("skill_tags", v)} placeholder="e.g. Pottery, Yoga, Web design" />
       </Block>
 
-      <Block label="Travel">
+      <Block id="profile-edit-travel" label="Travel">
         <div><FieldLabel>Places I often visit</FieldLabel><TagInput value={draft.travel_frequent} onChange={(v) => set("travel_frequent", v)} placeholder="e.g. Lisbon" /></div>
         <div><FieldLabel>Places I dream of going</FieldLabel><TagInput value={draft.travel_desired} onChange={(v) => set("travel_desired", v)} placeholder="e.g. Kyoto" /></div>
       </Block>
