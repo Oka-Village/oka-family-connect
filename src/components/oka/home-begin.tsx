@@ -187,10 +187,22 @@ function Item({
           {done ? <Check className="size-4" strokeWidth={1.5} /> : <Icon className="size-4" strokeWidth={1.5} />}
         </span>
         <div className="min-w-0 flex-1">
-          <Link to={to} className="font-medium text-foreground hover:text-sage">
-            {done ? "Add another" : title}
-          </Link>
-          <p className="truncate text-xs text-muted-foreground">{done ? "Done — thank you." : hint}</p>
+          {done ? (
+            <>
+              <p className="font-medium text-foreground">{title}</p>
+              <p className="truncate text-xs text-muted-foreground">Done — thank you.</p>
+              <Link to={to} className="mt-1 inline-block text-xs font-medium text-sage hover:underline">
+                Add another
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link to={to} className="font-medium text-foreground hover:text-sage">
+                {title}
+              </Link>
+              <p className="truncate text-xs text-muted-foreground">{hint}</p>
+            </>
+          )}
         </div>
       </div>
       {children}
