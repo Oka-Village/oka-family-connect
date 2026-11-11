@@ -214,7 +214,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           setSupportOpen(false);
           queryClient.invalidateQueries({ queryKey: ["profile"] });
           queryClient.invalidateQueries({ queryKey: ["membership"] });
-          if (pathname !== "/welcome") void navigate({ to: "/welcome", replace: true });
+          if (pathname !== "/home") void navigate({ to: "/home", replace: true });
         }}
       />
 

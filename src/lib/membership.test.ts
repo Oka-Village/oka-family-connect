@@ -31,11 +31,11 @@ describe("membership payment rules", () => {
     const profile = { member_status: "limited" as const };
     expect(isFullMember(profile, new Date("2026-12-01T00:00:00Z"))).toBe(false);
     expect(isPaymentExempt(profile)).toBe(false);
-    expect(paymentRedirect("/home", isPaymentExempt(profile), false, "none")).toBe("/welcome");
+    expect(paymentRedirect("/home", isPaymentExempt(profile), false, "none")).toBeNull();
   });
   it("no longer exempts unpaid full-status members from payment", () => {
     expect(isPaymentExempt({ member_status: "full" })).toBe(false);
-    expect(paymentRedirect("/home", isPaymentExempt({ member_status: "full" }), false, "none")).toBe("/welcome");
+    expect(paymentRedirect("/home", isPaymentExempt({ member_status: "full" }), false, "none")).toBeNull();
   });
   it("exempts staff regardless of member status", () => {
     expect(isPaymentExempt({ member_status: "full" }, true)).toBe(true);
@@ -79,14 +79,14 @@ describe("membership payment rules", () => {
     expect(validateMembershipSession({ ...monthly, payment_status: "unpaid" }, "member-a", "monthly")).toBe(false);
     expect(validateMembershipSession({ ...monthly, status: "open" }, "member-a", "monthly")).toBe(false);
   });
-  it.each(["/", "/home", "/directory", "/collections", "/credits", "/facilitators", "/invite/FRIEND"])(
-    "sends unpaid members from browsing route %s to /welcome",
+  it.each(["/", "/directory", "/collections", "/credits", "/facilitators", "/invite/FRIEND"])(
+    "sends unpaid members from browsing route %s to /home",
     (path) => {
-      expect(paymentRedirect(path, false, false, "none")).toBe("/welcome");
-      expect(paymentRedirect(path, false, false, "active")).toBe("/welcome");
+      expect(paymentRedirect(path, false, false, "none")).toBe("/home");
+      expect(paymentRedirect(path, false, false, "active")).toBe("/home");
     },
   );
-  it.each(["/onboarding", "/profile", "/welcome"])("keeps pre-choice and trial-active members on profile-only route %s", (path) => {
+  it.each(["/onboarding", "/profile", "/home"])("keeps pre-choice and trial-active members on profile-only route %s", (path) => {
     expect(paymentRedirect(path, false, false, "active")).toBeNull();
     expect(paymentRedirect(path, false, false, "none")).toBeNull();
   });
@@ -119,7 +119,7 @@ describe("membership payment rules", () => {
     expect(paymentRedirect("/affiliate", false, true, "expired")).toBeNull();
     expect(paymentRedirect("/affiliate", true, false, "none")).toBeNull();
   });
-  it.each(["/home", "/profile", "/welcome", "/onboarding", "/"])(
+  it.each(["/home", "/profile", "/onboarding", "/"])(
     "sends expired-trial members from %s to /membership",
     (path) => {
       expect(paymentRedirect(path, false, false, "expired")).toBe("/membership");

@@ -22,7 +22,7 @@ export function MemberAccessGate({ onSignOut }: { onSignOut: () => Promise<void>
           <p className="section-label">Welcome to Oka</p>
           <h1 className="mt-4 text-4xl text-foreground sm:text-5xl">Your place is kept.</h1>
           <p className="mt-5 text-base leading-relaxed text-muted-foreground">Full access opens on December 1, 2026. Until then, you can share what you’d love to offer and invite friends to join you.</p>
-          <Button asChild className="mt-8 h-12 rounded-full px-8"><Link to="/welcome">Make yourself at home</Link></Button>
+          <Button asChild className="mt-8 h-12 rounded-full px-8"><Link to="/home">Make yourself at home</Link></Button>
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
             {CONTRIBUTIONS.map(({ to, label, icon: Icon }) => <Button key={to} asChild variant="outline" className="h-12 rounded-full"><Link to={to}><Icon className="size-4 text-primary" strokeWidth={1.5} />{label}</Link></Button>)}
           </div>
