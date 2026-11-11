@@ -17,8 +17,8 @@ export function MemberAvatar({ src, name, className = "size-20" }: { src: string
 
 function Section({ icon: Icon, label, children }: { icon: typeof User; label: string; children: React.ReactNode }) {
   return (
-    <section className="surface-card p-6">
-      <p className="section-label flex items-center gap-2"><Icon className="size-4 text-primary" strokeWidth={1.5} />{label}</p>
+    <section className="surface-card p-6 md:p-8">
+      <p className="section-label flex items-center gap-2"><Icon className="size-4 text-sage" strokeWidth={1.5} />{label}</p>
       <div className="mt-4 space-y-4">{children}</div>
     </section>
   );
@@ -28,7 +28,7 @@ function Field({ label, value }: { label: string; value: string | null | undefin
   return (
     <div>
       <p className="text-xs uppercase tracking-widest text-muted-foreground">{label}</p>
-      <p className="mt-1 whitespace-pre-line text-foreground">{value?.trim() || <span className="text-sm text-muted-foreground">Not shared yet</span>}</p>
+      <p className="mt-1 whitespace-pre-line text-foreground">{value?.trim() || <span className="font-serif text-lg italic text-muted-foreground">Not shared yet</span>}</p>
     </div>
   );
 }

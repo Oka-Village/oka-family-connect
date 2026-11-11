@@ -11,7 +11,6 @@ import { MyHouses } from "@/components/oka/my-houses";
 import { NotificationPreferences } from "@/components/oka/notification-preferences";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import { resolvePhotoUrl, useProfile } from "@/hooks/use-profile";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,6 +47,10 @@ function toDraft(p: OkaProfile): Draft {
   };
 }
 
+const fieldClass = "h-12 rounded-2xl border-0 bg-cream-deep px-4 shadow-none focus-visible:ring-sage";
+const areaClass = "rounded-2xl border-0 bg-cream-deep px-4 py-3 shadow-none focus-visible:ring-sage";
+const sageButton = "rounded-full bg-sage text-cream hover:bg-sage/90";
+
 function ProfilePage() {
   const { data: profile, isLoading } = useProfile();
   const [editing, setEditing] = useState(false);
@@ -58,45 +61,73 @@ function ProfilePage() {
   });
 
   if (isLoading || !profile) {
-    return <div className="flex justify-center py-24"><Loader2 className="size-6 animate-spin text-primary" strokeWidth={1.5} /></div>;
+    return (
+      <div className="mx-auto flex max-w-[1280px] justify-center px-5 py-24 md:px-10 xl:px-24">
+        <Loader2 className="size-6 animate-spin text-sage" strokeWidth={1.5} />
+      </div>
+    );
   }
 
   const completeness = profileCompleteness(profile);
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-12 lg:py-16">
-      <p className="section-label">My Profile</p>
-      <div className="mt-6 flex flex-wrap items-center gap-6">
-        <MemberAvatar src={photo} name={profile.display_name} className="size-24" />
-        <div className="min-w-0 flex-1">
-          <h1 className="text-4xl text-foreground">{profile.display_name ?? "Welcome"}</h1>
-          <Link to="/members/$memberId" params={{ memberId: profile.id }} className="mt-1 inline-block text-sm text-primary hover:underline">
-            See how others see you
-          </Link>
-          <Link to="/affiliate" className="ml-4 mt-1 inline-block text-sm text-primary hover:underline">Invite & earn</Link>
+    <div className="mx-auto flex max-w-[1280px] flex-col px-5 pb-20 pt-12 md:px-10 md:pt-[84px] xl:px-24">
+      <div className="mx-auto max-w-3xl">
+        <p className="section-label">My profile</p>
+        <div className="mt-6 flex flex-wrap items-center gap-6">
+          <MemberAvatar src={photo} name={profile.display_name} className="size-24" />
+          <div className="min-w-0 flex-1">
+            <h1 className="font-serif text-4xl leading-tight text-foreground md:text-5xl">{profile.display_name ?? "Welcome"}</h1>
+            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+              <Link to="/members/$memberId" params={{ memberId: profile.id }} className="text-sm text-sage hover:underline">
+                See how others see you
+              </Link>
+              <Link to="/affiliate" className="text-sm text-sage hover:underline">Invite & earn</Link>
+            </div>
+          </div>
+          {!editing && (
+            <Button className={cn(sageButton, "px-6")} onClick={() => setEditing(true)}>
+              <Pencil className="size-4" strokeWidth={1.5} /> Edit profile
+            </Button>
+          )}
         </div>
-        {!editing && (
-          <Button className="rounded-full px-6" onClick={() => setEditing(true)}>
-            <Pencil className="size-4" strokeWidth={1.5} /> Edit profile
-          </Button>
-        )}
-      </div>
 
-      <div className="surface-card mt-8 p-6">
-        <p className="section-label">Your presence</p>
-        <Progress value={completeness} className="mt-3" />
-        <p className="mt-3 text-sm text-muted-foreground">
-          {completeness === 100
-            ? "Your profile is whole — the family can truly meet you."
-            : `${completeness}% shared. Each detail helps the family know you a little better.`}
-        </p>
-      </div>
+        <PresenceBanner completeness={completeness} />
 
-      <div className="mt-6">
-        {editing ? <ProfileEditor profile={profile} onDone={() => setEditing(false)} /> : <><ProfileSections profile={profile} /><MyOfferings userId={profile.id} /><MyHouses userId={profile.id} /></>}
+        <div className="mt-8">
+          {editing ? <ProfileEditor profile={profile} onDone={() => setEditing(false)} /> : <><ProfileSections profile={profile} /><MyOfferings userId={profile.id} /><MyHouses userId={profile.id} /></>}
+        </div>
+        <NotificationPreferences userId={profile.id} />
       </div>
-      <NotificationPreferences userId={profile.id} />
     </div>
+  );
+}
+
+function PresenceBanner({ completeness }: { completeness: number }) {
+  return (
+    <section className="mt-8 rounded-3xl bg-sage-light/40 p-6">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-sage-ink">Your presence</p>
+          <p className="mt-2 text-sm text-sage-ink">
+            {completeness === 100
+              ? "Your profile is whole — the family can truly meet you."
+              : `${completeness}% shared. Each detail helps the family know you a little better.`}
+          </p>
+        </div>
+        <p className="font-number text-5xl font-light leading-none text-sage">{completeness}%</p>
+      </div>
+      <div
+        className="mt-5 h-1 overflow-hidden rounded-full bg-sage/20"
+        role="progressbar"
+        aria-valuenow={completeness}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label="Profile presence"
+      >
+        <div className="h-full rounded-full bg-sage" style={{ width: `${completeness}%` }} />
+      </div>
+    </section>
   );
 }
 
@@ -110,7 +141,7 @@ function Pills({ options, value, onChange }: { options: readonly string[]; value
           onClick={() => onChange(value === o ? null : o)}
           className={cn(
             "rounded-full border px-4 py-1.5 text-sm transition-colors",
-            value === o ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card hover:bg-secondary",
+            value === o ? "border-sage bg-sage text-cream" : "border-border bg-card hover:bg-sage-light",
           )}
         >
           {o}
@@ -122,7 +153,7 @@ function Pills({ options, value, onChange }: { options: readonly string[]; value
 
 function Block({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
-    <section className="surface-card space-y-5 p-6">
+    <section className="surface-card space-y-5 p-6 md:p-8">
       <div>
         <p className="section-label">{label}</p>
         {hint && <p className="mt-2 text-sm text-muted-foreground">{hint}</p>}
@@ -193,14 +224,14 @@ function ProfileEditor({ profile, onDone }: { profile: OkaProfile; onDone: () =>
           <MemberAvatar src={preview} name={draft.display_name} className="size-20" />
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void upload(f); e.target.value = ""; }} />
           <Button type="button" variant="outline" className="rounded-full" disabled={uploading} onClick={() => fileRef.current?.click()}>
-            {uploading ? <Loader2 className="size-4 animate-spin" strokeWidth={1.5} /> : <Camera className="size-4 text-primary" strokeWidth={1.5} />}
+            {uploading ? <Loader2 className="size-4 animate-spin" strokeWidth={1.5} /> : <Camera className="size-4 text-sage" strokeWidth={1.5} />}
             {draft.photo_url ? "Change photo" : "Upload photo"}
           </Button>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
-          <div><FieldLabel>Name</FieldLabel><Input maxLength={80} value={draft.display_name ?? ""} onChange={(e) => set("display_name", e.target.value)} /></div>
-          <div><FieldLabel>Location</FieldLabel><Input maxLength={120} placeholder="City, country" value={draft.location ?? ""} onChange={(e) => set("location", e.target.value)} /></div>
-          <div className="sm:col-span-2"><FieldLabel>Profession</FieldLabel><Input maxLength={120} value={draft.profession ?? ""} onChange={(e) => set("profession", e.target.value)} /></div>
+          <div><FieldLabel>Name</FieldLabel><Input className={fieldClass} maxLength={80} value={draft.display_name ?? ""} onChange={(e) => set("display_name", e.target.value)} /></div>
+          <div><FieldLabel>Location</FieldLabel><Input className={fieldClass} maxLength={120} placeholder="City, country" value={draft.location ?? ""} onChange={(e) => set("location", e.target.value)} /></div>
+          <div className="sm:col-span-2"><FieldLabel>Profession</FieldLabel><Input className={fieldClass} maxLength={120} value={draft.profession ?? ""} onChange={(e) => set("profession", e.target.value)} /></div>
         </div>
         <div><FieldLabel>Age range</FieldLabel><Pills options={AGE_RANGES} value={draft.age_range} onChange={(v) => set("age_range", v)} /></div>
         <div><FieldLabel>Relationship status</FieldLabel><Pills options={RELATIONSHIP_STATUSES} value={draft.relationship_status} onChange={(v) => set("relationship_status", v)} /></div>
@@ -213,11 +244,11 @@ function ProfileEditor({ profile, onDone }: { profile: OkaProfile; onDone: () =>
       <Block label="The gift economy" hint="In Oka, we give freely. What would you love to offer, and what makes you feel cared for?">
         <div>
           <FieldLabel>What I'm excited to give</FieldLabel>
-          <Textarea rows={4} maxLength={1000} placeholder="Professional expertise, physical gifts, acts of service…" value={draft.gift_excited_to_give ?? ""} onChange={(e) => set("gift_excited_to_give", e.target.value)} />
+          <Textarea className={areaClass} rows={4} maxLength={1000} placeholder="Professional expertise, physical gifts, acts of service…" value={draft.gift_excited_to_give ?? ""} onChange={(e) => set("gift_excited_to_give", e.target.value)} />
         </div>
         <div>
           <FieldLabel>Gestures that make me feel loved when hosting</FieldLabel>
-          <Textarea rows={4} maxLength={1000} placeholder="A home-cooked meal, a handwritten note, help in the garden…" value={draft.gift_loved_gestures ?? ""} onChange={(e) => set("gift_loved_gestures", e.target.value)} />
+          <Textarea className={areaClass} rows={4} maxLength={1000} placeholder="A home-cooked meal, a handwritten note, help in the garden…" value={draft.gift_loved_gestures ?? ""} onChange={(e) => set("gift_loved_gestures", e.target.value)} />
         </div>
       </Block>
 
@@ -234,7 +265,7 @@ function ProfileEditor({ profile, onDone }: { profile: OkaProfile; onDone: () =>
         <p className="text-sm text-muted-foreground">{completeness}% shared</p>
         <div className="flex gap-3">
           <Button variant="ghost" className="rounded-full" onClick={onDone} disabled={saving}>Cancel</Button>
-          <Button className="rounded-full px-6" onClick={save} disabled={saving || uploading}>
+          <Button className={cn(sageButton, "px-6")} onClick={save} disabled={saving || uploading}>
             {saving && <Loader2 className="size-4 animate-spin" strokeWidth={1.5} />} Save profile
           </Button>
         </div>
