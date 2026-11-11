@@ -172,7 +172,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div className="min-h-screen bg-background lg:min-h-[calc(100vh-1.5rem)] lg:rounded-2xl lg:border lg:border-border">
       <header className="sticky top-0 z-30 hidden items-center gap-8 border-b border-border bg-background/95 px-8 py-5 backdrop-blur lg:flex xl:px-14">
         <Link to="/home" aria-label="Oka home"><Wordmark /></Link>
-        <nav className="flex rounded-full bg-cream-deep p-1">
+        <nav className="flex items-center gap-7 xl:gap-8">
           {PRIMARY_ITEMS.map((item) => {
             const active = pathname.startsWith(item.to);
             return (
@@ -180,11 +180,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 key={item.to}
                 to={item.to}
                 className={cn(
-                  "rounded-full px-5 py-2 text-sm transition-all",
-                  active ? "bg-card text-foreground shadow-nav" : "text-muted-foreground hover:text-foreground",
+                  "inline-flex items-center gap-2 whitespace-nowrap text-sm transition-colors",
+                  active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                <span className="relative">{item.label}{item.to === "/home" && unreadCount > 0 && <span className="absolute -right-3 -top-1 size-2 rounded-full bg-primary" aria-label={`${unreadCount} unread appreciation letters`} />}</span>
+                {active && <span className="size-1.5 shrink-0 rounded-full bg-golden" aria-hidden />}
+                <span className="relative">
+                  {item.label}
+                  {item.to === "/home" && unreadCount > 0 && <span className="absolute -right-2.5 -top-1 size-1.5 rounded-full bg-primary" aria-label={`${unreadCount} unread appreciation letters`} />}
+                </span>
               </Link>
             );
           })}
