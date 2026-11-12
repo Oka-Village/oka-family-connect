@@ -134,6 +134,13 @@
       "when": 1794219455388,
       "tag": "0018_skills_houses_open_to_members",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1794462861145,
+      "tag": "0019_public_event_preview",
+      "breakpoints": true
     }
   ]
 }

@@ -1049,6 +1049,24 @@ export type Database = {
         Returns: boolean
       }
       promote_waitlist: { Args: { _event_id: string }; Returns: undefined }
+      public_event_preview: {
+        Args: { _slug: string }
+        Returns: {
+          capacity: number
+          description: string
+          ends_at: string
+          event_type: string
+          format: string
+          going_count: number
+          host_name: string
+          id: string
+          is_live: boolean
+          live_link: string
+          starts_at: string
+          timezone: string
+          title: string
+        }[]
+      }
       record_verified_membership: {
         Args: {
           _amount: number
