@@ -49,3 +49,4 @@
 - [x] Remove the large "Home" headline from the Home page header.
 
 - [x] Founding member page ($250 lifetime, Stripe)
+- [x] Stop shared event links from auto-opening the video call: members land on the event page and join only by clicking; external meeting links shown first; 21 focused tests passed and real signed-in shared-link click verified (no call opened, Join room button present, explicit click opens the room).

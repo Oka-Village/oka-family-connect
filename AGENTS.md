@@ -10,6 +10,7 @@
 <!-- LOVABLE:END -->
 
 - In-app event calls use `@daily-co/daily-js` call-object mode with a custom Campfire UI; keep access, token, and expiry enforcement in `video.functions.ts` so presentation changes cannot weaken room security.
+- Shared event links always stop at the event page: the call only opens from an explicit member click, never automatically on arrival; external meeting links take precedence over the built-in room.
 - The four discovery pages share the reusable dealt-hand pattern; keep recommendation presentation client-side so visual shuffling never changes backend rules.
 - Appreciation read receipts must go through the authenticated server function and its service-only database function; never add a broad member update policy.
 - Appreciation send motion uses one requestAnimationFrame timeline; keep persistence immediate and independent from decorative playback.
