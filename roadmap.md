@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Automatically prepare member-attributed event links and a staff-only host-attributed copy option; preserve existing referrals and pod RSVP behavior.
+- [x] Test attribution, paused-account handling and authenticated copy flows on desktop/mobile; 22 tests passed and Fabia's personal versus Liran's host links copied correctly and persisted after refresh. Sharing section fits 390px; pre-existing toast briefly extends the page. No publishing; ordinary-member UI and first-ever activation verified by focused tests, not a separate real account.
+
 - [x] Add confirmed creator-only skill/home deletion on detail and edit pages; nine ownership/deletion tests passed, cancellation and persisted removal verified with temporary listings in the requesting account on desktop/mobile, all temporary rows removed; no publishing. Ordinary-member session not separately exercised.
 
 - [x] Surface "Complete your profile and earn 3 credits" as a mobile-only banner under the mobile header linking to My Profile; verified at 390px and hidden at 768px and up, with desktop pill unchanged and no database changes or publishing.

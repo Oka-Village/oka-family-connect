@@ -1004,6 +1004,7 @@ export type Database = {
       }
       cancel_rsvp: { Args: { _event_id: string }; Returns: string }
       claim_referral: { Args: { _code: string }; Returns: string }
+      ensure_event_host_invite: { Args: { _event_id: string }; Returns: string }
       generate_invite_code: { Args: never; Returns: string }
       has_event_rsvp: {
         Args: { _event_id: string; _going_only: boolean }

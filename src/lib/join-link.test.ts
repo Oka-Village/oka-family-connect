@@ -21,15 +21,19 @@ describe("joinPath", () => {
 });
 
 describe("canShareEventLink", () => {
-  it("shows the share box to any member holding an active affiliate code", () => {
-    expect(canShareEventLink(false, false, "DAN50")).toBe(true);
+  it("allows every signed-in member to share a published event without a prior code", () => {
+    expect(canShareEventLink(true, "published")).toBe(true);
   });
-  it("still shows it to the host and to staff without a code", () => {
-    expect(canShareEventLink(true, false, null)).toBe(true);
-    expect(canShareEventLink(false, true, null)).toBe(true);
+  it("does not allow signed-out visitors to generate attributed links", () => {
+    expect(canShareEventLink(false, "published")).toBe(false);
   });
-  it("hides it from a signed-in member with no affiliate code", () => {
-    expect(canShareEventLink(false, false, null)).toBe(false);
-    expect(canShareEventLink(false, false, "   ")).toBe(false);
+  it("does not share unpublished events", () => {
+    for (const status of ["pending_approval", "rejected", "cancelled"]) {
+      expect(canShareEventLink(true, status)).toBe(false);
+    }
+  });
+  it("keeps the event constant while changing the referral to the member sharing", () => {
+    expect(joinUrl("micheline-session", "AMIT1234")).toBe("https://www.oneworldfamily.app/join/micheline-session?ref=AMIT1234");
+    expect(joinUrl("micheline-session", "MICHELINE")).toBe("https://www.oneworldfamily.app/join/micheline-session?ref=MICHELINE");
   });
 });

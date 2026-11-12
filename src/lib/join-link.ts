@@ -14,9 +14,9 @@ export function joinUrl(slug: string, refCode?: string | null) {
   return `${PRODUCTION_ORIGIN}${joinPath(slug, refCode)}`;
 }
 
-/** Who may see the share box: the host, staff, or any member holding an active affiliate code. */
-export function canShareEventLink(isManager: boolean, isStaff: boolean, refCode?: string | null) {
-  return isManager || isStaff || Boolean(refCode?.trim());
+/** Sharing is available to every signed-in viewer of a published event. */
+export function canShareEventLink(isSignedIn: boolean, status: string) {
+  return isSignedIn && status === "published";
 }
 
 /** Remember a same-origin path to return to after the Google round-trip. */

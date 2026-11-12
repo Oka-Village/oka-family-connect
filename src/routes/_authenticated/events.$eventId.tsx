@@ -16,6 +16,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { CopyJoinLink } from "@/components/oka/copy-join-link";
 import { canShareEventLink, joinUrl } from "@/lib/join-link";
+import { useEnsureInviteCode } from "@/lib/affiliates";
+import { ensureEventHostInvite } from "@/lib/affiliate-sharing.functions";
 import {
   EVENT_SELECT,
   FORMAT_LABELS,
@@ -50,16 +52,6 @@ function EventDetail() {
   const qc = useQueryClient();
   const { data: uid } = useCurrentUserId();
   const { data: isAdmin } = useIsStaff();
-  // The sharer's own active affiliate code, if any — used only to tag shared join links.
-  const myAffiliate = useQuery({
-    queryKey: ["affiliate", "my-code", uid],
-    queryFn: async () => {
-      const { data } = await supabase.from("affiliates").select("invite_code,status").eq("user_id", uid!).maybeSingle();
-      return data?.status === "active" ? data.invite_code : null;
-    },
-    enabled: !!uid,
-  });
-  const refCode = myAffiliate.data ?? null;
   const fetchVideoCfg = useServerFn(getVideoConfigured);
   const videoCfg = useQuery({ queryKey: ["video-configured"], queryFn: () => fetchVideoCfg(), staleTime: 5 * 60_000 });
 
@@ -90,6 +82,14 @@ function EventDetail() {
   });
 
   const cover = useEventPhoto(q.data?.event?.photo_url);
+
+  const myAffiliate = useEnsureInviteCode(uid, q.data?.event?.status === "published");
+  const refCode = myAffiliate.data ?? null;
+  const fetchHostInvite = useServerFn(ensureEventHostInvite);
+  const hostInvite = useMutation({
+    mutationFn: () => fetchHostInvite({ data: { eventId } }),
+    onError: (error: Error) => toast.error(error.message),
+  });
 
   const rsvp = useMutation({
     mutationFn: async (action: "join" | "leave") => {
@@ -157,17 +157,39 @@ function EventDetail() {
         </div>
       )}
 
-      {canShareEventLink(isManager, !!isAdmin, refCode) && ev.status === "published" && ev.format === "virtual" && !past && (
-        <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-card p-5 shadow-soft">
-          <div>
-            <p className="section-label">Share your call</p>
-            <p className="mt-2 break-all text-sm text-muted-foreground">{joinUrl(ev.join_slug, refCode)}</p>
-            {refCode && (
-              <p className="mt-2 text-sm text-foreground">Your invite code is in this link — when someone new joins Oka through it and becomes a paying member.</p>
+      {canShareEventLink(Boolean(uid), ev.status) && (
+        <section aria-label="Share event" className="mt-6 border-y border-border py-5">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="min-w-0 flex-1 basis-64">
+              <p className="section-label">{ev.host_id === uid ? "Share your gathering" : "Share this gathering"}</p>
+              {refCode && <p className="mt-2 break-all text-sm text-muted-foreground">{joinUrl(ev.join_slug, refCode)}</p>}
+              {myAffiliate.isPending && <p className="mt-2 text-sm text-muted-foreground">Preparing your invitation…</p>}
+              {myAffiliate.isError && <p className="mt-2 text-sm text-destructive">Couldn't prepare your invitation.</p>}
+              {myAffiliate.isSuccess && !refCode && <p className="mt-2 text-sm text-muted-foreground">Your affiliate link is paused. Please contact the Oka team.</p>}
+            </div>
+            {myAffiliate.isError ? (
+              <Button variant="outline" className="rounded-full" onClick={() => void myAffiliate.refetch()}>Try again</Button>
+            ) : (
+              <CopyJoinLink slug={ev.join_slug} refCode={refCode} label="Copy my invite link" disabled={!refCode || myAffiliate.isFetching} />
             )}
           </div>
-          <CopyJoinLink slug={ev.join_slug} refCode={refCode} />
-        </div>
+          {isAdmin && ev.host_id && ev.host_id !== uid && (
+            <div className="mt-5 flex flex-wrap items-center justify-between gap-4 border-t border-border pt-5">
+              <div className="min-w-0 flex-1 basis-64">
+                <p className="section-label">Host · {hostName(ev.host)}</p>
+                {hostInvite.data && <p className="mt-2 break-all text-sm text-muted-foreground">{joinUrl(ev.join_slug, hostInvite.data)}</p>}
+                {hostInvite.isSuccess && !hostInvite.data && <p className="mt-2 text-sm text-muted-foreground">The host's affiliate link is paused.</p>}
+              </div>
+              {hostInvite.data ? (
+                <CopyJoinLink slug={ev.join_slug} refCode={hostInvite.data} label="Copy host's link" />
+              ) : (
+                <Button variant="outline" className="rounded-full" disabled={hostInvite.isPending || (hostInvite.isSuccess && !hostInvite.data)} onClick={() => hostInvite.mutate()}>
+                  {hostInvite.isPending ? "Preparing…" : "Get host's link"}
+                </Button>
+              )}
+            </div>
+          )}
+        </section>
       )}
 
       {cover && <img src={cover} alt="" className="mt-8 h-auto w-full rounded-3xl object-contain object-center shadow-soft" />}
