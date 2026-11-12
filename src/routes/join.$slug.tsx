@@ -14,19 +14,32 @@ import { claimEventInvite, saveEventJoinSlug } from "@/lib/event-invite";
 import { saveInviteCode } from "@/lib/affiliates";
 import { useServerFn } from "@tanstack/react-start";
 import { beginSignupFlow } from "@/lib/signup-flow.functions";
-import { getPublicEventPhoto } from "@/lib/public-event-photo.functions";
+import { getPublicEventPhoto, getEventShareMeta } from "@/lib/public-event-photo.functions";
 
 export const Route = createFileRoute("/join/$slug")({
-  head: () => ({
-    meta: [
-      { title: "Join the gathering — Oka" },
-      { name: "description", content: "You've been invited to an Oka video gathering. Sign in to save your spot and join the call." },
-      { property: "og:title", content: "Join the gathering — Oka" },
-      { property: "og:description", content: "You've been invited to an Oka video gathering. Sign in to save your spot and join the call." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
+  loader: async ({ params }) => ({ share: await getEventShareMeta({ data: { slug: params.slug } }).catch(() => null) }),
+  head: ({ loaderData, params }) => {
+    const share = loaderData?.share;
+    const title = share ? `${share.title} — Oka` : "Join the gathering — Oka";
+    const desc = share
+      ? [share.host ? `Hosted by ${share.host}` : null, share.when, "A gathering on Oka"].filter(Boolean).join(" · ")
+      : "You've been invited to an Oka gathering. Sign in to save your spot.";
+    const url = `https://www.oneworldfamily.app/join/${params.slug}`;
+    return {
+      meta: [
+        { title },
+        { name: "description", content: desc },
+        { property: "og:title", content: title },
+        { property: "og:description", content: desc },
+        { property: "og:type", content: "article" },
+        { property: "og:url", content: url },
+        { name: "twitter:card", content: share?.image ? "summary_large_image" : "summary" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: desc },
+        ...(share?.image ? [{ property: "og:image", content: share.image }, { name: "twitter:image", content: share.image }] : []),
+      ],
+    };
+  },
   component: JoinPage,
 });
 
