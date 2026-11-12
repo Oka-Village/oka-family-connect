@@ -14,6 +14,7 @@ import { claimEventInvite, saveEventJoinSlug } from "@/lib/event-invite";
 import { saveInviteCode } from "@/lib/affiliates";
 import { useServerFn } from "@tanstack/react-start";
 import { beginSignupFlow } from "@/lib/signup-flow.functions";
+import { getPublicEventPhoto } from "@/lib/public-event-photo.functions";
 
 export const Route = createFileRoute("/join/$slug")({
   head: () => ({
@@ -47,6 +48,14 @@ function JoinPage() {
     },
     enabled: state === "signed_out",
     refetchInterval: 60_000,
+  });
+
+  const fetchPhoto = useServerFn(getPublicEventPhoto);
+  const cover = useQuery({
+    queryKey: ["public-event-photo", slug],
+    queryFn: async () => (await fetchPhoto({ data: { slug } })).url,
+    enabled: state === "signed_out" && !!preview.data,
+    staleTime: 30 * 60_000,
   });
 
   useEffect(() => {
@@ -112,6 +121,7 @@ function JoinPage() {
             <div className="text-left">
               <p className="section-label text-center">You're invited</p>
               <h1 className="mt-6 text-center text-5xl leading-tight text-foreground">{preview.data.title}</h1>
+              {cover.data && <img src={cover.data} alt="" className="mt-8 h-auto w-full rounded-3xl object-contain object-center shadow-soft" />}
               <div className="mt-8 grid gap-3 rounded-2xl border border-border bg-card p-6 text-foreground shadow-soft sm:grid-cols-2">
                 <span className="flex items-center gap-3"><CalendarDays className="size-5 text-primary" strokeWidth={1.5} />{formatEventDate(preview.data.starts_at, preview.data.timezone)}</span>
                 <span className="flex items-center gap-3"><Clock className="size-5 text-primary" strokeWidth={1.5} />{formatEventTime(preview.data.starts_at, preview.data.timezone)}{preview.data.ends_at && ` – ${formatEventTime(preview.data.ends_at, preview.data.timezone)}`}</span>
