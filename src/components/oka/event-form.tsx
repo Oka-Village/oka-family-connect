@@ -25,6 +25,7 @@ import {
   type EventType,
 } from "@/lib/events";
 import { MAX_OCCURRENCES, REPEAT_LABELS, occurrenceStarts, type Repeat } from "@/lib/recurrence";
+import { canEditEvent, eventDetailsUpdate } from "@/lib/event-edit";
 
 type Props = {
   mode: "create" | "edit";
@@ -136,11 +137,16 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
     await queryClient.invalidateQueries();
     try { sessionStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
     toast.success((isAdmin ? "Pod published" : "Pod sent for review") + " (3 sessions)");
-    return navigate({ to: "/events/$eventId", params: { eventId: data[0]!.id } });
+    const first = data[0];
+    if (!first) return;
+    return navigate({ to: "/events/$eventId", params: { eventId: first.id } });
   }
 
   async function submit(e: React.FormEvent): Promise<unknown> {
     e.preventDefault();
+    if (mode === "edit" && (!initial || !canEditEvent(initial, userId, isAdmin))) {
+      return toast.error("You don't have permission to edit this gathering.");
+    }
     if (isPod) return submitPods();
     if (!f.title.trim() || !f.starts) return toast.error("Please add a title and a start time.");
     if (!f.photo_url) { setPhotoError(true); return toast.error("Please add a photo for your event."); }
@@ -169,7 +175,6 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
       video_link: f.format === "virtual" ? f.video.trim() || null : null,
       meeting_link: f.format === "virtual" ? f.meeting.trim() || null : null,
     };
-    let eventId = initial?.id;
     if (mode === "create") {
       if (repeat !== "none" && (!until || until < f.starts.slice(0, 10))) { setSaving(false); return toast.error("Please choose when the repeating ends."); }
       const durMs = ends_at ? new Date(ends_at).getTime() - new Date(starts_at).getTime() : null;
@@ -185,7 +190,9 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
       });
       const { data, error } = await supabase.from("events").insert(rows).select("id,starts_at").order("starts_at");
       if (error || !data?.length) { setSaving(false); return toast.error(error?.message ?? "Couldn't save the event."); }
-      const firstId = data[0]!.id;
+      const first = data[0];
+      if (!first) { setSaving(false); return; }
+      const firstId = first.id;
       const { error: locErr } = await supabase.from("event_locations").upsert(data.map((r) => ({ event_id: r.id, ...location })));
       setSaving(false);
       if (locErr) return toast.error(locErr.message);
@@ -194,16 +201,18 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
       try { sessionStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
       toast.success((isAdmin ? "Event published" : "Proposal sent for review") + n);
       return navigate({ to: "/events/$eventId", params: { eventId: firstId } });
-    } else {
-      const { error } = await supabase.from("events").update(payload).eq("id", eventId!);
-      if (error) { setSaving(false); return toast.error(error.message); }
     }
-    const { error: locErr } = await supabase.from("event_locations").upsert({ event_id: eventId!, ...location });
+    if (!initial) { setSaving(false); return; }
+    const eventId = initial.id;
+    const { data: updated, error } = await supabase.from("events")
+      .update(eventDetailsUpdate(payload)).eq("id", eventId).select("id,status").single();
+    if (error || !updated) { setSaving(false); return toast.error(error?.message ?? "Couldn't save the event."); }
+    const { error: locErr } = await supabase.from("event_locations").upsert({ event_id: eventId, ...location });
     setSaving(false);
     if (locErr) return toast.error(locErr.message);
     await queryClient.invalidateQueries();
-    toast.success("Event updated");
-    return navigate({ to: "/events/$eventId", params: { eventId: eventId! } });
+    toast.success(updated.status === "pending_approval" ? "Proposal updated — awaiting admin review" : updated.status === "published" ? "Event updated — live on the schedule" : "Event updated");
+    return navigate({ to: "/events/$eventId", params: { eventId } });
   }
 
   return (

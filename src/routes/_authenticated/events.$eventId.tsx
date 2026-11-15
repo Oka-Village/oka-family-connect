@@ -18,6 +18,7 @@ import { z } from "zod";
 import { CopyJoinLink } from "@/components/oka/copy-join-link";
 import { canShareEventLink, joinUrl } from "@/lib/join-link";
 import { eventCallAction } from "@/lib/event-call-entry";
+import { canEditEvent } from "@/lib/event-edit";
 import { useEnsureInviteCode } from "@/lib/affiliates";
 import { ensureEventHostInvite } from "@/lib/affiliate-sharing.functions";
 import {
@@ -302,9 +303,9 @@ function EventDetail() {
             </Link>
           </div>
 
-          {(isAdmin || (isManager && ev.status === "pending_approval")) && (
+          {canEditEvent(ev, uid, Boolean(isAdmin)) && (
             <div className="grid gap-2 rounded-2xl bg-accent/60 p-5">
-              <p className="section-label">{isAdmin ? "Moderation" : "Your proposal"}</p>
+              <p className="section-label">{isAdmin ? "Moderation" : ev.status === "pending_approval" ? "Your proposal" : "Host tools"}</p>
               <Button asChild variant="outline" className="rounded-full">
                 <Link to="/events/edit/$eventId" params={{ eventId }}><Pencil className="size-4" strokeWidth={1.5} /> Edit</Link>
               </Button>
