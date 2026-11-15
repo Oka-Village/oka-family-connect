@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Keep a member's own event RSVP visible after refresh before payment; live owner/host read exception confirmed, 45 related tests passed, and Fabia's saved going state plus Cancel my spot survived refresh at desktop/390px with no errors. A separate non-staff trial account was not used.
+
 - [x] Enable facilitator editing before and after approval, preserve status and staff moderation; 29 tests passed. Pending/published saves persisted after refresh and approved changes appeared on the calendar using temporary events in Fabia's staff account; desktop/390px checked without overflow or runtime errors, temporary events removed. Non-staff gates covered by tests, not a separate account; no publishing.
 
 - [x] Display host-primary and viewer-local event times on event cards, details, public invitations and profile lists; 23 focused tests passed, real public and Fabia's signed-in shared-event pages checked at desktop/390px with no overflow or runtime errors, and schedule local times confirmed; no publishing.
