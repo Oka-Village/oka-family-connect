@@ -22,6 +22,8 @@ import { ActivitySection } from "@/components/oka/admin-activity";
 import { ThemesSection } from "@/components/oka/admin-themes";
 import { cn } from "@/lib/utils";
 import { AdminDeleteMember, AdminEditProfile, AdminMemberPhoto, AdminSuspendMember, BlockedEmails, useSuspendedIds } from "@/components/oka/admin-member-tools";
+import { AdminTrialDialog } from "@/components/oka/admin-trial-dialog";
+import { TRIAL_ACCESS_LAUNCH_AT, trialEndDate } from "@/lib/trial-access";
 
 const TABS = ["events", "members", "listings", "affiliates", "facilitators", "activity", "themes"] as const;
 type Tab = (typeof TABS)[number];
@@ -233,17 +235,18 @@ function MembersSection({ viewerIsAdmin }: { viewerIsAdmin: boolean }) {
   const [term, setTerm] = useState("");
   const [adjusting, setAdjusting] = useState<string | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
+  const [accessing, setAccessing] = useState<string | null>(null);
   const { data: suspendedIds } = useSuspendedIds();
   const q = useQuery({
     queryKey: ["admin", "members", term],
     queryFn: async () => {
-      const BASE = "id,display_name,location,profession,photo_url,trial_started_at";
+      const BASE = "id,display_name,location,profession,photo_url,trial_started_at,trial_ends_at,complimentary_access";
       const run = (cols: string) => {
         let pq = supabase.from("profiles").select(cols).order("display_name").limit(25);
         if (term.trim()) pq = pq.ilike("display_name", `%${term.trim().replace(/[%_]/g, "")}%`);
         return pq;
       };
-      type Person = { id: string; display_name: string | null; location: string | null; profession: string | null; photo_url: string | null; trial_started_at: string | null; approved_at?: string | null };
+      type Person = { id: string; display_name: string | null; location: string | null; profession: string | null; photo_url: string | null; trial_started_at: string | null; trial_ends_at: string | null; complimentary_access: boolean; approved_at?: string | null };
       // approved_at may not exist yet; fall back to today's query if it errors.
       let hasApproval = true;
       let res = await run(`${BASE},approved_at`);
@@ -317,7 +320,10 @@ function MembersSection({ viewerIsAdmin }: { viewerIsAdmin: boolean }) {
         {q.data?.map((p) => {
           const isAdmin = p.roles.has("admin");
           const isMod = p.roles.has("moderator");
-          const { paid, trial } = memberStatusIndicators(p.membership, p.trial_started_at);
+          const now = new Date();
+          const { paid, trial } = memberStatusIndicators(p.membership, p.trial_started_at, now, p.trial_ends_at);
+          const trialEnd = trialEndDate(p.trial_started_at, p.trial_ends_at);
+          const trialPaused = !p.trial_ends_at && Boolean(p.trial_started_at) && now.getTime() < Date.parse(TRIAL_ACCESS_LAUNCH_AT);
           const self = p.id === me;
           return (
             <Card key={p.id}>
@@ -331,7 +337,8 @@ function MembersSection({ viewerIsAdmin }: { viewerIsAdmin: boolean }) {
                   {isAdmin && <span className="rounded-full bg-primary/15 px-3 py-0.5 text-xs text-primary">Admin</span>}
                   {isMod && <span className="rounded-full bg-secondary px-3 py-0.5 text-xs text-secondary-foreground">Moderator</span>}
                   {paid && <span className="rounded-full bg-sage-light px-3 py-0.5 text-xs text-foreground">Paid</span>}
-                  {trial === "active" && <span className="rounded-full bg-accent px-3 py-0.5 text-xs text-foreground">7-day trial</span>}
+                  {p.complimentary_access && <span className="rounded-full bg-sage-light px-3 py-0.5 text-xs text-foreground">Complimentary access</span>}
+                  {trial === "active" && <span className="rounded-full bg-accent px-3 py-0.5 text-xs text-foreground">{trialPaused ? "Trial paused until Dec 1" : trialEnd ? `Trial until ${new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(trialEnd)}` : "Trial active"}</span>}
                   {trial === "expired" && <span className="rounded-full bg-accent/40 px-3 py-0.5 text-xs text-muted-foreground">Trial ended</span>}
                   {p.affiliate === "active" && <span className="rounded-full bg-sage-light px-3 py-0.5 text-xs text-foreground">Affiliate</span>}
                   {suspendedIds?.has(p.id) && <span className="rounded-full bg-destructive/15 px-3 py-0.5 text-xs text-destructive">Suspended</span>}
@@ -356,6 +363,7 @@ function MembersSection({ viewerIsAdmin }: { viewerIsAdmin: boolean }) {
                   onClick={() => affiliate.mutate({ userId: p.id, name: p.display_name, status: p.affiliate })}>
                   {p.affiliate === "active" ? "Pause affiliate" : p.affiliate ? "Resume affiliate" : "Make affiliate"}
                 </Button>
+                <Button size="sm" variant="outline" className="rounded-full" onClick={() => setAccessing(p.id)}>Trial & access</Button>
                 <Button size="sm" variant="outline" className="rounded-full" onClick={() => setAdjusting(adjusting === p.id ? null : p.id)}>Adjust credits</Button>
                 <Button size="sm" variant="outline" className="rounded-full" onClick={() => setEditing(editing === p.id ? null : p.id)}>Edit profile</Button>
                 {!self && <AdminSuspendMember userId={p.id} suspended={Boolean(suspendedIds?.has(p.id))} />}
@@ -363,6 +371,7 @@ function MembersSection({ viewerIsAdmin }: { viewerIsAdmin: boolean }) {
               </div>
               {adjusting === p.id && <AdjustCredits userId={p.id} onDone={() => setAdjusting(null)} />}
               {editing === p.id && <AdminEditProfile userId={p.id} onDone={() => setEditing(null)} />}
+              {accessing === p.id && <AdminTrialDialog userId={p.id} name={p.display_name} trialStartedAt={p.trial_started_at} trialEndsAt={p.trial_ends_at} complimentaryAccess={p.complimentary_access} open onOpenChange={(open) => { if (!open) setAccessing(null); }} />}
             </Card>
           );
         })}

@@ -155,6 +155,13 @@
       "when": 1794722004941,
       "tag": "0021_event_rsvp_owner_and_host_read",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1794753464021,
+      "tag": "0022_trial_pause_and_admin_access",
+      "breakpoints": true
     }
   ]
 }

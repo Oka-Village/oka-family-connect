@@ -58,7 +58,7 @@ export function MembershipBoundary({ children }: { children: ReactNode }) {
   const destination = session.data
     ? location.pathname === "/onboarding" ? null
       : !profile.data?.onboarded_at && ["/", "/home"].includes(location.pathname) ? "/onboarding"
-      : paymentRedirect(location.pathname, exempt, paid, trialState(profile.data?.trial_started_at))
+      : paymentRedirect(location.pathname, exempt, paid, trialState(profile.data?.trial_started_at, new Date(), profile.data?.trial_ends_at))
     : isPublicEntryRoute(location.pathname) ? null : "/membership";
   const inviteCode = /^\/invite\/([^/]+)$/.exec(location.pathname)?.[1];
   // Persist attribution before the payment redirect; claim on the membership page.

@@ -1,5 +1,8 @@
 # Roadmap
 
+- [ ] Pause started trials until the December 1, 2026 launch, count seven days from launch or later onboarding, and enforce the same rule in app and database access.
+- [ ] Add admin-only trial extensions, custom end dates, trial ending/reset, and revocable complimentary lifetime access; verify focused rules and the real admin/member flow.
+
 - [x] Phase 1: confirmed RSVP card, Google/Outlook links and Apple/Other ICS downloads; 22 tests passed, Fabia's real RSVP cancellation/rejoin and refresh persistence verified, both downloads checked, desktop/390px menu checked and build OK. Exports cover the RSVP'd occurrence only (repeats are separate event rows). No migration, emails, email-sent claim or publishing. Existing decorative footer stain causes mobile document overflow outside the changed card; left untouched.
 
 - [x] Keep a member's own event RSVP visible after refresh before payment; live owner/host read exception confirmed, 45 related tests passed, and Fabia's saved going state plus Cancel my spot survived refresh at desktop/390px with no errors. A separate non-staff trial account was not used.

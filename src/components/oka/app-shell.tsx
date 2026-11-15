@@ -18,7 +18,7 @@ import { useMemberAccess } from "@/hooks/use-member-access";
 import { MemberAccessGate } from "@/components/oka/member-access-gate";
 import { SupportOkaDialog } from "@/components/oka/support-oka-dialog";
 import { useMembership } from "@/hooks/use-membership";
-import { hasPaidMembership } from "@/lib/membership";
+import { hasPaidMembership, isPaymentExempt } from "@/lib/membership";
 import { showSupportOffer } from "@/lib/onboarding-rules";
 
 const SUPPORT_EMAIL = "daniel@zoe.garden";
@@ -92,7 +92,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // Existing unpaid members get the same payment/trial offer as new ones, on each app entry.
   useEffect(() => {
     if (!profile || isAdmin !== false || membership.isPending || membership.isError) return;
-    if (showSupportOffer(hasPaidMembership(membership.data), false, profile.trial_started_at)) setSupportOpen(true);
+    if (showSupportOffer(hasPaidMembership(membership.data), isPaymentExempt(profile, isAdmin), profile.trial_started_at) && !profile.trial_ends_at) setSupportOpen(true);
   }, [profile, isAdmin, membership.isPending, membership.isError, membership.data]);
   const photoQuery = useQuery({
     queryKey: ["profile-photo", profile?.photo_url ?? null],

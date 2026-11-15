@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { memberStatusIndicators } from "./member-status";
 
-const NOW = new Date("2026-10-28T12:00:00.000Z");
+const NOW = new Date("2026-12-15T12:00:00.000Z");
 const daysAgo = (n: number) => new Date(NOW.getTime() - n * 24 * 60 * 60 * 1000).toISOString();
 
 describe("memberStatusIndicators", () => {

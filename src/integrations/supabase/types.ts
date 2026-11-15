@@ -678,6 +678,7 @@ export type Database = {
       profiles: {
         Row: {
           age_range: string | null
+          complimentary_access: boolean
           created_at: string
           display_name: string | null
           gift_excited_to_give: string | null
@@ -696,11 +697,13 @@ export type Database = {
           stripe_customer_id: string | null
           travel_desired: string[]
           travel_frequent: string[]
+          trial_ends_at: string | null
           trial_started_at: string | null
           updated_at: string
         }
         Insert: {
           age_range?: string | null
+          complimentary_access?: boolean
           created_at?: string
           display_name?: string | null
           gift_excited_to_give?: string | null
@@ -719,11 +722,13 @@ export type Database = {
           stripe_customer_id?: string | null
           travel_desired?: string[]
           travel_frequent?: string[]
+          trial_ends_at?: string | null
           trial_started_at?: string | null
           updated_at?: string
         }
         Update: {
           age_range?: string | null
+          complimentary_access?: boolean
           created_at?: string
           display_name?: string | null
           gift_excited_to_give?: string | null
@@ -742,6 +747,7 @@ export type Database = {
           stripe_customer_id?: string | null
           travel_desired?: string[]
           travel_frequent?: string[]
+          trial_ends_at?: string | null
           trial_started_at?: string | null
           updated_at?: string
         }
@@ -1012,6 +1018,7 @@ export type Database = {
       }
       has_member_payment_access: { Args: never; Returns: boolean }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
+      has_trial_access: { Args: { _user_id: string }; Returns: boolean }
       house_booked_ranges: {
         Args: { _house_id: string }
         Returns: {
