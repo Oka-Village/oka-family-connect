@@ -31,3 +31,4 @@
 - Displayed and copied event share URLs use the shared production-origin joinUrl helper, so preview hosts never leak into shared links.
 - Personalized event sharing uses the per-account affiliate query and idempotent activation RPC; host-attributed sharing uses an authenticated server function and staff-checked event-scoped database RPC, so no impersonation or broad affiliate read access is needed.
 - Notification RPCs live in a client-safe *.functions.ts entry, re-exported from src/server/notifications.ts for server callers; all queries use the verified caller and fail gently until the future tables exist, and the email helper remains inert.
+- Event time displays share the pure event-time formatter and EventTime presentation; resolve the viewer timezone only after hydration to keep server-rendered markup stable without changing stored event instants.

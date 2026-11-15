@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+export { formatEventTimeDual } from "./event-time";
 
 export const EVENT_TYPES = ["gathering", "workshop", "pod_session", "meditation", "retreat"] as const;
 export const EVENT_FORMATS = ["virtual", "in_person"] as const;

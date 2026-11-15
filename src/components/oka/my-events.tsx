@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Clock, MapPin, Video } from "lucide-react";
 
 import { TYPE_TINT } from "@/components/oka/event-card";
+import { EventTime } from "@/components/oka/event-time";
 import { useCurrentUserId } from "@/hooks/use-is-admin";
 import { supabase } from "@/integrations/supabase/client";
 import { createdEventStatusLabel } from "@/lib/created-event-status";
@@ -10,7 +11,6 @@ import { groupEventSeries, type GroupedEvent, type SeriesEvent } from "@/lib/eve
 import {
   FORMAT_LABELS,
   TYPE_LABELS,
-  formatEventTime,
   type EventFormat,
   type EventType,
 } from "@/lib/events";
@@ -68,17 +68,17 @@ function EventRowItem({ item }: { item: GroupedEvent<SeriesEvent> }) {
         <h3 className={cn("truncate font-serif text-xl leading-tight text-foreground", cancelled && "line-through opacity-70")}>
           {event.title}
         </h3>
-        <p className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
           <span className="uppercase tracking-widest text-terracotta-ink">{TYPE_LABELS[event.event_type as EventType] ?? event.event_type}</span>
           <span className="flex items-center gap-1.5">
             <FormatIcon className="size-3.5 text-primary" strokeWidth={1.5} />
             {FORMAT_LABELS[event.format as EventFormat] ?? event.format}
           </span>
-          <span className="flex items-center gap-1.5">
-            <Clock className="size-3.5 text-primary" strokeWidth={1.5} />
-            {formatEventTime(event.starts_at, event.timezone)}
+          <span className="flex min-w-0 items-start gap-1.5">
+            <Clock className="mt-0.5 size-3.5 shrink-0 text-primary" strokeWidth={1.5} />
+            <EventTime start={event.starts_at} timezone={event.timezone} />
           </span>
-        </p>
+        </div>
         {item.label && <p className="mt-1.5 truncate text-xs text-muted-foreground">{item.label}</p>}
       </div>
       <StatusPill status={event.status} />

@@ -6,13 +6,13 @@ import { ArrowRight, Clock, MapPin, Users, Video } from "lucide-react";
 import {
   FORMAT_LABELS,
   TYPE_LABELS,
-  formatEventTime,
   hostName,
   spotsLeft,
   type EventRow,
   type EventType,
 } from "@/lib/events";
 import { cn } from "@/lib/utils";
+import { EventTime } from "@/components/oka/event-time";
 
 /** Soft brand tint per event type, so the schedule reads like a warm calendar. */
 export const TYPE_TINT: Record<EventType, string> = {
@@ -58,7 +58,7 @@ function Meta({ event }: { event: EventRow }) {
   const FormatIcon = event.format === "virtual" ? Video : MapPin;
   return (
     <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
-      <span className="flex items-center gap-1.5"><Clock className="size-4 text-primary" strokeWidth={1.5} />{formatEventTime(event.starts_at, event.timezone)}</span>
+      <span className="flex min-w-0 items-start gap-1.5"><Clock className="mt-0.5 size-4 shrink-0 text-primary" strokeWidth={1.5} /><EventTime start={event.starts_at} timezone={event.timezone} /></span>
       <span className="flex items-center gap-1.5"><FormatIcon className="size-4 text-primary" strokeWidth={1.5} />{FORMAT_LABELS[event.format]}</span>
       <span className="flex items-center gap-1.5"><Users className="size-4 text-primary" strokeWidth={1.5} />{hostName(event.host)}</span>
     </div>
@@ -90,7 +90,7 @@ export function EventCard({ event, rsvp, seriesLabel }: { event: EventRow; rsvp?
       )}
     >
       {photo && <img src={photo} alt="" loading="lazy" className="-mx-4 -mt-4 mb-4 aspect-[16/9] w-[calc(100%+2rem)] max-w-none rounded-t-2xl object-cover" />}
-      <div className="font-serif text-4xl leading-none text-foreground">{new Date(event.starts_at).toLocaleDateString(undefined, { day: "numeric" })}</div>
+      <div className="font-serif text-4xl leading-none text-foreground">{new Date(event.starts_at).toLocaleDateString("en-US", { day: "numeric", timeZone: event.timezone || "UTC" })}</div>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-[0.7rem] uppercase tracking-widest text-primary">{TYPE_LABELS[event.event_type]}</span>
@@ -99,6 +99,7 @@ export function EventCard({ event, rsvp, seriesLabel }: { event: EventRow; rsvp?
         </div>
         <h3 className={cn("mt-2 text-xl leading-[1.08] text-foreground", cancelled && "line-through")}>{event.title}</h3>
         {seriesLabel && <p className="mt-2 text-xs text-muted-foreground">{seriesLabel}</p>}
+        <div className="mt-3 flex items-start gap-1.5 text-sm text-muted-foreground"><Clock className="mt-0.5 size-4 shrink-0 text-primary" strokeWidth={1.5} /><EventTime start={event.starts_at} timezone={event.timezone} /></div>
         <p className="mt-4 text-xs text-muted-foreground">{TYPE_LABELS[event.event_type]} · {spotsText(event)}</p>
       </div>
     </Link>

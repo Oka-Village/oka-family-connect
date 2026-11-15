@@ -11,7 +11,8 @@ import { MemberAvatar, ProfileSections } from "@/components/oka/profile-sections
 import { resolvePhotoUrl } from "@/hooks/use-profile";
 import { supabase } from "@/integrations/supabase/client";
 import { groupEventSeries, type SeriesEvent } from "@/lib/event-series";
-import { formatEventDate, formatEventTime } from "@/lib/events";
+import { formatEventDate } from "@/lib/events";
+import { EventTime } from "@/components/oka/event-time";
 import type { OkaProfile } from "@/lib/profile";
 
 export const Route = createFileRoute("/_authenticated/members/$memberId")({
@@ -110,7 +111,7 @@ function MemberPage() {
                     <span className="block font-serif text-xl text-foreground transition-colors group-hover:text-primary">{item.event.title}</span>
                     {item.label && <span className="mt-1 block text-xs text-muted-foreground">{item.label}</span>}
                   </span>
-                  <span className="text-sm text-muted-foreground">{formatEventDate(item.event.starts_at, item.event.timezone)} · {formatEventTime(item.event.starts_at, item.event.timezone)}</span>
+                  <span className="min-w-0 text-sm text-muted-foreground"><span className="block">{formatEventDate(item.event.starts_at, item.event.timezone)}</span><EventTime start={item.event.starts_at} timezone={item.event.timezone} /></span>
                 </Link>
               </li>
             ))}

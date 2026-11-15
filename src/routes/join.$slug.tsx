@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { CalendarDays, Clock, Loader2, Users, Video } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { formatEventDate, formatEventTime } from "@/lib/events";
+import { formatEventDate } from "@/lib/events";
+import { EventTime } from "@/components/oka/event-time";
 
 import { toast } from "sonner";
 import { Wordmark } from "@/components/oka/wordmark";
@@ -137,7 +138,7 @@ function JoinPage() {
               {cover.data && <img src={cover.data} alt="" className="mt-8 h-auto w-full rounded-3xl object-contain object-center shadow-soft" />}
               <div className="mt-8 grid gap-3 rounded-2xl border border-border bg-card p-6 text-foreground shadow-soft sm:grid-cols-2">
                 <span className="flex items-center gap-3"><CalendarDays className="size-5 text-primary" strokeWidth={1.5} />{formatEventDate(preview.data.starts_at, preview.data.timezone)}</span>
-                <span className="flex items-center gap-3"><Clock className="size-5 text-primary" strokeWidth={1.5} />{formatEventTime(preview.data.starts_at, preview.data.timezone)}{preview.data.ends_at && ` – ${formatEventTime(preview.data.ends_at, preview.data.timezone)}`}</span>
+                <span className="flex min-w-0 items-start gap-3"><Clock className="mt-0.5 size-5 shrink-0 text-primary" strokeWidth={1.5} /><EventTime start={preview.data.starts_at} end={preview.data.ends_at} timezone={preview.data.timezone} /></span>
                 {preview.data.host_name && <span className="flex items-center gap-3"><Users className="size-5 text-primary" strokeWidth={1.5} />Hosted by {preview.data.host_name}</span>}
                 <span className="flex items-center gap-3"><Video className="size-5 text-primary" strokeWidth={1.5} />{preview.data.format === "virtual" ? "Online" : "In person"} · {preview.data.going_count} going</span>
               </div>

@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Display host-primary and viewer-local event times on event cards, details, public invitations and profile lists; 23 focused tests passed, real public and Fabia's signed-in shared-event pages checked at desktop/390px with no overflow or runtime errors, and schedule local times confirmed; no publishing.
+
 - [x] Automatically prepare member-attributed event links and a staff-only host-attributed copy option; preserve existing referrals and pod RSVP behavior.
 - [x] Test attribution, paused-account handling and authenticated copy flows on desktop/mobile; 22 tests passed and Fabia's personal versus Liran's host links copied correctly and persisted after refresh. Sharing section fits 390px; pre-existing toast briefly extends the page. No publishing; ordinary-member UI and first-ever activation verified by focused tests, not a separate real account.
 

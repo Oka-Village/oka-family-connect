@@ -4,6 +4,7 @@ import { ArrowLeft, CalendarDays, Clock, Hourglass, Lock, MapPin, Pencil, Users,
 import { toast } from "sonner";
 
 import { RsvpBadge, useEventPhoto } from "@/components/oka/event-card";
+import { EventTime } from "@/components/oka/event-time";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useCurrentUserId, useIsStaff } from "@/hooks/use-is-admin";
@@ -25,7 +26,6 @@ import {
   TYPE_LABELS,
   formatDuration,
   formatEventDate,
-  formatEventTime,
   hostName,
   spotsLeft,
   type EventRow,
@@ -213,8 +213,7 @@ function EventDetail() {
           <div className="mt-8 grid gap-3 text-foreground sm:grid-cols-2">
             <Detail icon={CalendarDays}>{formatEventDate(ev.starts_at, ev.timezone)}</Detail>
             <Detail icon={Clock}>
-              {formatEventTime(ev.starts_at, ev.timezone)}
-              {ev.ends_at && ` – ${formatEventTime(ev.ends_at, ev.timezone)}`}
+              <EventTime start={ev.starts_at} end={ev.ends_at} timezone={ev.timezone} />
             </Detail>
             {duration && <Detail icon={Hourglass}>Duration · {duration}</Detail>}
             {ev.timezone && <Detail icon={Clock}>{ev.timezone}</Detail>}
@@ -330,8 +329,8 @@ function EventDetail() {
 
 function Detail({ icon: Icon, children }: { icon: typeof Users; children: React.ReactNode }) {
   return (
-    <span className="flex items-center gap-3">
-      <Icon className="size-5 text-primary" strokeWidth={1.5} />
+    <span className="flex min-w-0 items-start gap-3">
+      <Icon className="mt-0.5 size-5 shrink-0 text-primary" strokeWidth={1.5} />
       {children}
     </span>
   );
