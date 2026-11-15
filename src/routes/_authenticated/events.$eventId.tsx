@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, CalendarDays, Clock, Hourglass, Lock, MapPin, Pencil, Users, Video } from "lucide-react";
+import { ArrowLeft, CalendarDays, Check, Clock, Hourglass, Lock, MapPin, Pencil, Users, Video } from "lucide-react";
 import { toast } from "sonner";
 
 import { RsvpBadge, useEventPhoto } from "@/components/oka/event-card";
 import { EventTime } from "@/components/oka/event-time";
+import { AddToCalendarDropdown } from "@/components/oka/add-to-calendar-dropdown";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useCurrentUserId, useIsStaff } from "@/hooks/use-is-admin";
@@ -274,9 +275,23 @@ function EventDetail() {
             )}
 
             {canRsvp && (
-              status === "going" || status === "waitlist" ? (
+              status === "going" ? (
+                <div className="mt-6 grid justify-items-center gap-4">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground" role="status">
+                    <Check className="size-4 text-primary" strokeWidth={1.5} /> You're going
+                  </span>
+                  <AddToCalendarDropdown event={{
+                    id: ev.id, title: ev.title, startsAt: ev.starts_at, endsAt: ev.ends_at,
+                    description: ev.description, url: joinUrl(ev.join_slug),
+                    location: loc?.meeting_link || loc?.video_link || loc?.venue_address || null,
+                  }} />
+                  <Button variant="link" className="h-auto whitespace-normal p-0 text-sm text-muted-foreground" disabled={rsvp.isPending} onClick={() => rsvp.mutate("leave")}>
+                    {rsvp.isPending ? "Cancelling…" : "Can't make it"}
+                  </Button>
+                </div>
+              ) : status === "waitlist" ? (
                 <Button variant="outline" className="mt-6 w-full rounded-full" disabled={rsvp.isPending} onClick={() => rsvp.mutate("leave")}>
-                  {status === "going" ? "Cancel my spot" : "Leave the waitlist"}
+                  Leave the waitlist
                 </Button>
               ) : (
                 <Button className="mt-6 w-full rounded-full" disabled={rsvp.isPending} onClick={() => rsvp.mutate("join")}>

@@ -33,3 +33,4 @@
 - Notification RPCs live in a client-safe *.functions.ts entry, re-exported from src/server/notifications.ts for server callers; all queries use the verified caller and fail gently until the future tables exist, and the email helper remains inert.
 - Event time displays share the pure event-time formatter and EventTime presentation; resolve the viewer timezone only after hydration to keep server-rendered markup stable without changing stored event instants.
 - Event edit screens share the browser-safe event-edit helpers; detail updates whitelist editable fields and never write status or ownership, preserving pending review and immediate published edits under existing database authorization.
+- Calendar exports use the browser-safe calendar utility with UTC instants and stable per-event UIDs; export only the RSVP'd occurrence and location already authorized by the event read, because repeated gatherings are separate events and RSVPs.
