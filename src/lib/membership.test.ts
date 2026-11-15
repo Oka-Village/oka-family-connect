@@ -95,6 +95,12 @@ describe("membership payment rules", () => {
     expect(paymentRedirect(path, false, false, "none")).toBeNull();
     expect(paymentRedirect(path, false, false, "expired")).toBeNull();
   });
+  it("opens the books for an active trial and blocks unpaid members without one", () => {
+    expect(paymentRedirect("/open-accounting", false, false, "active")).toBeNull();
+    expect(paymentRedirect("/open-accounting", false, false, "none")).toBe("/welcome");
+    expect(paymentRedirect("/open-accounting", false, false, "expired")).toBe("/membership");
+    expect(paymentRedirect("/open-accounting", false, true, "none")).toBeNull();
+  });
   it.each(["/skills/edit/own", "/houses/edit/own", "/skills/own", "/houses/own"])("leaves own listing pages at %s to the ownership gate", (path) => {
     expect(paymentRedirect(path, false, false, "active")).toBeNull();
     expect(paymentRedirect(path, false, false, "none")).toBeNull();

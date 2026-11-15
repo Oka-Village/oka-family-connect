@@ -25,6 +25,7 @@ import { Route as AuthenticatedCreditsRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedDirectoryRouteImport } from './routes/_authenticated/directory'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
+import { Route as AuthenticatedOpenAccountingRouteImport } from './routes/_authenticated/open-accounting'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedSessionsRouteImport } from './routes/_authenticated/sessions'
 import { Route as AuthenticatedStaysRouteImport } from './routes/_authenticated/stays'
@@ -132,6 +133,12 @@ const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedOpenAccountingRoute =
+  AuthenticatedOpenAccountingRouteImport.update({
+    id: '/open-accounting',
+    path: '/open-accounting',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -289,6 +296,7 @@ export interface FileRoutesByFullPath {
   '/directory': typeof AuthenticatedDirectoryRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/open-accounting': typeof AuthenticatedOpenAccountingRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/sessions': typeof AuthenticatedSessionsRoute
   '/stays': typeof AuthenticatedStaysRoute
@@ -331,6 +339,7 @@ export interface FileRoutesByTo {
   '/directory': typeof AuthenticatedDirectoryRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/open-accounting': typeof AuthenticatedOpenAccountingRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/sessions': typeof AuthenticatedSessionsRoute
   '/stays': typeof AuthenticatedStaysRoute
@@ -375,6 +384,7 @@ export interface FileRoutesById {
   '/_authenticated/directory': typeof AuthenticatedDirectoryRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
+  '/_authenticated/open-accounting': typeof AuthenticatedOpenAccountingRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/sessions': typeof AuthenticatedSessionsRoute
   '/_authenticated/stays': typeof AuthenticatedStaysRoute
@@ -419,6 +429,7 @@ export interface FileRouteTypes {
     | '/directory'
     | '/notifications'
     | '/onboarding'
+    | '/open-accounting'
     | '/profile'
     | '/sessions'
     | '/stays'
@@ -461,6 +472,7 @@ export interface FileRouteTypes {
     | '/directory'
     | '/notifications'
     | '/onboarding'
+    | '/open-accounting'
     | '/profile'
     | '/sessions'
     | '/stays'
@@ -504,6 +516,7 @@ export interface FileRouteTypes {
     | '/_authenticated/directory'
     | '/_authenticated/notifications'
     | '/_authenticated/onboarding'
+    | '/_authenticated/open-accounting'
     | '/_authenticated/profile'
     | '/_authenticated/sessions'
     | '/_authenticated/stays'
@@ -657,6 +670,13 @@ declare module '@tanstack/react-router' {
       path: '/onboarding'
       fullPath: '/onboarding'
       preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/open-accounting': {
+      id: '/_authenticated/open-accounting'
+      path: '/open-accounting'
+      fullPath: '/open-accounting'
+      preLoaderRoute: typeof AuthenticatedOpenAccountingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/profile': {
@@ -845,6 +865,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDirectoryRoute: typeof AuthenticatedDirectoryRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
+  AuthenticatedOpenAccountingRoute: typeof AuthenticatedOpenAccountingRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedSessionsRoute: typeof AuthenticatedSessionsRoute
   AuthenticatedStaysRoute: typeof AuthenticatedStaysRoute
@@ -878,6 +899,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDirectoryRoute: AuthenticatedDirectoryRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
+  AuthenticatedOpenAccountingRoute: AuthenticatedOpenAccountingRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedSessionsRoute: AuthenticatedSessionsRoute,
   AuthenticatedStaysRoute: AuthenticatedStaysRoute,

@@ -12,7 +12,8 @@ import { isFullMember } from "@/lib/member-access";
 import { afterMembershipPayment, hasPaidMembership, isPaymentExempt, type MembershipKind } from "@/lib/membership";
 import { createFoundingCheckout } from "@/lib/stripe/founding.functions";
 import { createMonthlyCheckout, confirmMembershipCheckout } from "@/lib/stripe/membership.functions";
-import { lovable } from "@/integrations/lovable/index";
+import { EmailAuthDialog } from "@/components/oka/email-auth";
+import { signInWithGoogle } from "@/lib/google-sign-in";
 import { supabase } from "@/integrations/supabase/client";
 import { saveReturnTo } from "@/lib/join-link";
 import { beginSignupFlow } from "@/lib/signup-flow.functions";
@@ -94,8 +95,7 @@ function MembershipPage() {
     if (selected) saveIntent({ kind: selected, agreed });
     try {
       await beginSignup();
-      const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: `${window.location.origin}/membership` });
-      if (result.error) throw new Error("We couldn’t open Google sign-in. Please try again.");
+      const result = await signInWithGoogle(`${window.location.origin}/membership`);
       if (result.redirected) return;
       void qc.invalidateQueries({ queryKey: ["profile"] });
     } catch (e) { setError(e instanceof Error ? e.message : "Google sign-in could not be opened. Please try again."); }
@@ -108,8 +108,8 @@ function MembershipPage() {
         saveReturnTo(`/membership?kind=${choice}`);
         saveIntent({ kind: choice, agreed });
         await beginSignup();
-        const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: `${window.location.origin}/membership?kind=${choice}` });
-        if (result.error) throw new Error("We couldn’t open Google sign-in. Please try again.");
+        const result = await signInWithGoogle(`${window.location.origin}/membership?kind=${choice}`);
+        if (result.redirected) return;
         return;
       }
       clearIntent();
@@ -174,6 +174,7 @@ function MembershipPage() {
             <Button variant="outline" className="rounded-full px-6" disabled={busy !== null} onClick={() => void signInGoogle()}>
               {busy === "signin" && <Loader2 className="size-4 animate-spin" />}Sign in with Google
             </Button>
+            <EmailAuthDialog label="Sign in with email instead" initialMode="signin" />
             <p className="text-xs text-muted-foreground">Sign in first if you already have a membership, or to save your choice.</p>
           </div>
         )}

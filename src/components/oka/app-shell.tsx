@@ -2,7 +2,7 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { CalendarDays, Bookmark, Coins, Gift, Heart, Home, LogOut, Menu, ShieldCheck, Sparkles, User, Users } from "lucide-react";
+import { BookOpen, CalendarDays, Bookmark, Coins, Gift, Heart, Home, LogOut, Menu, ShieldCheck, Sparkles, User, Users } from "lucide-react";
 
 import { Wordmark } from "@/components/oka/wordmark";
 import { Button } from "@/components/ui/button";
@@ -30,15 +30,18 @@ const NAV_ITEMS = [
   { to: "/skills", label: "Skills", icon: Sparkles },
   { to: "/houses", label: "Houses", icon: Home },
   { to: "/collections", label: "Collections", icon: Bookmark },
+  { to: "/open-accounting", label: "Open Accounting", icon: BookOpen },
   { to: "/profile", label: "My Profile", icon: User },
   { to: "/credits", label: "Credits", icon: Coins },
   { to: "/affiliate", label: "Invite & earn", icon: Gift },
 ] as const;
 
-const PRIMARY_ITEMS = NAV_ITEMS.slice(0, 6);
+const PRIMARY_ITEMS = NAV_ITEMS.slice(0, 7);
 const MOBILE_ITEMS = [...PRIMARY_ITEMS, { to: "/affiliate", label: "Invite", icon: Gift } as const];
 
-type AccountMenuItem = (typeof NAV_ITEMS)[number] | { readonly to: "/admin"; readonly label: string; readonly icon: typeof ShieldCheck };
+type AccountMenuItem =
+  | (typeof NAV_ITEMS)[number]
+  | { readonly to: "/admin"; readonly label: string; readonly icon: typeof ShieldCheck };
 
 /** Avatar menu shared by the desktop and mobile headers. */
 function AccountMenu({
@@ -123,9 +126,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     enabled: Boolean(profile),
     refetchOnWindowFocus: true,
   });
-  const items = isAdmin
-    ? [...NAV_ITEMS, { to: "/admin", label: "Admin", icon: ShieldCheck } as const]
-    : NAV_ITEMS;
+  const items = [
+    ...NAV_ITEMS,
+    ...(isAdmin ? [{ to: "/admin" as const, label: "Admin", icon: ShieldCheck }] : []),
+  ];
 
   // Anyone who hasn't finished the welcome steps is taken back to them.
   useEffect(() => {
@@ -192,7 +196,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="ml-auto flex items-center gap-4">
           <CreditPill />
           <NotificationsBell userId={profile?.id} />
-          <AccountMenu photo={photo} name={profile?.display_name} items={items.slice(6)} onSignOut={handleSignOut} />
+          <AccountMenu photo={photo} name={profile?.display_name} items={items.slice(7)} onSignOut={handleSignOut} />
         </div>
       </header>
 
@@ -200,7 +204,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <Link to="/home" aria-label="Oka home"><Wordmark className="text-2xl" /></Link>
         <div className="flex items-center gap-1">
           <NotificationsBell userId={profile?.id} />
-          <AccountMenu photo={photo} name={profile?.display_name} items={items.slice(6)} onSignOut={handleSignOut} />
+          <AccountMenu photo={photo} name={profile?.display_name} items={items.slice(7)} onSignOut={handleSignOut} />
         </div>
       </header>
 

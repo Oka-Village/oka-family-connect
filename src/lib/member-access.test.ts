@@ -22,7 +22,7 @@ describe("membership soft launch", () => {
   it.each(["/home", "/home/reflection", "/home/inspiration", "/home/appreciation", "/home/reflection/past", "/directory", "/members", "/members/example", "/stays", "/sessions", "/collections", "/credits"])("blocks limited browsing at %s", (path) => {
     expect(canAccessMemberRoute(path, false)).toBe(false);
   });
-  it.each(["/profile", "/onboarding", "/skills/new", "/houses/new", "/events/new", "/affiliate", "/privacy", "/terms"])("allows limited contribution at %s", (path) => {
+  it.each(["/profile", "/onboarding", "/skills/new", "/houses/new", "/events/new", "/affiliate", "/privacy", "/terms", "/open-accounting"])("allows limited contribution at %s", (path) => {
     expect(canAccessMemberRoute(path, false)).toBe(true);
   });
   it.each(["/skills/edit/own", "/houses/edit/own", "/events/edit/own"])("allows only owned limited edits at %s", (path) => {
