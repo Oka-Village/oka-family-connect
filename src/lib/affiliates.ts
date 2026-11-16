@@ -1,8 +1,32 @@
 import { useEffect, useRef } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
+import { ensureActiveInviteCode } from "./affiliate-code";
+
+/** Shared per-account cache; database uniqueness also protects across tabs. */
+export function useEnsureInviteCode(userId: string | null | undefined, enabled = true) {
+  return useQuery({
+    queryKey: ["affiliate", "my-code", userId],
+    enabled: Boolean(userId) && enabled,
+    staleTime: 5 * 60_000,
+    queryFn: async () => {
+      if (!userId) throw new Error("Sign in to share this event.");
+      return ensureActiveInviteCode({
+        read: async () => {
+          const { data, error } = await supabase.from("affiliates").select("invite_code,status").eq("user_id", userId).maybeSingle();
+          if (error) throw error;
+          return data;
+        },
+        activate: async () => {
+          const { error } = await supabase.rpc("activate_affiliate");
+          if (error) throw error;
+        },
+      });
+    },
+  });
+}
 
 /** localStorage key that carries an invite code through the Google sign-in round-trip. */
 export const INVITE_KEY = "oka_invite_code";

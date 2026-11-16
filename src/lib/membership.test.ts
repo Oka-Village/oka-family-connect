@@ -133,13 +133,13 @@ describe("membership payment rules", () => {
     expect(paymentRedirect("/onboarding", false, true, "expired")).toBeNull();
     expect(paymentRedirect("/home", false, true, "none")).toBeNull();
   });
-  it("runs a trial for exactly seven days", () => {
-    const started = "2026-10-25T10:00:00.000Z";
+  it("runs a post-launch trial for exactly seven days", () => {
+    const started = "2026-12-04T10:00:00.000Z";
     expect(trialState(null)).toBe("none");
     expect(trialState("not-a-date")).toBe("none");
-    expect(trialState(started, new Date("2026-10-25T10:00:00.000Z"))).toBe("active");
-    expect(trialState(started, new Date("2026-11-01T09:59:59.999Z"))).toBe("active");
-    expect(trialState(started, new Date("2026-11-01T10:00:00.000Z"))).toBe("expired");
+    expect(trialState(started, new Date("2026-12-04T10:00:00.000Z"))).toBe("active");
+    expect(trialState(started, new Date("2026-12-11T09:59:59.999Z"))).toBe("active");
+    expect(trialState(started, new Date("2026-12-11T10:00:00.000Z"))).toBe("expired");
   });
   it("sends paid limited members to onboarding and full members home", () => {
     expect(afterMembershipPayment(false)).toBe("/onboarding");

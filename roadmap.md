@@ -1,5 +1,22 @@
 # Roadmap
 
+- [x] Separate public YouTube videos from private event joining details; additive migration and published-only preview RPC applied, legacy YouTube backfill included, and shared player placed below About on details and invitation pages. Private meeting permissions unchanged.
+- [x] Verify video creation/edit/removal persistence, signed-out player loading and desktop/390px layout with temporary real events; 30 tests passed, build OK, temporary events/photos removed. No publishing.
+
+- [x] Pause started trials until the December 1, 2026 launch, count seven days from launch or later onboarding, and enforce the same rule in app and database access; launch/date boundaries and live pre-launch database access verified.
+- [x] Add admin-only trial extensions, custom end dates, trial ending/reset, and revocable complimentary lifetime access; 121 focused access tests passed and every action verified in Fabia's real admin page on desktop/mobile, with original account values restored. Full suite: 239 passed; four unchanged notification server-function harness tests fail independently.
+
+- [x] Phase 1: confirmed RSVP card, Google/Outlook links and Apple/Other ICS downloads; 22 tests passed, Fabia's real RSVP cancellation/rejoin and refresh persistence verified, both downloads checked, desktop/390px menu checked and build OK. Exports cover the RSVP'd occurrence only (repeats are separate event rows). No migration, emails, email-sent claim or publishing. Existing decorative footer stain causes mobile document overflow outside the changed card; left untouched.
+
+- [x] Keep a member's own event RSVP visible after refresh before payment; live owner/host read exception confirmed, 45 related tests passed, and Fabia's saved going state plus Cancel my spot survived refresh at desktop/390px with no errors. A separate non-staff trial account was not used.
+
+- [x] Enable facilitator editing before and after approval, preserve status and staff moderation; 29 tests passed. Pending/published saves persisted after refresh and approved changes appeared on the calendar using temporary events in Fabia's staff account; desktop/390px checked without overflow or runtime errors, temporary events removed. Non-staff gates covered by tests, not a separate account; no publishing.
+
+- [x] Display host-primary and viewer-local event times on event cards, details, public invitations and profile lists; 23 focused tests passed, real public and Fabia's signed-in shared-event pages checked at desktop/390px with no overflow or runtime errors, and schedule local times confirmed; no publishing.
+
+- [x] Automatically prepare member-attributed event links and a staff-only host-attributed copy option; preserve existing referrals and pod RSVP behavior.
+- [x] Test attribution, paused-account handling and authenticated copy flows on desktop/mobile; 22 tests passed and Fabia's personal versus Liran's host links copied correctly and persisted after refresh. Sharing section fits 390px; pre-existing toast briefly extends the page. No publishing; ordinary-member UI and first-ever activation verified by focused tests, not a separate real account.
+
 - [x] Add confirmed creator-only skill/home deletion on detail and edit pages; nine ownership/deletion tests passed, cancellation and persisted removal verified with temporary listings in the requesting account on desktop/mobile, all temporary rows removed; no publishing. Ordinary-member session not separately exercised.
 
 - [x] Surface "Complete your profile and earn 3 credits" as a mobile-only banner under the mobile header linking to My Profile; verified at 390px and hidden at 768px and up, with desktop pill unchanged and no database changes or publishing.
@@ -46,3 +63,4 @@
 - [x] Remove the large "Home" headline from the Home page header.
 
 - [x] Founding member page ($250 lifetime, Stripe)
+- [x] Stop shared event links from auto-opening the video call: members land on the event page and join only by clicking; external meeting links shown first; 21 focused tests passed and real signed-in shared-link click verified (no call opened, Join room button present, explicit click opens the room).

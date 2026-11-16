@@ -23,8 +23,12 @@ export type OkaProfile = {
   profile_completed: boolean;
   /** Welcome steps finished or skipped. */
   onboarded_at: string | null;
-  /** First trial start only; never used by access gates. */
+  /** First trial start; counting pauses until the December 1 launch. */
   trial_started_at?: string | null;
+  /** Optional admin override for the standard trial end. */
+  trial_ends_at?: string | null;
+  /** Explicit, revocable admin grant; independent of payments and stored status. */
+  complimentary_access?: boolean;
   created_at: string;
   updated_at: string;
 };

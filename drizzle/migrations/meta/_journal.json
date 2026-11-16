@@ -134,6 +134,41 @@
       "when": 1794219455388,
       "tag": "0018_skills_houses_open_to_members",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1794462861145,
+      "tag": "0019_public_event_preview",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1794467285818,
+      "tag": "0020_staff_event_host_invite",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1794722004941,
+      "tag": "0021_event_rsvp_owner_and_host_read",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1794753464021,
+      "tag": "0022_trial_pause_and_admin_access",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1794806743720,
+      "tag": "0023_public_event_youtube_video",
+      "breakpoints": true
     }
   ]
 }

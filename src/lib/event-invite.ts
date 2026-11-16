@@ -24,11 +24,6 @@ export function clearEventJoinSlug() {
   try { localStorage.removeItem(SLUG_KEY); } catch { /* ignore */ }
 }
 
-/** Same rule the join page used before the invite was recorded server-side. */
-export function shouldReserveSpot(isHost: boolean, past: boolean, status: string | null | undefined) {
-  return !isHost && !past && status !== "going" && status !== "waitlist";
-}
-
 /** True when the live database has not installed remember_event_invite yet. */
 export function isMissingInviteFunction(error: unknown): boolean {
   if (!error || typeof error !== "object") return false;
@@ -85,28 +80,6 @@ async function readPublishedVirtual(slug: string): Promise<ReadableEvent | null>
   return data;
 }
 
-async function reserveSpot(eventId: string, ev: ReadableEvent | null, userId: string): Promise<boolean> {
-  const isHost = Boolean(ev && (ev.host_id === userId || ev.created_by === userId));
-  const past = ev ? new Date(ev.ends_at ?? ev.starts_at).getTime() < Date.now() : false;
-  let status: string | null | undefined;
-  if (ev && !isHost) {
-    const { data: mine, error: rsvpReadError } = await supabase
-      .from("event_rsvps")
-      .select("status")
-      .eq("event_id", ev.id)
-      .eq("user_id", userId)
-      .maybeSingle();
-    if (rsvpReadError) throw rsvpReadError;
-    status = mine?.status;
-  }
-  // An empty event read still reserves: rsvp_event rejects unpublished or finished events.
-  if (shouldReserveSpot(isHost, past, status)) {
-    const { error: rsvpError } = await supabase.rpc("rsvp_event", { _event_id: eventId });
-    if (rsvpError) throw rsvpError;
-  }
-  return isHost;
-}
-
 async function claimEventInviteOnce(slug: string, userId: string): Promise<string | null> {
   const remembered = await supabase.rpc("remember_event_invite", { _slug: slug });
   if (remembered.error && !isMissingInviteFunction(remembered.error)) throw remembered.error;
@@ -118,7 +91,6 @@ async function claimEventInviteOnce(slug: string, userId: string): Promise<strin
       clearEventJoinSlug();
       return null;
     }
-    await reserveSpot(legacy.id, legacy, userId);
     clearEventJoinSlug();
     return legacy.id;
   }
@@ -130,7 +102,8 @@ async function claimEventInviteOnce(slug: string, userId: string): Promise<strin
     .maybeSingle();
   if (readError) throw readError;
 
-  const isHost = await reserveSpot(eventId, ev, userId);
+  // Opening a link never RSVPs; the member chooses "I'm going" on the event page.
+  const isHost = Boolean(ev && (ev.host_id === userId || ev.created_by === userId));
 
   const { data: visit, error: visitError } = await supabase
     .from("event_link_visits")
@@ -143,7 +116,7 @@ async function claimEventInviteOnce(slug: string, userId: string): Promise<strin
   return eventId;
 }
 
-/** Records the slug, then reserves a spot with the existing rsvp_event rules. */
+/** Records the invite visit and returns the event id; never RSVPs on the member's behalf. */
 export function claimEventInvite(slug: string, userId: string): Promise<string | null> {
   const key = `${userId}:${slug.trim()}`;
   const existing = pending.get(key);
