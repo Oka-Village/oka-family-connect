@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, CalendarDays, Clock, Hourglass, Lock, MapPin, Pencil, Users, Video } from "lucide-react";
+import { ArrowLeft, CalendarDays, Check, Clock, Hourglass, Lock, MapPin, Pencil, Users, Video } from "lucide-react";
 import { toast } from "sonner";
 
 import { RsvpBadge, useEventPhoto } from "@/components/oka/event-card";
+import { EventTime } from "@/components/oka/event-time";
+import { AddToCalendarDropdown } from "@/components/oka/add-to-calendar-dropdown";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useCurrentUserId, useIsStaff } from "@/hooks/use-is-admin";
@@ -16,13 +18,18 @@ import { useServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { CopyJoinLink } from "@/components/oka/copy-join-link";
 import { canShareEventLink, joinUrl } from "@/lib/join-link";
+import { eventCallAction } from "@/lib/event-call-entry";
+import { canEditEvent } from "@/lib/event-edit";
+import { eventMeetingLink } from "@/lib/event-video";
+import { EventVideo } from "@/components/oka/event-video";
+import { useEnsureInviteCode } from "@/lib/affiliates";
+import { ensureEventHostInvite } from "@/lib/affiliate-sharing.functions";
 import {
   EVENT_SELECT,
   FORMAT_LABELS,
   TYPE_LABELS,
   formatDuration,
   formatEventDate,
-  formatEventTime,
   hostName,
   spotsLeft,
   type EventRow,
@@ -50,16 +57,6 @@ function EventDetail() {
   const qc = useQueryClient();
   const { data: uid } = useCurrentUserId();
   const { data: isAdmin } = useIsStaff();
-  // The sharer's own active affiliate code, if any — used only to tag shared join links.
-  const myAffiliate = useQuery({
-    queryKey: ["affiliate", "my-code", uid],
-    queryFn: async () => {
-      const { data } = await supabase.from("affiliates").select("invite_code,status").eq("user_id", uid!).maybeSingle();
-      return data?.status === "active" ? data.invite_code : null;
-    },
-    enabled: !!uid,
-  });
-  const refCode = myAffiliate.data ?? null;
   const fetchVideoCfg = useServerFn(getVideoConfigured);
   const videoCfg = useQuery({ queryKey: ["video-configured"], queryFn: () => fetchVideoCfg(), staleTime: 5 * 60_000 });
 
@@ -90,6 +87,14 @@ function EventDetail() {
   });
 
   const cover = useEventPhoto(q.data?.event?.photo_url);
+
+  const myAffiliate = useEnsureInviteCode(uid, q.data?.event?.status === "published");
+  const refCode = myAffiliate.data ?? null;
+  const fetchHostInvite = useServerFn(ensureEventHostInvite);
+  const hostInvite = useMutation({
+    mutationFn: () => fetchHostInvite({ data: { eventId } }),
+    onError: (error: Error) => toast.error(error.message),
+  });
 
   const rsvp = useMutation({
     mutationFn: async (action: "join" | "leave") => {
@@ -137,7 +142,14 @@ function EventDetail() {
   const fill = ev.capacity ? Math.min(100, (ev.going_count / ev.capacity) * 100) : 0;
   const LocIcon = ev.format === "virtual" ? Video : MapPin;
   const loc = q.data?.location;
+  const meetingLink = eventMeetingLink(loc);
   const useRoom = ev.format === "virtual" && videoCfg.data?.configured === true && !past && ev.status !== "cancelled";
+  const callAction = eventCallAction({
+    via,
+    useRoom,
+    mayEnter: status === "going" || isManager || Boolean(isAdmin),
+    hasExternalLink: Boolean(meetingLink),
+  });
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-10 lg:py-16">
@@ -157,17 +169,39 @@ function EventDetail() {
         </div>
       )}
 
-      {canShareEventLink(isManager, !!isAdmin, refCode) && ev.status === "published" && ev.format === "virtual" && !past && (
-        <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-card p-5 shadow-soft">
-          <div>
-            <p className="section-label">Share your call</p>
-            <p className="mt-2 break-all text-sm text-muted-foreground">{joinUrl(ev.join_slug, refCode)}</p>
-            {refCode && (
-              <p className="mt-2 text-sm text-foreground">Your invite code is in this link — when someone new joins Oka through it and becomes a paying member.</p>
+      {canShareEventLink(Boolean(uid), ev.status) && (
+        <section aria-label="Share event" className="mt-6 border-y border-border py-5">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="min-w-0 flex-1 basis-64">
+              <p className="section-label">{ev.host_id === uid ? "Share your gathering" : "Share this gathering"}</p>
+              {refCode && <p className="mt-2 break-all text-sm text-muted-foreground">{joinUrl(ev.join_slug, refCode)}</p>}
+              {myAffiliate.isPending && <p className="mt-2 text-sm text-muted-foreground">Preparing your invitation…</p>}
+              {myAffiliate.isError && <p className="mt-2 text-sm text-destructive">Couldn't prepare your invitation.</p>}
+              {myAffiliate.isSuccess && !refCode && <p className="mt-2 text-sm text-muted-foreground">Your affiliate link is paused. Please contact the Oka team.</p>}
+            </div>
+            {myAffiliate.isError ? (
+              <Button variant="outline" className="rounded-full" onClick={() => void myAffiliate.refetch()}>Try again</Button>
+            ) : (
+              <CopyJoinLink slug={ev.join_slug} refCode={refCode} label="Copy my invite link" disabled={!refCode || myAffiliate.isFetching} />
             )}
           </div>
-          <CopyJoinLink slug={ev.join_slug} refCode={refCode} />
-        </div>
+          {isAdmin && ev.host_id && ev.host_id !== uid && (
+            <div className="mt-5 flex flex-wrap items-center justify-between gap-4 border-t border-border pt-5">
+              <div className="min-w-0 flex-1 basis-64">
+                <p className="section-label">Host · {hostName(ev.host)}</p>
+                {hostInvite.data && <p className="mt-2 break-all text-sm text-muted-foreground">{joinUrl(ev.join_slug, hostInvite.data)}</p>}
+                {hostInvite.isSuccess && !hostInvite.data && <p className="mt-2 text-sm text-muted-foreground">The host's affiliate link is paused.</p>}
+              </div>
+              {hostInvite.data ? (
+                <CopyJoinLink slug={ev.join_slug} refCode={hostInvite.data} label="Copy host's link" />
+              ) : (
+                <Button variant="outline" className="rounded-full" disabled={hostInvite.isPending || (hostInvite.isSuccess && !hostInvite.data)} onClick={() => hostInvite.mutate()}>
+                  {hostInvite.isPending ? "Preparing…" : "Get host's link"}
+                </Button>
+              )}
+            </div>
+          )}
+        </section>
       )}
 
       {cover && <img src={cover} alt="" className="mt-8 h-auto w-full rounded-3xl object-contain object-center shadow-soft" />}
@@ -184,40 +218,33 @@ function EventDetail() {
           <div className="mt-8 grid gap-3 text-foreground sm:grid-cols-2">
             <Detail icon={CalendarDays}>{formatEventDate(ev.starts_at, ev.timezone)}</Detail>
             <Detail icon={Clock}>
-              {formatEventTime(ev.starts_at, ev.timezone)}
-              {ev.ends_at && ` – ${formatEventTime(ev.ends_at, ev.timezone)}`}
+              <EventTime start={ev.starts_at} end={ev.ends_at} timezone={ev.timezone} />
             </Detail>
             {duration && <Detail icon={Hourglass}>Duration · {duration}</Detail>}
             {ev.timezone && <Detail icon={Clock}>{ev.timezone}</Detail>}
           </div>
 
           <div className="mt-8 rounded-2xl bg-secondary/50 p-5">
-            <p className="section-label">{ev.format === "virtual" ? (useRoom ? "Event room" : "Video link") : "Location"}</p>
-            {loc?.meeting_link && (
+            <p className="section-label">{ev.format === "virtual" ? (useRoom && !meetingLink ? "Event room" : "Join meeting") : "Location"}</p>
+            {meetingLink && (
               <p className="mt-3 flex items-start gap-2 break-all">
                 <Video className="mt-0.5 size-4 shrink-0 text-primary" strokeWidth={1.5} />
-                <a href={loc.meeting_link} target="_blank" rel="noreferrer" className="text-primary underline-offset-4 hover:underline">{loc.meeting_link}</a>
+                <a href={meetingLink} target="_blank" rel="noreferrer" className="text-primary underline-offset-4 hover:underline">{meetingLink}</a>
               </p>
             )}
-            {useRoom ? (
-              status === "going" || isManager || isAdmin ? (
-                <VideoRoom eventId={ev.id} startsAt={ev.starts_at} bypassTiming={!!isAdmin} autoJoin={via === "link"} />
-              ) : (
-                <p className="mt-3 flex items-center gap-2 text-muted-foreground">
-                  <Lock className="size-4 text-primary" strokeWidth={1.5} />
-                  The room is open to confirmed guests once you're going.
-                </p>
-              )
-            ) : loc && (loc.video_link || loc.venue_address) ? (
+            {callAction === "room_button" ? (
+              <VideoRoom eventId={ev.id} startsAt={ev.starts_at} bypassTiming={!!isAdmin} />
+            ) : callAction === "locked" ? (
+              <p className="mt-3 flex items-center gap-2 text-muted-foreground">
+                <Lock className="size-4 text-primary" strokeWidth={1.5} />
+                The room is open to confirmed guests once you're going.
+              </p>
+            ) : loc?.venue_address ? (
               <p className="mt-3 flex items-start gap-2 break-all">
                 <LocIcon className="mt-0.5 size-4 shrink-0 text-primary" strokeWidth={1.5} />
-                {loc.video_link ? (
-                  <a href={loc.video_link} target="_blank" rel="noreferrer" className="text-primary underline-offset-4 hover:underline">{loc.video_link}</a>
-                ) : (
-                  loc.venue_address
-                )}
+                {loc.venue_address}
               </p>
-            ) : loc?.meeting_link ? null : (
+            ) : meetingLink ? null : (
               <p className="mt-3 flex items-center gap-2 text-muted-foreground">
                 <Lock className="size-4 text-primary" strokeWidth={1.5} />
                 {loc ? "Details coming soon." : "Shared with confirmed guests once you're going."}
@@ -227,6 +254,7 @@ function EventDetail() {
 
           <p className="section-label mt-10">About</p>
           <p className="mt-3 whitespace-pre-line leading-relaxed text-foreground">{ev.description || "More details soon."}</p>
+          <EventVideo url={ev.video_url} />
         </div>
 
         <aside className="grid content-start gap-5">
@@ -247,9 +275,23 @@ function EventDetail() {
             )}
 
             {canRsvp && (
-              status === "going" || status === "waitlist" ? (
+              status === "going" ? (
+                <div className="mt-6 grid justify-items-center gap-4">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground" role="status">
+                    <Check className="size-4 text-primary" strokeWidth={1.5} /> You're going
+                  </span>
+                  <AddToCalendarDropdown event={{
+                    id: ev.id, title: ev.title, startsAt: ev.starts_at, endsAt: ev.ends_at,
+                    description: ev.description, url: joinUrl(ev.join_slug),
+                    location: meetingLink || loc?.venue_address || null,
+                  }} />
+                  <Button variant="link" className="h-auto whitespace-normal p-0 text-sm text-muted-foreground" disabled={rsvp.isPending} onClick={() => rsvp.mutate("leave")}>
+                    {rsvp.isPending ? "Cancelling…" : "Can't make it"}
+                  </Button>
+                </div>
+              ) : status === "waitlist" ? (
                 <Button variant="outline" className="mt-6 w-full rounded-full" disabled={rsvp.isPending} onClick={() => rsvp.mutate("leave")}>
-                  {status === "going" ? "Cancel my spot" : "Leave the waitlist"}
+                  Leave the waitlist
                 </Button>
               ) : (
                 <Button className="mt-6 w-full rounded-full" disabled={rsvp.isPending} onClick={() => rsvp.mutate("join")}>
@@ -276,9 +318,9 @@ function EventDetail() {
             </Link>
           </div>
 
-          {(isAdmin || (isManager && ev.status === "pending_approval")) && (
+          {canEditEvent(ev, uid, Boolean(isAdmin)) && (
             <div className="grid gap-2 rounded-2xl bg-accent/60 p-5">
-              <p className="section-label">{isAdmin ? "Moderation" : "Your proposal"}</p>
+              <p className="section-label">{isAdmin ? "Moderation" : ev.status === "pending_approval" ? "Your proposal" : "Host tools"}</p>
               <Button asChild variant="outline" className="rounded-full">
                 <Link to="/events/edit/$eventId" params={{ eventId }}><Pencil className="size-4" strokeWidth={1.5} /> Edit</Link>
               </Button>
@@ -303,8 +345,8 @@ function EventDetail() {
 
 function Detail({ icon: Icon, children }: { icon: typeof Users; children: React.ReactNode }) {
   return (
-    <span className="flex items-center gap-3">
-      <Icon className="size-5 text-primary" strokeWidth={1.5} />
+    <span className="flex min-w-0 items-start gap-3">
+      <Icon className="mt-0.5 size-5 shrink-0 text-primary" strokeWidth={1.5} />
       {children}
     </span>
   );
