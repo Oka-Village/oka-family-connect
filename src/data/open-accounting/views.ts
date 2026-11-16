@@ -277,7 +277,7 @@ const ADMIN_IDS: ExpenseId[] = ["operations", "legal", "accounting", "taxComplia
 function blankMonth(id: string): MonthInput {
   return {
     id,
-    monthlyInvoices: 0,
+    monthlyInvoices: 1,
     annualInvoices: 0,
     lifetimeInvoices: 0,
     discountCents: 0,
