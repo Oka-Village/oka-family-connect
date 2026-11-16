@@ -4,6 +4,7 @@ import { CalendarDays, Clock, Loader2, Users, Video } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { formatEventDate } from "@/lib/events";
 import { EventTime } from "@/components/oka/event-time";
+import { EventVideo } from "@/components/oka/event-video";
 
 import { toast } from "sonner";
 import { Wordmark } from "@/components/oka/wordmark";
@@ -56,7 +57,7 @@ function JoinPage() {
   const preview = useQuery({
     queryKey: ["public-event", slug],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("public_event_preview", { _slug: slug });
+      const { data, error } = await supabase.rpc("public_event_preview_v2", { _slug: slug });
       if (error) throw error;
       return data?.[0] ?? null;
     },
@@ -144,6 +145,7 @@ function JoinPage() {
               </div>
               <p className="section-label mt-10">About</p>
               <p className="mt-3 whitespace-pre-line leading-relaxed text-foreground">{preview.data.description || "More details soon."}</p>
+              <EventVideo url={preview.data.video_url} />
               <div className="mt-10 flex flex-col items-center gap-3">
                 {preview.data.live_link ? (
                   <>

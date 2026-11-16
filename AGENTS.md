@@ -34,3 +34,4 @@
 - Event time displays share the pure event-time formatter and EventTime presentation; resolve the viewer timezone only after hydration to keep server-rendered markup stable without changing stored event instants.
 - Event edit screens share the browser-safe event-edit helpers; detail updates whitelist editable fields and never write status or ownership, preserving pending review and immediate published edits under existing database authorization.
 - Calendar exports use the browser-safe calendar utility with UTC instants and stable per-event UIDs; export only the RSVP'd occurrence and location already authorized by the event read, because repeated gatherings are separate events and RSVPs.
+- Public videos use events.video_url, a shared safe YouTube player and published-only preview RPC; private call links stay separate.

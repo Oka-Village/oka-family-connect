@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Separate public YouTube videos from private event joining details; additive migration and published-only preview RPC applied, legacy YouTube backfill included, and shared player placed below About on details and invitation pages. Private meeting permissions unchanged.
+- [x] Verify video creation/edit/removal persistence, signed-out player loading and desktop/390px layout with temporary real events; 30 tests passed, build OK, temporary events/photos removed. No publishing.
+
 - [x] Pause started trials until the December 1, 2026 launch, count seven days from launch or later onboarding, and enforce the same rule in app and database access; launch/date boundaries and live pre-launch database access verified.
 - [x] Add admin-only trial extensions, custom end dates, trial ending/reset, and revocable complimentary lifetime access; 121 focused access tests passed and every action verified in Fabia's real admin page on desktop/mobile, with original account values restored. Full suite: 239 passed; four unchanged notification server-function harness tests fail independently.
 

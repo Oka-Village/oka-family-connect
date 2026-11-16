@@ -162,6 +162,13 @@
       "when": 1794753464021,
       "tag": "0022_trial_pause_and_admin_access",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1794806743720,
+      "tag": "0023_public_event_youtube_video",
+      "breakpoints": true
     }
   ]
 }

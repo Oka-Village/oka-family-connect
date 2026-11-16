@@ -20,6 +20,8 @@ import { CopyJoinLink } from "@/components/oka/copy-join-link";
 import { canShareEventLink, joinUrl } from "@/lib/join-link";
 import { eventCallAction } from "@/lib/event-call-entry";
 import { canEditEvent } from "@/lib/event-edit";
+import { eventMeetingLink } from "@/lib/event-video";
+import { EventVideo } from "@/components/oka/event-video";
 import { useEnsureInviteCode } from "@/lib/affiliates";
 import { ensureEventHostInvite } from "@/lib/affiliate-sharing.functions";
 import {
@@ -140,12 +142,13 @@ function EventDetail() {
   const fill = ev.capacity ? Math.min(100, (ev.going_count / ev.capacity) * 100) : 0;
   const LocIcon = ev.format === "virtual" ? Video : MapPin;
   const loc = q.data?.location;
+  const meetingLink = eventMeetingLink(loc);
   const useRoom = ev.format === "virtual" && videoCfg.data?.configured === true && !past && ev.status !== "cancelled";
   const callAction = eventCallAction({
     via,
     useRoom,
     mayEnter: status === "going" || isManager || Boolean(isAdmin),
-    hasExternalLink: Boolean(loc?.meeting_link),
+    hasExternalLink: Boolean(meetingLink),
   });
 
   return (
@@ -222,11 +225,11 @@ function EventDetail() {
           </div>
 
           <div className="mt-8 rounded-2xl bg-secondary/50 p-5">
-            <p className="section-label">{ev.format === "virtual" ? (useRoom && !loc?.meeting_link ? "Event room" : "Video link") : "Location"}</p>
-            {loc?.meeting_link && (
+            <p className="section-label">{ev.format === "virtual" ? (useRoom && !meetingLink ? "Event room" : "Join meeting") : "Location"}</p>
+            {meetingLink && (
               <p className="mt-3 flex items-start gap-2 break-all">
                 <Video className="mt-0.5 size-4 shrink-0 text-primary" strokeWidth={1.5} />
-                <a href={loc.meeting_link} target="_blank" rel="noreferrer" className="text-primary underline-offset-4 hover:underline">{loc.meeting_link}</a>
+                <a href={meetingLink} target="_blank" rel="noreferrer" className="text-primary underline-offset-4 hover:underline">{meetingLink}</a>
               </p>
             )}
             {callAction === "room_button" ? (
@@ -236,16 +239,12 @@ function EventDetail() {
                 <Lock className="size-4 text-primary" strokeWidth={1.5} />
                 The room is open to confirmed guests once you're going.
               </p>
-            ) : loc && (loc.video_link || loc.venue_address) ? (
+            ) : loc?.venue_address ? (
               <p className="mt-3 flex items-start gap-2 break-all">
                 <LocIcon className="mt-0.5 size-4 shrink-0 text-primary" strokeWidth={1.5} />
-                {loc.video_link ? (
-                  <a href={loc.video_link} target="_blank" rel="noreferrer" className="text-primary underline-offset-4 hover:underline">{loc.video_link}</a>
-                ) : (
-                  loc.venue_address
-                )}
+                {loc.venue_address}
               </p>
-            ) : loc?.meeting_link ? null : (
+            ) : meetingLink ? null : (
               <p className="mt-3 flex items-center gap-2 text-muted-foreground">
                 <Lock className="size-4 text-primary" strokeWidth={1.5} />
                 {loc ? "Details coming soon." : "Shared with confirmed guests once you're going."}
@@ -255,6 +254,7 @@ function EventDetail() {
 
           <p className="section-label mt-10">About</p>
           <p className="mt-3 whitespace-pre-line leading-relaxed text-foreground">{ev.description || "More details soon."}</p>
+          <EventVideo url={ev.video_url} />
         </div>
 
         <aside className="grid content-start gap-5">
@@ -283,7 +283,7 @@ function EventDetail() {
                   <AddToCalendarDropdown event={{
                     id: ev.id, title: ev.title, startsAt: ev.starts_at, endsAt: ev.ends_at,
                     description: ev.description, url: joinUrl(ev.join_slug),
-                    location: loc?.meeting_link || loc?.video_link || loc?.venue_address || null,
+                    location: meetingLink || loc?.venue_address || null,
                   }} />
                   <Button variant="link" className="h-auto whitespace-normal p-0 text-sm text-muted-foreground" disabled={rsvp.isPending} onClick={() => rsvp.mutate("leave")}>
                     {rsvp.isPending ? "Cancelling…" : "Can't make it"}

@@ -382,6 +382,7 @@ export type Database = {
           timezone: string | null
           title: string
           updated_at: string
+          video_url: string | null
           waitlist_count: number
         }
         Insert: {
@@ -402,6 +403,7 @@ export type Database = {
           timezone?: string | null
           title: string
           updated_at?: string
+          video_url?: string | null
           waitlist_count?: number
         }
         Update: {
@@ -422,6 +424,7 @@ export type Database = {
           timezone?: string | null
           title?: string
           updated_at?: string
+          video_url?: string | null
           waitlist_count?: number
         }
         Relationships: [
@@ -1073,6 +1076,25 @@ export type Database = {
           starts_at: string
           timezone: string
           title: string
+        }[]
+      }
+      public_event_preview_v2: {
+        Args: { _slug: string }
+        Returns: {
+          capacity: number
+          description: string
+          ends_at: string
+          event_type: string
+          format: string
+          going_count: number
+          host_name: string
+          id: string
+          is_live: boolean
+          live_link: string
+          starts_at: string
+          timezone: string
+          title: string
+          video_url: string
         }[]
       }
       record_verified_membership: {

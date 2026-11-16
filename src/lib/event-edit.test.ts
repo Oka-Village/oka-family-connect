@@ -9,6 +9,13 @@ const event = {
 };
 
 describe("facilitator event editing", () => {
+  it("saves and removes public videos without changing approval or ownership", () => {
+    const update = eventDetailsUpdate({ ...event, video_url: "https://youtu.be/dQw4w9WgXcQ" });
+    expect(update.video_url).toBe("https://youtu.be/dQw4w9WgXcQ");
+    expect(eventDetailsUpdate({ ...event, video_url: null }).video_url).toBeNull();
+    expect(update).not.toHaveProperty("status");
+    expect(update).not.toHaveProperty("created_by");
+  });
   it("lets the host edit pending events", () => {
     const pending = { ...event, status: "pending_approval" };
     expect(canEditEvent(pending, "facilitator", false)).toBe(true);
