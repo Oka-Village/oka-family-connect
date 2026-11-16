@@ -26,6 +26,8 @@
   --font-serif: "Cormorant Garamond", ui-serif, Georgia, serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Cormorant Garamond", ui-serif, Georgia, serif;
+  --font-number: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-kaomoji: "Noto Sans JP", ui-sans-serif, sans-serif;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -480,3 +482,23 @@
   .postcard-arrive, .postcard-settle { animation: postcard-settle 250ms linear both; }
 }
 .pill { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; border-radius: 9999px; padding: 13px 28px; font-size: 14px; line-height: 1.2; white-space: nowrap; transition: background-color 200ms, opacity 200ms; }
+
+/* Onboarding circle motion. Colors come from the existing theme tokens. */
+.oka-dad { display: inline-flex; align-items: center; white-space: nowrap; font-family: var(--font-kaomoji); }
+.oka-dad span { display: inline-block; }
+.oka-dad .arm-l { transform-origin: 100% 80%; animation: oka-arm-l 4.8s ease-in-out infinite; }
+.oka-dad .arm-r { transform-origin: 0% 80%; animation: oka-arm-r 4.8s ease-in-out infinite; }
+.oka-dad .face { animation: oka-breathe 4.8s ease-in-out infinite; }
+.oka-dad .heart { animation: oka-heart 4.8s ease-in-out infinite; }
+.oka-seat { animation: oka-seat 2.4s ease-in-out infinite; }
+.oka-tok-still { display: none; }
+@keyframes oka-arm-l { 0%, 8% { transform: rotate(-38deg) translateX(10%); opacity: .35; } 26%, 82% { transform: rotate(0) translateX(0); opacity: 1; } 100% { transform: rotate(-38deg) translateX(10%); opacity: .35; } }
+@keyframes oka-arm-r { 0%, 8% { transform: rotate(38deg) translateX(-10%); opacity: .35; } 26%, 82% { transform: rotate(0) translateX(0); opacity: 1; } 100% { transform: rotate(38deg) translateX(-10%); opacity: .35; } }
+@keyframes oka-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+@keyframes oka-heart { 0%, 30% { transform: translateY(8%) scale(.3); opacity: 0; } 40% { transform: translateY(0) scale(1.3); opacity: 1; } 50%, 72% { transform: translateY(-18%) scale(1); opacity: 1; } 88%, 100% { transform: translateY(-55%) scale(.9); opacity: 0; } }
+@keyframes oka-seat { 0%, 100% { transform: scale(1); opacity: .75; } 50% { transform: scale(1.1); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .oka-dad span, .oka-seat { animation: none !important; }
+  .oka-tok-move { display: none; }
+  .oka-tok-still { display: block; }
+}

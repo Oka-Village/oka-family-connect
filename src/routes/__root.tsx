@@ -124,7 +124,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Inter:wght@300;400;500;600&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,500&family=Inter:wght@300;400;500;600&family=Noto+Sans+JP:wght@400;500&family=Plus+Jakarta+Sans:wght@200;300;600&display=swap",
       },
       { rel: "icon", href: "/favicon.png", type: "image/png" },
     ],
@@ -182,7 +182,7 @@ function RootComponent() {
         <div className="min-h-screen flex-1">
           <Outlet />
         </div>
-        {!locationKey.startsWith("/membership") && <FooterAfterContent key={locationKey} />}
+        <FooterAfterContent key={locationKey} />
       </div>
       </MembershipBoundary>
       <Toaster />

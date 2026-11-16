@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Heart, Home, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
+import { FamilyCircle } from "@/components/oka/onboarding-visual/family-circle";
 import { Wordmark } from "@/components/oka/wordmark";
 import { EmailAuthDialog } from "@/components/oka/email-auth";
 import { Button } from "@/components/ui/button";
@@ -15,17 +15,17 @@ import { beginSignupFlow } from "@/lib/signup-flow.functions";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Oka — social infrastructure for a global chosen family" },
+      { title: "Oka — A One World Family" },
       {
         name: "description",
         content:
-          "Stay in each other's homes and share skills without money. One credit is one night's stay or one hour of service.",
+          "Generosity, kindness and reciprocity are the currency here. We gather live, share our skills and open our homes to each other.",
       },
-      { property: "og:title", content: "Oka — social infrastructure for a global chosen family" },
+      { property: "og:title", content: "Oka — A One World Family" },
       {
         property: "og:description",
         content:
-          "Stay in each other's homes and share skills without money. One credit is one night's stay or one hour of service.",
+          "Generosity, kindness and reciprocity are the currency here. We gather live, share our skills and open our homes to each other.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -33,24 +33,6 @@ export const Route = createFileRoute("/")({
   }),
   component: Landing,
 });
-
-const PILLARS = [
-  {
-    icon: Home,
-    label: "Houses",
-    text: "Open your home, and be welcomed into others. No money changes hands.",
-  },
-  {
-    icon: Sparkles,
-    label: "Skills",
-    text: "Offer what you love doing. Receive what you need. One hour for one credit.",
-  },
-  {
-    icon: Heart,
-    label: "Family",
-    text: "A gathering of people choosing each other, across borders and time zones.",
-  },
-];
 
 function Landing() {
   const navigate = useNavigate();
@@ -99,45 +81,50 @@ function Landing() {
   }
 
   return (
-    <main className="min-h-screen bg-background">
-      <header className="mx-auto flex max-w-5xl items-center justify-between px-6 py-8">
-        <Wordmark />
-        <p className="section-label hidden sm:block">One World Family</p>
+    <main className="flex min-h-screen flex-col bg-sage text-cream md:bg-background md:text-foreground">
+      <header className="mx-auto flex w-full max-w-[1240px] items-center justify-between gap-4 px-6 py-7 md:px-10">
+        <div className="flex items-center gap-3">
+          <Wordmark className="h-5 brightness-0 invert md:h-7 md:brightness-100 md:invert-0" />
+          <span className="hidden h-5 w-px bg-sand md:block" aria-hidden="true" />
+          <span className="font-serif text-base md:text-xl">One World Family</span>
+        </div>
+        <Button
+          variant="outline"
+          className="h-11 rounded-full border-transparent bg-transparent px-4 text-cream hover:bg-cream/10 hover:text-cream md:border-sand md:bg-transparent md:px-6 md:text-foreground md:hover:bg-accent md:hover:text-foreground"
+          onClick={handleGoogleSignIn}
+          disabled={signingIn}
+        >
+          {signingIn ? "Opening…" : "Sign in"}
+        </Button>
       </header>
 
-      <section className="mx-auto max-w-3xl px-6 pt-10 pb-16 text-center sm:pt-20">
-        <p className="section-label">A home everywhere</p>
-        <h1 className="mt-6 text-5xl leading-[1.1] text-foreground sm:text-6xl">
-          Social infrastructure for a global chosen family
-        </h1>
-        <p className="mx-auto mt-8 max-w-xl text-lg leading-relaxed text-muted-foreground">
-          Oka is a circle of people who host each other and share their gifts in a credit economy.
-          One credit is one night&apos;s stay, or one hour of service.
-        </p>
-        <div className="mt-10 flex flex-col items-center gap-4">
-          <Button size="lg" className="rounded-full px-8" onClick={handleGoogleSignIn} disabled={signingIn}>
-            {signingIn ? "Opening Google…" : "Join the family"}
-          </Button>
-          <Button
-            variant="ghost"
-            className="rounded-full px-8"
-            onClick={handleGoogleSignIn}
-            disabled={signingIn}
-          >
-            {signingIn ? "Opening Google…" : "Already a member? Sign in"}
-          </Button>
-          <EmailAuthDialog label="Sign up or sign in with email" />
+      <section className="mx-auto flex w-full max-w-[1240px] flex-1 flex-col gap-10 px-6 pb-12 md:flex-row md:items-center md:gap-16 md:px-10 md:pb-16">
+        <div className="order-2 flex w-full flex-col md:order-1 md:w-[520px] md:shrink-0">
+          <p className="text-[13px] font-medium uppercase tracking-[0.22em] text-cream md:text-terracotta">A seat is saved for you</p>
+          <h1 className="mt-4 font-serif text-5xl leading-[0.98] text-cream md:mt-5 md:text-7xl md:text-foreground">A One World Family</h1>
+          <p className="mt-3 font-serif text-2xl italic text-golden md:mt-4 md:text-4xl md:text-sage">Built on trust and connection.</p>
+          <p className="mt-6 hidden max-w-[480px] text-lg leading-relaxed text-muted-foreground md:block">
+            Generosity, kindness and reciprocity are the currency here. We gather live, share our skills and open our homes to each other.
+          </p>
+          <div className="mt-auto flex flex-col items-start gap-4 pt-10 md:mt-11 md:pt-0">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center">
+              <Button
+                className="h-14 rounded-full bg-golden px-8 text-base font-semibold text-brown hover:bg-golden/90 md:bg-sage md:text-cream md:hover:bg-sage/90"
+                onClick={handleGoogleSignIn}
+                disabled={signingIn}
+              >
+                {signingIn ? "Opening Google…" : "Join the family"}
+              </Button>
+              <p className="text-sm text-cream/80 md:text-muted-foreground">
+                Free for <span className="font-number font-light">7</span> days · members only
+              </p>
+            </div>
+            <EmailAuthDialog label="Sign up or sign in with email" />
+          </div>
         </div>
-      </section>
-
-      <section className="mx-auto grid max-w-5xl gap-6 px-6 pb-24 sm:grid-cols-3">
-        {PILLARS.map((pillar) => (
-          <article key={pillar.label} className="surface-card p-8">
-            <pillar.icon className="size-6 text-primary" strokeWidth={1.5} />
-            <p className="section-label mt-6">{pillar.label}</p>
-            <p className="mt-3 text-base leading-relaxed text-foreground">{pillar.text}</p>
-          </article>
-        ))}
+        <div className="order-1 flex flex-1 justify-center md:order-2">
+          <FamilyCircle />
+        </div>
       </section>
     </main>
   );

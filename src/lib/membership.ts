@@ -38,7 +38,7 @@ const PROFILE_ONLY_ROUTES = new Set(["/onboarding", "/profile", "/welcome"]);
 /** The invite space is open in every state, including before a member has chosen to pay or trial. */
 const ALWAYS_ALLOWED_ROUTES = new Set(["/membership", "/privacy", "/terms", "/founding", "/affiliate", "/events", "/skills/new", "/houses/new", "/skills", "/houses"]);
 
-export function paymentRedirect(pathname: string, fullAccess: boolean, paid: boolean, trial: TrialState): "/membership" | "/home" | "/welcome" | null {
+export function paymentRedirect(pathname: string, fullAccess: boolean, paid: boolean, trial: TrialState): "/membership" | "/home" | null {
   const path = pathname.replace(/\/+$/, "") || "/";
   if (fullAccess) return path === "/membership" ? "/home" : null;
   if (paid || trial === "active") return null;
@@ -47,7 +47,7 @@ export function paymentRedirect(pathname: string, fullAccess: boolean, paid: boo
   if (ownListingViewTarget(path) || ownEditTarget(path)) return null;
   if (trial === "expired") return "/membership";
   if (PROFILE_ONLY_ROUTES.has(path)) return null;
-  return "/welcome";
+  return "/home";
 }
 
 export function afterMembershipPayment(fullAccess: boolean): "/home" | "/onboarding" {
