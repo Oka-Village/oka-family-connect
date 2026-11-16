@@ -1,10 +1,7 @@
 import {
-  ANNUAL_PRICE_CENTS,
   ANNUAL_RECOGNITION_MONTHS,
   EXPENSE_CATEGORIES,
-  LIFETIME_PRICE_CENTS,
   LIFETIME_RECOGNITION_MONTHS,
-  MONTHLY_PRICE_CENTS,
   currentSnapshotLabel,
   eligibleCents,
   emptyExpenses,
@@ -29,6 +26,15 @@ import {
 // the formulas here are unchanged, only where the inputs come from.
 export type TodaySlice = {
   monthlyInvoices: number;
+  annualInvoices: number;
+  lifetimeInvoices: number;
+  monthlyCashCents: number;
+  annualCashCents: number;
+  lifetimeCashCents: number;
+  discountCents: number;
+  refundCents: number;
+  chargebackCents: number;
+  taxCents: number;
   processingFeeCents: number;
   otherRevenueCents: number;
   expenses: Partial<Record<ExpenseId, number>>;
@@ -49,6 +55,9 @@ export type MonthInput = {
   monthlyInvoices: number;
   annualInvoices: number;
   lifetimeInvoices: number;
+  monthlyCashCents: number;
+  annualCashCents: number;
+  lifetimeCashCents: number;
   discountCents: number;
   refundCents: number;
   chargebackCents: number;
@@ -85,6 +94,8 @@ export type MonthInput = {
   referralEarners: number;
   contributionEarners: number;
   payingMembersAcquired: number;
+  /** DB-derived MRR from average paid amounts × active members. */
+  mrrCents: number;
   forecastRecognizedCents?: number;
   forecastExpenseCents?: number;
   today?: TodaySlice;
@@ -99,6 +110,28 @@ export type EarnerInput = {
 };
 
 export type OwnershipRow = { name: string; share: string; units: string; status: "Verified" | "Draft" };
+
+export type ParticipationHome = {
+  id: string;
+  title: string;
+  description: string | null;
+  locationText: string | null;
+  propertyType: string;
+};
+
+export type ParticipationSkill = {
+  id: string;
+  title: string;
+  description: string | null;
+  category: string | null;
+  format: string;
+};
+
+export type CreditReasonRow = {
+  reason: string;
+  issued: number;
+  used: number;
+};
 
 export type MoneyFlow = {
   grossCents: number;
@@ -257,6 +290,11 @@ export type AccountingView = {
   ownership: OwnershipRow[];
   dividends: { id: string; cents: number }[];
   payingMembersAcquired: number;
+  participation: {
+    homes: ParticipationHome[];
+    skills: ParticipationSkill[];
+    creditReasons: CreditReasonRow[];
+  };
 };
 
 /** Real data handed in from src/data/open-accounting/live-ledger.ts. */
@@ -265,8 +303,11 @@ export type AccountingData = {
   earners: EarnerInput[];
   ledger: LedgerRow[];
   ownership: OwnershipRow[];
-  /** Cash on hand at the start of the earliest tracked month. No historical cash ledger exists anywhere in this app, so this is 0 unless an admin corrects it later — an explicit assumption, not a fabricated figure. */
+  /** Cash on hand at the start of the earliest tracked month, from company_financial_snapshots. */
   openingCashCents: number;
+  homes: ParticipationHome[];
+  skills: ParticipationSkill[];
+  creditReasons: CreditReasonRow[];
 };
 
 const COST_IDS: ExpenseId[] = ["facilitator", "support", "travel"];
@@ -280,6 +321,9 @@ function blankMonth(id: string): MonthInput {
     monthlyInvoices: 0,
     annualInvoices: 0,
     lifetimeInvoices: 0,
+    monthlyCashCents: 0,
+    annualCashCents: 0,
+    lifetimeCashCents: 0,
     discountCents: 0,
     refundCents: 0,
     chargebackCents: 0,
@@ -316,6 +360,7 @@ function blankMonth(id: string): MonthInput {
     referralEarners: 0,
     contributionEarners: 0,
     payingMembersAcquired: 0,
+    mrrCents: 0,
   };
 }
 
@@ -324,12 +369,15 @@ function activityOf(month: MonthInput, todayOnly: boolean): MembershipActivity {
     const today = month.today;
     return {
       monthlyInvoices: today?.monthlyInvoices ?? 0,
-      annualInvoices: 0,
-      lifetimeInvoices: 0,
-      discountCents: 0,
-      refundCents: 0,
-      chargebackCents: 0,
-      taxCents: 0,
+      annualInvoices: today?.annualInvoices ?? 0,
+      lifetimeInvoices: today?.lifetimeInvoices ?? 0,
+      monthlyCashCents: today?.monthlyCashCents ?? 0,
+      annualCashCents: today?.annualCashCents ?? 0,
+      lifetimeCashCents: today?.lifetimeCashCents ?? 0,
+      discountCents: today?.discountCents ?? 0,
+      refundCents: today?.refundCents ?? 0,
+      chargebackCents: today?.chargebackCents ?? 0,
+      taxCents: today?.taxCents ?? 0,
       processingFeeCents: today?.processingFeeCents ?? 0,
     };
   }
@@ -337,6 +385,9 @@ function activityOf(month: MonthInput, todayOnly: boolean): MembershipActivity {
     monthlyInvoices: month.monthlyInvoices,
     annualInvoices: month.annualInvoices,
     lifetimeInvoices: month.lifetimeInvoices,
+    monthlyCashCents: month.monthlyCashCents,
+    annualCashCents: month.annualCashCents,
+    lifetimeCashCents: month.lifetimeCashCents,
     discountCents: month.discountCents,
     refundCents: month.refundCents,
     chargebackCents: month.chargebackCents,
@@ -369,10 +420,9 @@ function sumIds(map: Record<ExpenseId, number>, ids: ExpenseId[]): number {
 function flowOf(month: MonthInput, todayOnly: boolean): MoneyFlow {
   const activity = activityOf(month, todayOnly);
   const expenses = expenseMap(month, todayOnly);
-  const monthlyCashCents =
-    activity.monthlyInvoices * MONTHLY_PRICE_CENTS - activity.discountCents - activity.refundCents - activity.chargebackCents;
-  const annualCashCents = activity.annualInvoices * ANNUAL_PRICE_CENTS;
-  const lifetimeCashCents = activity.lifetimeInvoices * LIFETIME_PRICE_CENTS;
+  const monthlyCashCents = activity.monthlyCashCents - activity.discountCents - activity.refundCents - activity.chargebackCents;
+  const annualCashCents = activity.annualCashCents;
+  const lifetimeCashCents = activity.lifetimeCashCents;
   const otherRevenueCents = todayOnly ? (month.today?.otherRevenueCents ?? 0) : month.otherRevenueCents;
   const today = month.today;
   return {
@@ -482,7 +532,7 @@ function seriesPoint(allMonths: MonthInput[], month: MonthInput, todayOnly: bool
     netCents: net,
     members: month.registered,
     paying,
-    mrrCents: month.payingMonthly * MONTHLY_PRICE_CENTS + month.payingAnnual * (ANNUAL_PRICE_CENTS / ANNUAL_RECOGNITION_MONTHS),
+    mrrCents: month.mrrCents,
     points: flow.points,
     referralCents: allocation.referralCents,
     contributorCents: allocation.contributorCents,
@@ -518,10 +568,10 @@ function recognizedForMonths(allMonths: MonthInput[], monthIds: string[], todayO
       otherCents += flow.otherRevenueCents;
     }
     if (todayOnly) continue;
-    recognitionSchedule(month.annualInvoices * ANNUAL_PRICE_CENTS, ANNUAL_RECOGNITION_MONTHS).forEach((cents, offset) => {
+    recognitionSchedule(month.annualCashCents, ANNUAL_RECOGNITION_MONTHS).forEach((cents, offset) => {
       if (ids.has(shiftMonth(month.id, offset))) annualCents += cents;
     });
-    recognitionSchedule(month.lifetimeInvoices * LIFETIME_PRICE_CENTS, LIFETIME_RECOGNITION_MONTHS).forEach((cents, offset) => {
+    recognitionSchedule(month.lifetimeCashCents, LIFETIME_RECOGNITION_MONTHS).forEach((cents, offset) => {
       if (ids.has(shiftMonth(month.id, offset))) lifetimeCents += cents;
     });
   }
@@ -561,10 +611,10 @@ export function buildAccounting(kind: RangeKind, year: number | undefined, data:
     let annualCents = 0;
     let lifetimeCents = 0;
     for (const month of months) {
-      recognitionSchedule(month.annualInvoices * ANNUAL_PRICE_CENTS, ANNUAL_RECOGNITION_MONTHS).forEach((cents, offset) => {
+      recognitionSchedule(month.annualCashCents, ANNUAL_RECOGNITION_MONTHS).forEach((cents, offset) => {
         if (shiftMonth(month.id, offset) > snapshotMonthId) annualCents += cents;
       });
-      recognitionSchedule(month.lifetimeInvoices * LIFETIME_PRICE_CENTS, LIFETIME_RECOGNITION_MONTHS).forEach((cents, offset) => {
+      recognitionSchedule(month.lifetimeCashCents, LIFETIME_RECOGNITION_MONTHS).forEach((cents, offset) => {
         if (shiftMonth(month.id, offset) > snapshotMonthId) lifetimeCents += cents;
       });
     }
@@ -797,5 +847,10 @@ export function buildAccounting(kind: RangeKind, year: number | undefined, data:
     ownership: data.ownership,
     dividends: [],
     payingMembersAcquired: acquired,
+    participation: {
+      homes: data.homes,
+      skills: data.skills,
+      creditReasons: data.creditReasons,
+    },
   };
 }

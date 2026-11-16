@@ -5,10 +5,7 @@
  * accounting policy.
  */
 
-export const MONTHLY_PRICE_CENTS = 2_900;
-export const ANNUAL_PRICE_CENTS = 99_900;
-export const LIFETIME_PRICE_CENTS = 249_900;
-
+/** Recognition windows only — cash amounts come from payments, not list prices. */
 export const ANNUAL_RECOGNITION_MONTHS = 12;
 export const LIFETIME_RECOGNITION_MONTHS = 60;
 
@@ -45,6 +42,9 @@ export type MembershipActivity = {
   monthlyInvoices: number;
   annualInvoices: number;
   lifetimeInvoices: number;
+  monthlyCashCents: number;
+  annualCashCents: number;
+  lifetimeCashCents: number;
   discountCents: number;
   refundCents: number;
   chargebackCents: number;
@@ -126,12 +126,10 @@ export function monthLabel(id: string): string {
   return `${MONTH_NAMES[month - 1]} ${year}`;
 }
 
-export function grossMembershipCents(activity: Pick<MembershipActivity, "monthlyInvoices" | "annualInvoices" | "lifetimeInvoices">): number {
-  return (
-    activity.monthlyInvoices * MONTHLY_PRICE_CENTS +
-    activity.annualInvoices * ANNUAL_PRICE_CENTS +
-    activity.lifetimeInvoices * LIFETIME_PRICE_CENTS
-  );
+export function grossMembershipCents(
+  activity: Pick<MembershipActivity, "monthlyCashCents" | "annualCashCents" | "lifetimeCashCents">,
+): number {
+  return activity.monthlyCashCents + activity.annualCashCents + activity.lifetimeCashCents;
 }
 
 /** Net membership collections. Taxes are reported beside this figure and stay out of it. */
@@ -382,14 +380,18 @@ export type LeaderboardRow = {
 export function presentLeaderboard(rows: LeaderboardInput[]): LeaderboardRow[] {
   return [...rows]
     .sort((left, right) => right.earningsCents - left.earningsCents || right.referralCount - left.referralCount)
-    .map((row, index) => ({
-      rank: index + 1,
-      displayName: row.optedIn && row.firstName ? row.firstName : "Anonymous member",
-      initials: row.optedIn ? row.initials : null,
-      referralCount: row.referralCount,
-      earningsCents: row.earningsCents,
-      named: Boolean(row.optedIn && row.firstName),
-    }));
+    .map((row, index) => {
+      const name = row.firstName?.trim() || "";
+      const named = name.length > 0;
+      return {
+        rank: index + 1,
+        displayName: named ? name : "Anonymous member",
+        initials: named ? row.initials : null,
+        referralCount: row.referralCount,
+        earningsCents: row.earningsCents,
+        named,
+      };
+    });
 }
 
 export const EXPENSE_CATEGORIES = [

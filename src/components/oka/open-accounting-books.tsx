@@ -559,11 +559,23 @@ function Distributions({ view }: { view: AccountingView }) {
   );
 }
 
+function truncateText(value: string | null | undefined, max = 140): string | null {
+  const text = value?.trim();
+  if (!text) return null;
+  if (text.length <= max) return text;
+  return `${text.slice(0, max - 1).trimEnd()}…`;
+}
+
+function reasonLabel(reason: string): string {
+  return reason.replaceAll("_", " ");
+}
+
 function Participation({ view }: { view: AccountingView }) {
   const credits = [
     ["Issued", formatCount(view.community.creditsIssued)],
     ["Used", formatCount(view.flow.creditsRedeemed)],
   ] as const;
+  const { homes, skills, creditReasons } = view.participation;
   return (
     <div className="grid gap-6 md:grid-cols-3">
       <article className="min-w-0 rounded-2xl border border-border bg-card p-5">
@@ -577,6 +589,20 @@ function Participation({ view }: { view: AccountingView }) {
           ))}
         </dl>
         <p className="mt-4 text-sm leading-relaxed text-muted-foreground">A community credit is not cash and not a dollar liability.</p>
+        {creditReasons.length === 0 ? (
+          <p className="mt-4 text-sm text-muted-foreground">No credit activity.</p>
+        ) : (
+          <ul className="mt-4 max-h-56 space-y-3 overflow-y-auto text-sm">
+            {creditReasons.map((row) => (
+              <li key={row.reason} className="border-t border-border/70 pt-3 first:border-t-0 first:pt-0">
+                <p className="font-medium capitalize text-foreground">{reasonLabel(row.reason)}</p>
+                <p className="mt-1 text-muted-foreground">
+                  Issued {formatCount(row.issued)} · Used {formatCount(row.used)}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
       </article>
       <article className="min-w-0 rounded-2xl border border-border bg-card p-5">
         <h2 className="font-serif text-2xl">Homes</h2>
@@ -584,11 +610,44 @@ function Participation({ view }: { view: AccountingView }) {
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           {formatCount(view.community.hostingNights)} hosting nights and {formatCount(view.community.completedStays)} completed stays in this range.
         </p>
+        {homes.length === 0 ? (
+          <p className="mt-4 text-sm text-muted-foreground">No published homes yet.</p>
+        ) : (
+          <ul className="mt-4 max-h-56 space-y-3 overflow-y-auto text-sm">
+            {homes.map((home) => {
+              const description = truncateText(home.description);
+              return (
+                <li key={home.id} className="border-t border-border/70 pt-3 first:border-t-0 first:pt-0">
+                  <p className="font-medium text-foreground">{home.title}</p>
+                  {home.locationText ? <p className="mt-1 text-xs text-muted-foreground">{home.locationText}</p> : null}
+                  {description ? <p className="mt-1 leading-relaxed text-muted-foreground">{description}</p> : null}
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </article>
       <article className="min-w-0 rounded-2xl border border-border bg-card p-5">
         <h2 className="font-serif text-2xl">Skills</h2>
         <p className="mt-3 font-serif text-3xl tabular-nums">{formatCount(view.community.skillsOffered)}</p>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{formatCount(view.community.skillExchanges)} exchanges in this range. Not cash earnings.</p>
+        {skills.length === 0 ? (
+          <p className="mt-4 text-sm text-muted-foreground">No published skills yet.</p>
+        ) : (
+          <ul className="mt-4 max-h-56 space-y-3 overflow-y-auto text-sm">
+            {skills.map((skill) => {
+              const description = truncateText(skill.description);
+              const meta = [skill.category, skill.format?.replaceAll("_", " ")].filter(Boolean).join(" · ");
+              return (
+                <li key={skill.id} className="border-t border-border/70 pt-3 first:border-t-0 first:pt-0">
+                  <p className="font-medium text-foreground">{skill.title}</p>
+                  {meta ? <p className="mt-1 text-xs capitalize text-muted-foreground">{meta}</p> : null}
+                  {description ? <p className="mt-1 leading-relaxed text-muted-foreground">{description}</p> : null}
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </article>
     </div>
   );
