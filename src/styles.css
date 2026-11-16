@@ -57,6 +57,8 @@
   --color-terracotta-light: var(--terracotta-light);
   --color-sage-light: var(--sage-light);
   --color-sage: var(--sage);
+  --color-sage-deep: var(--sage-deep);
+  --color-sage-dark: var(--sage-dark);
   --color-sand: var(--sand);
   --color-golden: var(--golden);
   --color-cream-deep: var(--cream-deep);
@@ -130,12 +132,14 @@
   --radius: 1rem;
 
   /* Raw brand palette */
-  --cream: oklch(0.9788 0.0054 95.1); /* #F9F8F4 Warm Cream */
+  --cream: #FAF6EF; /* handoff cream */
   --brown: oklch(0.3029 0.0214 57.84); /* #372C24 Dark Brown */
   --terracotta: oklch(0.6093 0.112 40.28); /* #BB6A4D Terracotta */
   --terracotta-light: oklch(0.7555 0.0587 41.68); /* #D1A493 */
   --sage-light: oklch(0.8929 0.0201 159.71); /* #D1E0D7 Sage Green Light */
   --sage: oklch(0.6827 0.0775 158.15); /* #6FA887 */
+  --sage-deep: #4F7F64; /* handoff --sage */
+  --sage-dark: #456F57; /* handoff --sage-dark */
   --sand: oklch(0.8928 0.0207 74.65); /* #E4DACD */
   --golden: oklch(0.7752 0.1238 79.11); /* #E0AC51 */
   --moment-paper: #efe6d6;

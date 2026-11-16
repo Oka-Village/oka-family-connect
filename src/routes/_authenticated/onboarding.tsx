@@ -211,20 +211,20 @@ function Onboarding() {
   const onProfile = step === STEPS.length - 1;
 
   return (
-    <div className={onProfile ? "min-h-screen bg-background text-foreground" : "min-h-screen bg-sage text-cream"}>
+    <div className={onProfile ? "min-h-dvh w-full min-w-0 overflow-x-hidden bg-background text-foreground md:min-h-screen" : "min-h-dvh w-full min-w-0 overflow-x-hidden bg-sage-deep text-cream md:min-h-screen md:bg-gradient-to-b md:from-sage-deep md:to-sage-dark"}>
       {onProfile ? (
-        <div className="mx-auto flex w-full max-w-[1240px] flex-col px-6 py-8 md:px-10">
+        <div className="mx-auto flex min-h-dvh w-full max-w-[1240px] flex-col px-5 pb-[26px] pt-11 md:min-h-0 md:px-10 md:py-8">
           <div className="flex items-center gap-3">
-            <button type="button" aria-label="Back" className="flex size-11 items-center justify-center" onClick={() => setStep(0)}>
+            <button type="button" aria-label="Back" className="-ml-2.5 flex size-11 items-center justify-center" onClick={() => setStep(0)}>
               <ChevronLeft className="size-5" strokeWidth={1.6} />
             </button>
             <StepProgress filled={2} label="2 / 3" />
           </div>
-          <div className="mt-8 grid items-start gap-10 md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] md:gap-[72px]">
-            <div className="flex flex-col items-center text-center md:items-start md:text-left">
+          <div className="mt-[18px] grid flex-1 items-start gap-7 md:mt-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] md:gap-[72px]">
+            <div className="flex flex-col items-center gap-2.5 text-center md:items-start md:gap-0 md:text-left">
               <button
                 type="button"
-                className="relative size-[84px] md:size-[140px]"
+                className="relative size-[84px] rounded-full border-[3px] border-card md:size-[140px] md:border-0"
                 disabled={uploading}
                 onClick={() => fileInput.current?.click()}
                 aria-label={uploading ? "Uploading photo" : "Change photo"}
@@ -234,7 +234,7 @@ function Onboarding() {
                 ) : (
                   <PresencePortrait />
                 )}
-                <span className="absolute bottom-0 right-0 flex size-8 items-center justify-center rounded-full bg-brown text-cream md:size-9">
+                <span className="absolute -right-0.5 bottom-0.5 flex size-[30px] items-center justify-center rounded-full border-2 border-cream bg-brown text-cream md:bottom-0 md:right-0 md:size-9 md:border-0">
                   {uploading ? <Loader2 className="size-4 animate-spin" /> : <Camera className="size-3.5" strokeWidth={1.6} />}
                 </span>
               </button>
@@ -249,41 +249,44 @@ function Onboarding() {
                   if (file) void handleUpload(file);
                 }}
               />
-              <p className="mt-4 font-kaomoji text-terracotta">(´︶`)ノ <span className="font-sans text-sm text-foreground">I&apos;m here</span></p>
-              <h1 className="mt-4 font-serif text-[32px] leading-tight md:text-5xl">What should the family call you?</h1>
+              <p className="inline-flex items-center gap-1.5 whitespace-nowrap text-xs text-muted-foreground md:mt-4">
+                <span className="font-kaomoji text-[13px] text-terracotta">(´︶`)ノ</span>
+                <span>I&apos;m here</span>
+              </p>
+              <h1 className="mt-0.5 font-serif text-[32px] font-medium leading-[1.1] md:mt-4 md:text-5xl">What should the family call you?</h1>
               <p className="mt-4 hidden max-w-sm text-sm leading-relaxed text-muted-foreground md:block">Only members see your profile. You can add the rest whenever you like.</p>
               <div className="mt-8 hidden w-full max-w-sm md:block">
                 <PresenceMeter presence={presence} />
               </div>
             </div>
             <form
-              className="flex flex-col gap-6"
+              className="flex flex-1 flex-col gap-7 md:gap-6"
               onSubmit={(e) => {
                 e.preventDefault();
                 void finish();
               }}
             >
-              <div className="grid gap-4 sm:grid-cols-2">
-                <label className="flex flex-col gap-2 text-sm font-medium">
+              <div className="grid grid-cols-2 gap-3 md:gap-4">
+                <label className="flex flex-col gap-2.5 text-[15px] font-semibold">
                   Name
-                  <Input value={draft.display_name} onChange={(e) => setDraft((d) => ({ ...d, display_name: e.target.value }))} placeholder="Your name" className="h-12 rounded-2xl bg-card md:h-[52px]" />
+                  <Input value={draft.display_name} onChange={(e) => setDraft((d) => ({ ...d, display_name: e.target.value }))} placeholder="Your name" className="h-12 rounded-[14px] border-0 bg-card text-[15px] md:h-[52px] md:rounded-2xl" />
                 </label>
-                <label className="flex flex-col gap-2 text-sm font-medium">
+                <label className="flex flex-col gap-2.5 text-[15px] font-semibold">
                   Location
-                  <Input value={draft.location} onChange={(e) => setDraft((d) => ({ ...d, location: e.target.value }))} placeholder="City, country" className="h-12 rounded-2xl bg-card md:h-[52px]" />
+                  <Input value={draft.location} onChange={(e) => setDraft((d) => ({ ...d, location: e.target.value }))} placeholder="City, country" className="h-12 rounded-[14px] border-0 bg-card text-[15px] md:h-[52px] md:rounded-2xl" />
                 </label>
               </div>
               <div>
-                <p className="text-sm font-medium">Which season of life are you in?</p>
-                <div className="mt-3 flex flex-wrap gap-2">
+                <p className="text-[15px] font-semibold">Which season of life are you in?</p>
+                <div className="mt-2.5 flex flex-wrap gap-2">
                   {AGE_RANGES.map((range) => (
                     <button
                       key={range}
                       type="button"
                       onClick={() => setDraft((d) => ({ ...d, age_range: range }))}
                       className={cn(
-                        "rounded-full border px-4 py-2 text-sm transition-colors",
-                        draft.age_range === range ? "border-sage bg-sage text-cream" : "border-border bg-card text-foreground hover:bg-accent",
+                        "min-h-9 rounded-full border px-3.5 py-2 text-[13px] transition-colors md:text-sm",
+                        draft.age_range === range ? "border-sage bg-sage text-cream" : "border-transparent bg-card text-muted-foreground hover:bg-accent",
                       )}
                     >
                       {range}
@@ -291,46 +294,56 @@ function Onboarding() {
                   ))}
                 </div>
               </div>
-              <label className="flex flex-col gap-2 text-sm font-medium">
+              <label className="flex flex-col gap-2.5 text-[15px] font-semibold">
                 What do you spend your days doing?
-                <Input value={draft.profession} onChange={(e) => setDraft((d) => ({ ...d, profession: e.target.value }))} placeholder="Gardener, midwife, builder, teacher…" className="h-12 rounded-2xl bg-card md:h-[52px]" />
+                <Input value={draft.profession} onChange={(e) => setDraft((d) => ({ ...d, profession: e.target.value }))} placeholder="Gardener, midwife, builder, teacher…" className="h-12 rounded-[14px] border-0 bg-card text-[15px] md:h-[52px] md:rounded-2xl" />
               </label>
-              <div className="md:hidden">
-                <PresenceMeter presence={presence} />
+              <div className="mt-auto flex flex-col gap-4 md:mt-0">
+                <div className="md:hidden">
+                  <PresenceMeter presence={presence} />
+                </div>
+                {(membership.isError || roles.isError) && (
+                  <p role="alert" className="text-sm text-destructive">
+                    We couldn’t check your membership. <Button type="button" variant="ghost" onClick={() => { void membership.refetch(); void roles.refetch(); }}>Try again</Button>
+                  </p>
+                )}
+                <Button type="submit" className="h-[54px] w-full rounded-full bg-sage text-[17px] font-semibold text-cream hover:bg-sage/90 md:h-14 md:w-auto md:self-end md:px-8 md:text-base" disabled={saving || uploading || lastStepBusy}>
+                  {saving ? "Saving…" : "Continue"}
+                </Button>
               </div>
-              {(membership.isError || roles.isError) && (
-                <p role="alert" className="text-sm text-destructive">
-                  We couldn’t check your membership. <Button type="button" variant="ghost" onClick={() => { void membership.refetch(); void roles.refetch(); }}>Try again</Button>
-                </p>
-              )}
-              <Button type="submit" className="h-14 rounded-full bg-sage px-8 text-cream hover:bg-sage/90 md:self-end" disabled={saving || uploading || lastStepBusy}>
-                {saving ? "Saving…" : "Continue"}
-              </Button>
             </form>
           </div>
         </div>
       ) : (
-        <div className="flex min-h-screen flex-col">
-          <div className="mx-auto flex w-full max-w-[1240px] items-center px-6 pt-7 md:px-10">
+        <div className="flex min-h-dvh w-full min-w-0 flex-col overflow-x-hidden md:min-h-screen">
+          <div className="mx-auto flex w-full min-w-0 max-w-[1240px] items-center gap-3 px-6 pt-11 md:px-10 md:pt-7">
+            <button
+              type="button"
+              aria-label="Back"
+              className="-ml-2.5 flex size-11 shrink-0 items-center justify-center text-cream md:hidden"
+              onClick={() => void navigate({ to: "/", replace: true })}
+            >
+              <ChevronLeft className="size-5" strokeWidth={1.6} />
+            </button>
             <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-cream md:text-xs">Before you come in</p>
           </div>
           <GivingCircle />
-          <div className="mx-auto flex w-full max-w-[1240px] flex-1 flex-col items-center px-6 pb-12 text-center md:px-10">
-            <h1 className="max-w-3xl font-serif text-[32px] leading-tight text-golden md:text-5xl md:text-cream">
+          <div className="mx-auto flex w-full min-w-0 max-w-[1240px] flex-1 flex-col px-6 pb-8 pt-2 text-left md:items-center md:px-10 md:pb-12 md:pt-0 md:text-center">
+            <h1 className="max-w-3xl font-serif text-[32px] font-medium leading-[1.12] text-golden md:text-5xl md:text-cream">
               Generosity, kindness and reciprocity are the currency here.
             </h1>
-            <div className="mt-8 grid w-full gap-3.5 text-left md:mt-12 md:grid-cols-3 md:gap-6">
+            <div className="mt-7 grid w-full min-w-0 gap-3.5 md:mt-12 md:grid-cols-3 md:gap-6">
               {VALUES.map((value) => (
-                <article key={value.title} className="flex items-center gap-4 rounded-[20px] bg-background p-4 text-foreground md:flex-col md:items-start md:gap-5 md:rounded-3xl md:p-8">
-                  <span className={cn("flex h-11 min-w-[92px] items-center justify-center rounded-full px-4 font-kaomoji text-lg whitespace-nowrap", value.pill)} role="img" aria-label={value.label}>{value.mark}</span>
-                  <div>
-                    <h2 className="font-serif text-[22px] md:text-3xl">{value.title}</h2>
+                <article key={value.title} className="flex min-w-0 items-center gap-4 rounded-[20px] bg-card p-[18px] text-foreground md:flex-col md:items-start md:gap-5 md:rounded-3xl md:bg-background md:p-8">
+                  <span className={cn("flex h-10 min-w-[92px] shrink-0 items-center justify-center rounded-full px-4 font-kaomoji text-[15px] whitespace-nowrap md:h-11 md:text-lg", value.pill)} role="img" aria-label={value.label}>{value.mark}</span>
+                  <div className="flex min-w-0 flex-1 flex-col">
+                    <h2 className="mb-1 font-serif text-[22px] font-semibold leading-[1.1] md:mb-0 md:text-3xl md:font-medium">{value.title}</h2>
                     <p className="text-sm text-muted-foreground">{value.line}</p>
                   </div>
                 </article>
               ))}
             </div>
-            <Button className="mt-8 h-14 w-full rounded-full bg-golden text-base font-semibold text-brown hover:bg-golden/90 md:mt-14 md:w-auto md:px-10" onClick={() => setSacredOpen(true)}>
+            <Button className="mt-auto h-[54px] w-full max-w-full rounded-full bg-golden text-[17px] font-semibold text-brown hover:bg-golden/90 md:mt-14 md:h-14 md:w-auto md:px-10 md:text-base" onClick={() => setSacredOpen(true)}>
               I&apos;d love to come in
             </Button>
           </div>
@@ -350,14 +363,12 @@ function Onboarding() {
 
 function PresenceMeter({ presence }: { presence: number }) {
   return (
-    <div>
-      <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-        <span>Your presence</span>
-        <span className="font-number text-sm font-light normal-case tracking-normal text-foreground">{presence}%</span>
-      </div>
-      <div className="mt-2 h-1 overflow-hidden rounded-full bg-sand" aria-hidden="true">
+    <div className="flex items-center gap-2.5">
+      <span className="shrink-0 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Your presence</span>
+      <div className="h-1 min-w-0 flex-1 overflow-hidden rounded-full bg-sand" aria-hidden="true">
         <div className="h-full rounded-full bg-golden" style={{ width: `${presence}%` }} />
       </div>
+      <span className="font-number shrink-0 text-[13px] font-light text-muted-foreground">{presence}%</span>
     </div>
   );
 }

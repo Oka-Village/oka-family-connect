@@ -54,7 +54,7 @@ export function LittleMomentFooter() {
     <footer
       ref={ref}
       role="contentinfo"
-      className="relative mt-16 bg-background px-7 pb-[calc(40px+5.5rem)] pt-9 text-center text-foreground md:px-[72px] md:pb-[26px] md:pt-[52px] md:text-left lg:pb-[26px]"
+      className="relative mt-16 overflow-x-hidden bg-background px-7 pb-[calc(40px+5.5rem)] pt-9 text-center text-foreground md:px-[72px] md:pb-[26px] md:pt-[52px] md:text-left lg:pb-[26px]"
       style={{ boxShadow: "inset 0 0 90px color-mix(in oklab, var(--terracotta) 12%, transparent)" }}
     >
       <img src="/torn-edge.svg" alt="" aria-hidden className="pointer-events-none absolute inset-x-0 -top-[13px] h-[14px] w-full" />

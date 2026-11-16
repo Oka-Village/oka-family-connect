@@ -14,7 +14,7 @@ const COMMITMENTS = [
 
 /** Client-side gate only. Nothing here is written to the profile. */
 export function SacredSpaceDialog({ open, onOpenChange, onAccept }: { open: boolean; onOpenChange: (open: boolean) => void; onAccept: () => void }) {
-  const [checked, setChecked] = useState<boolean[]>(() => COMMITMENTS.map(() => false));
+  const [checked, setChecked] = useState<boolean[]>(() => COMMITMENTS.map(() => true));
   const ready = checked.every(Boolean);
 
   function toggle(index: number) {
@@ -25,7 +25,7 @@ export function SacredSpaceDialog({ open, onOpenChange, onAccept }: { open: bool
     <Dialog
       open={open}
       onOpenChange={(next) => {
-        if (!next) setChecked(COMMITMENTS.map(() => false));
+        if (!next) setChecked(COMMITMENTS.map(() => true));
         onOpenChange(next);
       }}
     >
