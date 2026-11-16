@@ -1,7 +1,8 @@
 /**
- * Draft rules for the One World Family sample prototype.
- * Totals on screen come from these functions. Sample files only store inputs.
- * Nothing here is an adopted accounting policy.
+ * Draft rules for the One World Family Open Accounting prototype.
+ * Totals on screen come from these functions, fed by real data in
+ * src/data/open-accounting/live-ledger.ts. Nothing here is an adopted
+ * accounting policy.
  */
 
 export const MONTHLY_PRICE_CENTS = 2_900;
@@ -30,9 +31,15 @@ export const POINT_RULES = {
   convertsToCash: false,
 } as const;
 
-export const SNAPSHOT_AT = "2026-11-08T09:40:00.000Z";
-export const SNAPSHOT_LABEL = "8 November 2026, 09:40 UTC";
-export const SNAPSHOT = { year: 2026, month: 11, day: 8 } as const;
+/** The real current date (UTC), used as the reporting "now" everywhere below. */
+export function currentSnapshot(now: Date = new Date()): { year: number; month: number; day: number } {
+  return { year: now.getUTCFullYear(), month: now.getUTCMonth() + 1, day: now.getUTCDate() };
+}
+
+export function currentMonthId(now: Date = new Date()): string {
+  const { year, month } = currentSnapshot(now);
+  return monthId(year, month);
+}
 
 export type MembershipActivity = {
   monthlyInvoices: number;
@@ -84,6 +91,12 @@ const MONTH_NAMES = [
 
 export function monthId(year: number, month: number): string {
   return `${year}-${String(month).padStart(2, "0")}`;
+}
+
+export function currentSnapshotLabel(now: Date = new Date()): string {
+  const { year, month, day } = currentSnapshot(now);
+  const time = `${String(now.getUTCHours()).padStart(2, "0")}:${String(now.getUTCMinutes()).padStart(2, "0")}`;
+  return `${day} ${MONTH_NAMES[month - 1]} ${year}, ${time} UTC`;
 }
 
 export function parseMonthId(id: string): { year: number; month: number } {
@@ -222,8 +235,8 @@ export function payoutDateForEarnedMonth(year: number, month: number): { iso: st
   return { iso, label: `${DRAFT_POLICY.payoutDay} ${MONTH_NAMES[payoutMonth - 1]} ${payoutYear}` };
 }
 
-/** The next 20th, and the calendar month it pays. Uses the fixed snapshot, not the computer clock. */
-export function nextPayout(snapshot: { year: number; month: number; day: number } = SNAPSHOT): {
+/** The next 20th, and the calendar month it pays. Uses the current date unless a snapshot is given. */
+export function nextPayout(snapshot: { year: number; month: number; day: number } = currentSnapshot()): {
   iso: string;
   label: string;
   coversMonthId: string;
@@ -269,21 +282,18 @@ export function statusLabel(status: MembershipStatus): string {
   }
 }
 
-const DATA_START = "2025-01";
-const DATA_END = monthId(SNAPSHOT.year, SNAPSHOT.month);
-
 function lastDay(year: number, month: number): number {
   return new Date(Date.UTC(year, month, 0)).getUTCDate();
 }
 
-export function resolveRange(kind: RangeKind, year?: number): DateRange {
-  const current = monthId(SNAPSHOT.year, SNAPSHOT.month);
+export function resolveRange(kind: RangeKind, year?: number, snapshot: { year: number; month: number; day: number } = currentSnapshot()): DateRange {
+  const current = monthId(snapshot.year, snapshot.month);
   if (kind === "today") {
     return {
       kind,
-      start: `${current}-${String(SNAPSHOT.day).padStart(2, "0")}`,
-      end: `${current}-${String(SNAPSHOT.day).padStart(2, "0")}`,
-      label: `${SNAPSHOT.day} ${MONTH_NAMES[SNAPSHOT.month - 1]} ${SNAPSHOT.year}`,
+      start: `${current}-${String(snapshot.day).padStart(2, "0")}`,
+      end: `${current}-${String(snapshot.day).padStart(2, "0")}`,
+      label: `${snapshot.day} ${MONTH_NAMES[snapshot.month - 1]} ${snapshot.year}`,
       monthIds: [current],
       previousMonthIds: null,
       snapshotMonthId: current,
@@ -295,8 +305,8 @@ export function resolveRange(kind: RangeKind, year?: number): DateRange {
     return {
       kind,
       start: `${current}-01`,
-      end: `${current}-${String(lastDay(SNAPSHOT.year, SNAPSHOT.month)).padStart(2, "0")}`,
-      label: `${monthLabel(current)} · 1–${lastDay(SNAPSHOT.year, SNAPSHOT.month)}, through ${SNAPSHOT.day} ${MONTH_NAMES[SNAPSHOT.month - 1]}`,
+      end: `${current}-${String(lastDay(snapshot.year, snapshot.month)).padStart(2, "0")}`,
+      label: `${monthLabel(current)} · 1–${lastDay(snapshot.year, snapshot.month)}, through ${snapshot.day} ${MONTH_NAMES[snapshot.month - 1]}`,
       monthIds: [current],
       previousMonthIds: [previous],
       snapshotMonthId: current,
@@ -304,10 +314,10 @@ export function resolveRange(kind: RangeKind, year?: number): DateRange {
     };
   }
   if (kind === "quarter") {
-    const quarterIndex = Math.floor((SNAPSHOT.month - 1) / 3);
+    const quarterIndex = Math.floor((snapshot.month - 1) / 3);
     const startMonth = quarterIndex * 3 + 1;
-    const start = monthId(SNAPSHOT.year, startMonth);
-    const end = monthId(SNAPSHOT.year, startMonth + 2);
+    const start = monthId(snapshot.year, startMonth);
+    const end = monthId(snapshot.year, startMonth + 2);
     const monthIds = eachMonth(start, current);
     const previousStart = shiftMonth(start, -3);
     const previousEnd = shiftMonth(start, -1);
@@ -315,35 +325,33 @@ export function resolveRange(kind: RangeKind, year?: number): DateRange {
       kind,
       start: `${start}-01`,
       end: `${end}-31`,
-      label: `Q${quarterIndex + 1} ${SNAPSHOT.year} · ${monthLabel(start)}–${monthLabel(end)}, through ${SNAPSHOT_LABEL}`,
+      label: `Q${quarterIndex + 1} ${snapshot.year} · ${monthLabel(start)}–${monthLabel(end)}, through ${currentSnapshotLabel()}`,
       monthIds,
       previousMonthIds: eachMonth(previousStart, previousEnd),
       snapshotMonthId: current,
-      compareLabel: `Q${quarterIndex === 0 ? 4 : quarterIndex} ${quarterIndex === 0 ? SNAPSHOT.year - 1 : SNAPSHOT.year}`,
+      compareLabel: `Q${quarterIndex === 0 ? 4 : quarterIndex} ${quarterIndex === 0 ? snapshot.year - 1 : snapshot.year}`,
     };
   }
   if (kind === "year" || kind === "history") {
-    const selected = kind === "history" ? year : SNAPSHOT.year;
+    const selected = kind === "history" ? year : snapshot.year;
     if (!selected) throw new Error("Historical year is required.");
     const start = monthId(selected, 1);
-    const last = selected === SNAPSHOT.year ? current : monthId(selected, 12);
-    if (start > DATA_END || last < DATA_START) throw new Error("Year is outside the sample.");
+    const last = selected === snapshot.year ? current : monthId(selected, 12);
     const previousYear = selected - 1;
     const previousStart = monthId(previousYear, 1);
-    const hasPrevious = previousStart >= DATA_START;
     return {
       kind,
       year: selected,
       start: `${start}-01`,
       end:
-        selected === SNAPSHOT.year
-          ? `${current}-${String(SNAPSHOT.day).padStart(2, "0")}`
+        selected === snapshot.year
+          ? `${current}-${String(snapshot.day).padStart(2, "0")}`
           : `${last}-${String(lastDay(selected, 12)).padStart(2, "0")}`,
-      label: selected === SNAPSHOT.year ? `${selected} through ${SNAPSHOT.day} ${MONTH_NAMES[SNAPSHOT.month - 1]}` : String(selected),
+      label: selected === snapshot.year ? `${selected} through ${snapshot.day} ${MONTH_NAMES[snapshot.month - 1]}` : String(selected),
       monthIds: eachMonth(start, last),
-      previousMonthIds: hasPrevious ? eachMonth(previousStart, monthId(previousYear, 12)) : null,
+      previousMonthIds: eachMonth(previousStart, monthId(previousYear, 12)),
       snapshotMonthId: last,
-      compareLabel: hasPrevious ? String(previousYear) : null,
+      compareLabel: String(previousYear),
     };
   }
   throw new Error(`Unknown range ${kind}`);

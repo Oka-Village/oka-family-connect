@@ -1,7 +1,8 @@
 import { useMemo, useState, type ReactNode } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 import { Bars, Donut, chartColors } from "@/components/oka/open-accounting-charts";
-import { HISTORY_YEARS } from "@/data/open-accounting/sample-ledger";
+import { fetchAccountingData, historyYears } from "@/data/open-accounting/live-ledger";
 import { buildAccounting, type AccountingView, type LedgerRow } from "@/data/open-accounting/views";
 import { DRAFT_POLICY, THRESHOLD_NOTE, growthPercent, type RangeKind } from "@/lib/open-accounting/allocate";
 import { formatCount, formatGrowth, formatIsoDate, formatShare, formatSigned, formatUsd } from "@/lib/open-accounting/format";
@@ -20,14 +21,27 @@ const growthMetrics = [
 type GrowthId = (typeof growthMetrics)[number]["id"];
 
 export function OpenAccountingBooks() {
+  const data = useQuery({ queryKey: ["open-accounting", "data"], queryFn: fetchAccountingData, staleTime: 60_000 });
   const stale = false;
   const [kind, setKind] = useState<RangeKind>("month");
-  const [year, setYear] = useState<number>(2025);
+  const [year, setYear] = useState<number | undefined>(undefined);
   const [metric, setMetric] = useState<GrowthId>("members");
   const [ledgerType, setLedgerType] = useState("All");
   const [ledgerQuery, setLedgerQuery] = useState("");
   const [ledgerPage, setLedgerPage] = useState(0);
-  const view = buildAccounting(kind, kind === "history" ? year : undefined);
+  const years = useMemo(() => (data.data ? historyYears(data.data.months) : []), [data.data]);
+  const view = useMemo(() => {
+    if (!data.data) return null;
+    const selectedYear = kind === "history" ? year ?? years[years.length - 1] : undefined;
+    return buildAccounting(kind, selectedYear, data.data);
+  }, [data.data, kind, year, years]);
+
+  if (data.isLoading || !view) {
+    return <p className="text-muted-foreground">Loading real accounting data…</p>;
+  }
+  if (data.isError) {
+    return <p className="text-destructive">Could not load Open Accounting data. Try again shortly.</p>;
+  }
 
   function select(next: RangeKind, historyYear?: number) {
     setKind(next);
@@ -53,7 +67,7 @@ export function OpenAccountingBooks() {
                 {label}
               </FilterButton>
             ))}
-            {HISTORY_YEARS.map((option) => (
+            {years.map((option) => (
               <FilterButton key={option} pressed={kind === "history" && year === option} onClick={() => select("history", option)}>
                 {option}
               </FilterButton>
