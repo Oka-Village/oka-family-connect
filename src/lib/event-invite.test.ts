@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isMissingInviteFunction, pickInviteCard, shouldReserveSpot, type InviteCardEvent } from "./event-invite";
+import { isMissingInviteFunction, pickInviteCard, type InviteCardEvent } from "./event-invite";
 
 const gathering = (overrides: Partial<InviteCardEvent> = {}): InviteCardEvent => ({
   id: "event-1",
@@ -9,19 +9,6 @@ const gathering = (overrides: Partial<InviteCardEvent> = {}): InviteCardEvent =>
   timezone: "UTC",
   status: "published",
   ...overrides,
-});
-
-describe("shouldReserveSpot", () => {
-  it("reserves a spot for a guest who is not already going or waitlisted", () => {
-    expect(shouldReserveSpot(false, false, null)).toBe(true);
-    expect(shouldReserveSpot(false, false, "cancelled")).toBe(true);
-  });
-  it("leaves an existing reservation and a host alone", () => {
-    expect(shouldReserveSpot(false, false, "going")).toBe(false);
-    expect(shouldReserveSpot(false, false, "waitlist")).toBe(false);
-    expect(shouldReserveSpot(true, false, null)).toBe(false);
-    expect(shouldReserveSpot(false, true, null)).toBe(false);
-  });
 });
 
 describe("isMissingInviteFunction", () => {

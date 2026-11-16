@@ -168,7 +168,7 @@ function JoinPage() {
               <Video className="mx-auto size-8 text-primary" strokeWidth={1.5} />
               <p className="section-label mt-6">You're invited</p>
               <h1 className="mt-6 text-5xl leading-tight text-foreground">Join the gathering</h1>
-              <p className="mx-auto mt-6 max-w-md text-muted-foreground">Sign in with Google and we'll save your spot, then bring you straight to the call.</p>
+              <p className="mx-auto mt-6 max-w-md text-muted-foreground">Sign in with Google and we'll bring you to the gathering, where you can save your spot.</p>
               <Button size="lg" className="mt-10 rounded-full px-10" disabled={busy} onClick={() => void signIn()}>
                 {busy && <Loader2 className="size-4 animate-spin" strokeWidth={1.5} />}Continue with Google
               </Button>
@@ -176,7 +176,7 @@ function JoinPage() {
           )
         ) : (
           <p className="flex items-center justify-center gap-2 text-muted-foreground">
-            <Loader2 className="size-4 animate-spin text-primary" strokeWidth={1.5} /> Saving your spot…
+            <Loader2 className="size-4 animate-spin text-primary" strokeWidth={1.5} /> Opening the gathering…
           </p>
         )}
       </main>
