@@ -1,6 +1,6 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { BookOpen, CalendarDays, Bookmark, Coins, Gift, Heart, Home, LogOut, Menu, ShieldCheck, Sparkles, User, Users } from "lucide-react";
 
@@ -18,7 +18,7 @@ import { useMemberAccess } from "@/hooks/use-member-access";
 import { MemberAccessGate } from "@/components/oka/member-access-gate";
 import { SupportOkaDialog } from "@/components/oka/support-oka-dialog";
 import { useMembership } from "@/hooks/use-membership";
-import { hasPaidMembership } from "@/lib/membership";
+import { hasPaidMembership, isPaymentExempt } from "@/lib/membership";
 import { showSupportOffer } from "@/lib/onboarding-rules";
 
 const SUPPORT_EMAIL = "daniel@zoe.garden";
@@ -55,8 +55,23 @@ function AccountMenu({
   items: readonly AccountMenuItem[];
   onSignOut: () => void;
 }) {
+  const ref = useRef<HTMLDetailsElement>(null);
+  useEffect(() => {
+    const close = () => ref.current?.removeAttribute("open");
+    const onPointer = (e: PointerEvent) => {
+      if (ref.current?.open && !ref.current.contains(e.target as Node)) close();
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") close(); };
+    document.addEventListener("pointerdown", onPointer);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPointer);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, []);
+  const closeMenu = () => ref.current?.removeAttribute("open");
   return (
-    <details className="group relative">
+    <details ref={ref} className="group relative">
       <Button asChild variant="secondary" size="icon" className="rounded-full">
         <summary aria-label="Open account menu" className="list-none [&::-webkit-details-marker]:hidden">
           {photo ? (
@@ -70,12 +85,12 @@ function AccountMenu({
         <p className="px-3 py-2 text-sm text-muted-foreground">{name ?? "Your Oka"}</p>
         <div className="my-1 h-px bg-border" />
         {items.map((item) => (
-          <Link key={item.to} to={item.to} className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm hover:bg-accent">
+          <Link key={item.to} to={item.to} onClick={closeMenu} className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm hover:bg-accent">
             <item.icon className="size-4 text-primary" strokeWidth={1.5} />{item.label}
           </Link>
         ))}
         <div className="my-1 h-px bg-border" />
-        <Button variant="ghost" className="w-full justify-start rounded-xl px-3" onClick={onSignOut}><LogOut className="text-primary" strokeWidth={1.5} />Sign out</Button>
+        <Button variant="ghost" className="w-full justify-start rounded-xl px-3" onClick={() => { closeMenu(); onSignOut(); }}><LogOut className="text-primary" strokeWidth={1.5} />Sign out</Button>
       </div>
     </details>
   );
@@ -95,7 +110,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // Existing unpaid members get the same payment/trial offer as new ones, on each app entry.
   useEffect(() => {
     if (!profile || isAdmin !== false || membership.isPending || membership.isError) return;
-    if (showSupportOffer(hasPaidMembership(membership.data), false, profile.trial_started_at)) setSupportOpen(true);
+    if (showSupportOffer(hasPaidMembership(membership.data), isPaymentExempt(profile, isAdmin), profile.trial_started_at) && !profile.trial_ends_at) setSupportOpen(true);
   }, [profile, isAdmin, membership.isPending, membership.isError, membership.data]);
   const photoQuery = useQuery({
     queryKey: ["profile-photo", profile?.photo_url ?? null],

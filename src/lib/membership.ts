@@ -1,13 +1,16 @@
 import { isEventProposalRoute, ownEditTarget, ownListingViewTarget } from "./member-access";
-import { TRIAL_DAYS } from "./onboarding-rules";
+import { trialState, type TrialState } from "./trial-access";
+
+export { trialState } from "./trial-access";
+export type { TrialState } from "./trial-access";
 
 export const MONTHLY_PRICE_CENTS = 2900;
 export const MONTHLY_PRICE_ID = "price_1UThk4AKS7i2pY48URb0JBTk";
 export type MembershipKind = "founding" | "monthly";
 
-/** Only staff are exempt; unpaid members get the same payment/trial choice regardless of member_status. */
-export function isPaymentExempt(_profile: { member_status: string } | null | undefined, isStaff = false): boolean {
-  return isStaff;
+/** Staff and explicitly complimentary members are exempt; stored full status alone is not. */
+export function isPaymentExempt(profile: { member_status: string; complimentary_access?: boolean | null } | null | undefined, isStaff = false): boolean {
+  return isStaff || profile?.complimentary_access === true;
 }
 
 export function isPublicEntryRoute(pathname: string): boolean {
@@ -30,17 +33,6 @@ export function hasPaidMembership(
   );
 }
 
-/** Payment detour precedes contribution-only access, without changing launch rules. */
-export type TrialState = "none" | "active" | "expired";
-
-/** A trial is active for exactly TRIAL_DAYS from profiles.trial_started_at. */
-export function trialState(trialStartedAt: string | null | undefined, now = new Date()): TrialState {
-  if (!trialStartedAt) return "none";
-  const started = Date.parse(trialStartedAt);
-  if (Number.isNaN(started)) return "none";
-  return now.getTime() - started < TRIAL_DAYS * 24 * 60 * 60 * 1000 ? "active" : "expired";
-}
-
 /** Pre-choice unpaid members manage only their profile and the payment/legal pages. */
 const PROFILE_ONLY_ROUTES = new Set(["/onboarding", "/profile", "/welcome"]);
 /** An active trial adds skill and house creation on top of profile-only routes. Event proposals stay open for every member. */
@@ -51,12 +43,11 @@ const ALWAYS_ALLOWED_ROUTES = new Set(["/membership", "/privacy", "/terms", "/fo
 export function paymentRedirect(pathname: string, fullAccess: boolean, paid: boolean, trial: TrialState): "/membership" | "/home" | "/welcome" | null {
   const path = pathname.replace(/\/+$/, "") || "/";
   if (fullAccess) return path === "/membership" ? "/home" : null;
-  if (paid) return null;
+  if (paid || trial === "active") return null;
   if (ALWAYS_ALLOWED_ROUTES.has(path) || isEventProposalRoute(path)) return null;
   // Own skill/home pages and edits: the member-access gate verifies ownership before rendering.
   if (ownListingViewTarget(path) || ownEditTarget(path)) return null;
   if (trial === "expired") return "/membership";
-  if (trial === "active" && CONTENT_ADDING_ROUTES.has(path)) return null;
   if (PROFILE_ONLY_ROUTES.has(path)) return null;
   return "/welcome";
 }

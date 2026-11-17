@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Loader2, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ function countdown(ms: number) {
   return `${min} min`;
 }
 
-export function VideoRoom({ eventId, startsAt, bypassTiming, autoJoin = false }: { eventId: string; startsAt: string; bypassTiming: boolean; autoJoin?: boolean }) {
+export function VideoRoom({ eventId, startsAt, bypassTiming }: { eventId: string; startsAt: string; bypassTiming: boolean }) {
   const join = useServerFn(joinEventRoom);
   const [now, setNow] = useState(() => Date.now());
   const [busy, setBusy] = useState(false);
@@ -38,15 +38,7 @@ export function VideoRoom({ eventId, startsAt, bypassTiming, autoJoin = false }:
   const opensIn = new Date(startsAt).getTime() - EARLY_MS - now;
   const open = bypassTiming || opensIn <= 0;
 
-  // Arriving from a shared join link during the event window: go straight into the room.
-  const autoTried = useRef(false);
-  useEffect(() => {
-    if (autoJoin && open && !autoTried.current && !room) {
-      autoTried.current = true;
-      void onJoin();
-    }
-  });
-
+  // Joining is always an explicit choice: nothing here opens the call on its own.
   async function onJoin() {
     setBusy(true); setMsg(null);
     try {

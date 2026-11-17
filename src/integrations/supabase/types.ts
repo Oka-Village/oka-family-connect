@@ -614,6 +614,68 @@ export type Database = {
           updated_at?: string;
           waitlist_count?: number;
         };
+          capacity: number | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          ends_at: string | null
+          event_type: string
+          format: string
+          going_count: number
+          host_id: string | null
+          id: string
+          join_slug: string
+          photo_url: string | null
+          starts_at: string
+          status: string
+          timezone: string | null
+          title: string
+          updated_at: string
+          video_url: string | null
+          waitlist_count: number
+        }
+        Insert: {
+          capacity?: number | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          ends_at?: string | null
+          event_type: string
+          format: string
+          going_count?: number
+          host_id?: string | null
+          id?: string
+          join_slug?: string
+          photo_url?: string | null
+          starts_at: string
+          status?: string
+          timezone?: string | null
+          title: string
+          updated_at?: string
+          video_url?: string | null
+          waitlist_count?: number
+        }
+        Update: {
+          capacity?: number | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          ends_at?: string | null
+          event_type?: string
+          format?: string
+          going_count?: number
+          host_id?: string | null
+          id?: string
+          join_slug?: string
+          photo_url?: string | null
+          starts_at?: string
+          status?: string
+          timezone?: string | null
+          title?: string
+          updated_at?: string
+          video_url?: string | null
+          waitlist_count?: number
+        }
         Relationships: [
           {
             foreignKeyName: "events_created_by_fkey";
@@ -1083,6 +1145,82 @@ export type Database = {
         };
         Relationships: [];
       };
+          age_range: string | null
+          complimentary_access: boolean
+          created_at: string
+          display_name: string | null
+          gift_excited_to_give: string | null
+          gift_loved_gestures: string | null
+          id: string
+          intentions: string[]
+          location: string | null
+          member_status: string
+          membership_tier: string
+          onboarded_at: string | null
+          photo_url: string | null
+          profession: string | null
+          profile_completed: boolean
+          relationship_status: string | null
+          skill_tags: string[]
+          stripe_customer_id: string | null
+          travel_desired: string[]
+          travel_frequent: string[]
+          trial_ends_at: string | null
+          trial_started_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          age_range?: string | null
+          complimentary_access?: boolean
+          created_at?: string
+          display_name?: string | null
+          gift_excited_to_give?: string | null
+          gift_loved_gestures?: string | null
+          id: string
+          intentions?: string[]
+          location?: string | null
+          member_status?: string
+          membership_tier?: string
+          onboarded_at?: string | null
+          photo_url?: string | null
+          profession?: string | null
+          profile_completed?: boolean
+          relationship_status?: string | null
+          skill_tags?: string[]
+          stripe_customer_id?: string | null
+          travel_desired?: string[]
+          travel_frequent?: string[]
+          trial_ends_at?: string | null
+          trial_started_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          age_range?: string | null
+          complimentary_access?: boolean
+          created_at?: string
+          display_name?: string | null
+          gift_excited_to_give?: string | null
+          gift_loved_gestures?: string | null
+          id?: string
+          intentions?: string[]
+          location?: string | null
+          member_status?: string
+          membership_tier?: string
+          onboarded_at?: string | null
+          photo_url?: string | null
+          profession?: string | null
+          profile_completed?: boolean
+          relationship_status?: string | null
+          skill_tags?: string[]
+          stripe_customer_id?: string | null
+          travel_desired?: string[]
+          travel_frequent?: string[]
+          trial_ends_at?: string | null
+          trial_started_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       reflections: {
         Row: {
           body: string;
@@ -1359,6 +1497,20 @@ export type Database = {
         Returns: boolean;
       };
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean };
+        Args: { _name: string; _owner: string }
+        Returns: boolean
+      }
+      cancel_rsvp: { Args: { _event_id: string }; Returns: string }
+      claim_referral: { Args: { _code: string }; Returns: string }
+      ensure_event_host_invite: { Args: { _event_id: string }; Returns: string }
+      generate_invite_code: { Args: never; Returns: string }
+      has_event_rsvp: {
+        Args: { _event_id: string; _going_only: boolean }
+        Returns: boolean
+      }
+      has_member_payment_access: { Args: never; Returns: boolean }
+      has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
+      has_trial_access: { Args: { _user_id: string }; Returns: boolean }
       house_booked_ranges: {
         Args: { _house_id: string };
         Returns: {
@@ -1416,6 +1568,47 @@ export type Database = {
         Returns: boolean;
       };
       promote_waitlist: { Args: { _event_id: string }; Returns: undefined };
+        Args: { p: Database["public"]["Tables"]["profiles"]["Row"] }
+        Returns: boolean
+      }
+      promote_waitlist: { Args: { _event_id: string }; Returns: undefined }
+      public_event_preview: {
+        Args: { _slug: string }
+        Returns: {
+          capacity: number
+          description: string
+          ends_at: string
+          event_type: string
+          format: string
+          going_count: number
+          host_name: string
+          id: string
+          is_live: boolean
+          live_link: string
+          starts_at: string
+          timezone: string
+          title: string
+        }[]
+      }
+      public_event_preview_v2: {
+        Args: { _slug: string }
+        Returns: {
+          capacity: number
+          description: string
+          ends_at: string
+          event_type: string
+          format: string
+          going_count: number
+          host_name: string
+          id: string
+          is_live: boolean
+          live_link: string
+          starts_at: string
+          timezone: string
+          title: string
+          video_url: string
+        }[]
+      }
       record_verified_membership: {
         Args: {
           _amount: number;

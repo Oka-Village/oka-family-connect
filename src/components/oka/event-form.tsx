@@ -25,6 +25,8 @@ import {
   type EventType,
 } from "@/lib/events";
 import { MAX_OCCURRENCES, REPEAT_LABELS, occurrenceStarts, type Repeat } from "@/lib/recurrence";
+import { canEditEvent, eventDetailsUpdate } from "@/lib/event-edit";
+import { eventMeetingLink, youtubeVideoId } from "@/lib/event-video";
 
 type Props = {
   mode: "create" | "edit";
@@ -50,8 +52,8 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
     ends: initial?.ends_at ? utcToZonedInput(initial.ends_at, tz0) : "",
     capacity: initial?.capacity?.toString() ?? "",
     venue: initialLocation?.venue_address ?? "",
-    video: initialLocation?.video_link ?? "",
-    meeting: initialLocation?.meeting_link ?? "",
+    video: initial?.video_url ?? (youtubeVideoId(initialLocation?.video_link) ? initialLocation?.video_link ?? "" : ""),
+    meeting: eventMeetingLink(initialLocation) ?? "",
     description: initial?.description ?? "",
     photo_url: initial?.photo_url ?? null as string | null,
   });
@@ -107,6 +109,7 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
       if (p.ends && p.ends < p.starts) return toast.error(`Session ${i + 1} must end after it starts.`);
     }
     if (f.meeting && !/^https?:\/\//.test(f.meeting) && f.format === "virtual") return toast.error("The meeting link should start with https://");
+    if (f.video.trim() && !youtubeVideoId(f.video)) return toast.error("Please enter a valid YouTube video link.");
     const capacity = f.capacity ? Number(f.capacity) : null;
     if (capacity != null && (!Number.isInteger(capacity) || capacity < 1)) return toast.error("Capacity must be a whole number above zero.");
     setSaving(true);
@@ -120,6 +123,7 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
       capacity,
       description: f.description.trim() || null,
       photo_url: f.photo_url,
+      video_url: f.video.trim() || null,
       created_by: userId,
       status: isAdmin ? "published" : "pending_approval",
     }));
@@ -127,7 +131,7 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
     if (error || !data?.length) { setSaving(false); return toast.error(error?.message ?? "Couldn't save the pod."); }
     const location = {
       venue_address: f.format === "in_person" ? f.venue.trim() || null : null,
-      video_link: f.format === "virtual" ? f.video.trim() || null : null,
+      video_link: null,
       meeting_link: f.format === "virtual" ? f.meeting.trim() || null : null,
     };
     const { error: locErr } = await supabase.from("event_locations").upsert(data.map((r) => ({ event_id: r.id, ...location })));
@@ -136,15 +140,20 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
     await queryClient.invalidateQueries();
     try { sessionStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
     toast.success((isAdmin ? "Pod published" : "Pod sent for review") + " (3 sessions)");
-    return navigate({ to: "/events/$eventId", params: { eventId: data[0]!.id } });
+    const first = data[0];
+    if (!first) return;
+    return navigate({ to: "/events/$eventId", params: { eventId: first.id } });
   }
 
   async function submit(e: React.FormEvent): Promise<unknown> {
     e.preventDefault();
+    if (mode === "edit" && (!initial || !canEditEvent(initial, userId, isAdmin))) {
+      return toast.error("You don't have permission to edit this gathering.");
+    }
     if (isPod) return submitPods();
     if (!f.title.trim() || !f.starts) return toast.error("Please add a title and a start time.");
     if (!f.photo_url) { setPhotoError(true); return toast.error("Please add a photo for your event."); }
-    if (f.video && !/^https?:\/\//.test(f.video)) return toast.error("The video link should start with https://");
+    if (f.video.trim() && !youtubeVideoId(f.video)) return toast.error("Please enter a valid YouTube video link.");
     if (f.format === "virtual" && f.meeting && !/^https?:\/\//.test(f.meeting)) return toast.error("The meeting link should start with https://");
     const starts_at = zonedInputToUtc(f.starts, f.timezone);
     const ends_at = f.ends ? zonedInputToUtc(f.ends, f.timezone) : null;
@@ -163,13 +172,13 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
       capacity,
       description: f.description.trim() || null,
       photo_url: f.photo_url,
+      video_url: f.video.trim() || null,
     };
     const location = {
       venue_address: f.format === "in_person" ? f.venue.trim() || null : null,
-      video_link: f.format === "virtual" ? f.video.trim() || null : null,
+      video_link: null,
       meeting_link: f.format === "virtual" ? f.meeting.trim() || null : null,
     };
-    let eventId = initial?.id;
     if (mode === "create") {
       if (repeat !== "none" && (!until || until < f.starts.slice(0, 10))) { setSaving(false); return toast.error("Please choose when the repeating ends."); }
       const durMs = ends_at ? new Date(ends_at).getTime() - new Date(starts_at).getTime() : null;
@@ -185,7 +194,9 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
       });
       const { data, error } = await supabase.from("events").insert(rows).select("id,starts_at").order("starts_at");
       if (error || !data?.length) { setSaving(false); return toast.error(error?.message ?? "Couldn't save the event."); }
-      const firstId = data[0]!.id;
+      const first = data[0];
+      if (!first) { setSaving(false); return; }
+      const firstId = first.id;
       const { error: locErr } = await supabase.from("event_locations").upsert(data.map((r) => ({ event_id: r.id, ...location })));
       setSaving(false);
       if (locErr) return toast.error(locErr.message);
@@ -194,16 +205,18 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
       try { sessionStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
       toast.success((isAdmin ? "Event published" : "Proposal sent for review") + n);
       return navigate({ to: "/events/$eventId", params: { eventId: firstId } });
-    } else {
-      const { error } = await supabase.from("events").update(payload).eq("id", eventId!);
-      if (error) { setSaving(false); return toast.error(error.message); }
     }
-    const { error: locErr } = await supabase.from("event_locations").upsert({ event_id: eventId!, ...location });
+    if (!initial) { setSaving(false); return; }
+    const eventId = initial.id;
+    const { data: updated, error } = await supabase.from("events")
+      .update(eventDetailsUpdate(payload)).eq("id", eventId).select("id,status").single();
+    if (error || !updated) { setSaving(false); return toast.error(error?.message ?? "Couldn't save the event."); }
+    const { error: locErr } = await supabase.from("event_locations").upsert({ event_id: eventId, ...location });
     setSaving(false);
     if (locErr) return toast.error(locErr.message);
     await queryClient.invalidateQueries();
-    toast.success("Event updated");
-    return navigate({ to: "/events/$eventId", params: { eventId: eventId! } });
+    toast.success(updated.status === "pending_approval" ? "Proposal updated — awaiting admin review" : updated.status === "published" ? "Event updated — live on the schedule" : "Event updated");
+    return navigate({ to: "/events/$eventId", params: { eventId } });
   }
 
   return (
@@ -310,13 +323,13 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
             <Input id="meeting" value={f.meeting} onChange={up("meeting")} placeholder="https://" />
             <p className="text-xs text-muted-foreground">Only shown to confirmed guests.</p>
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="video">Video link</Label>
-            <Input id="video" value={f.video} onChange={up("video")} placeholder="https://" />
-            <p className="text-xs text-muted-foreground">Only shown to confirmed guests.</p>
-          </div>
         </>
       )}
+      <div className="grid gap-2">
+        <Label htmlFor="video">YouTube video (teaser or recording)</Label>
+        <Input id="video" value={f.video} onChange={up("video")} placeholder="https://www.youtube.com/watch?v=…" />
+        <p className="text-xs text-muted-foreground">Visible to everyone.</p>
+      </div>
       <div className="grid gap-2">
         <Label htmlFor="description">Description</Label>
         <Textarea id="description" rows={6} value={f.description} onChange={up("description")} />

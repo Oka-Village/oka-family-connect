@@ -11,6 +11,7 @@ export function memberStatusIndicators(
   membership: { active: boolean; kind: string; current_period_end?: string | null } | null | undefined,
   trialStartedAt: string | null | undefined,
   now = new Date(),
+  trialEndsAt?: string | null,
 ): MemberStatusIndicators {
-  return { paid: hasPaidMembership(membership, now), trial: trialState(trialStartedAt, now) };
+  return { paid: hasPaidMembership(membership, now), trial: trialState(trialStartedAt, now, trialEndsAt) };
 }

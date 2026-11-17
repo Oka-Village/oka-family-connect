@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Loader2, Video } from "lucide-react";
+import { CalendarDays, Clock, Loader2, Users, Video } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { formatEventDate } from "@/lib/events";
+import { EventTime } from "@/components/oka/event-time";
+import { EventVideo } from "@/components/oka/event-video";
 
 import { toast } from "sonner";
 import { Wordmark } from "@/components/oka/wordmark";
@@ -12,18 +16,32 @@ import { claimEventInvite, saveEventJoinSlug } from "@/lib/event-invite";
 import { saveInviteCode } from "@/lib/affiliates";
 import { useServerFn } from "@tanstack/react-start";
 import { beginSignupFlow } from "@/lib/signup-flow.functions";
+import { getPublicEventPhoto, getEventShareMeta } from "@/lib/public-event-photo.functions";
 
 export const Route = createFileRoute("/join/$slug")({
-  head: () => ({
-    meta: [
-      { title: "Join the gathering — Oka" },
-      { name: "description", content: "You've been invited to an Oka video gathering. Sign in to save your spot and join the call." },
-      { property: "og:title", content: "Join the gathering — Oka" },
-      { property: "og:description", content: "You've been invited to an Oka video gathering. Sign in to save your spot and join the call." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
+  loader: async ({ params }) => ({ share: await getEventShareMeta({ data: { slug: params.slug } }).catch(() => null) }),
+  head: ({ loaderData, params }) => {
+    const share = loaderData?.share;
+    const title = share ? `${share.title} — Oka` : "Join the gathering — Oka";
+    const desc = share
+      ? [share.host ? `Hosted by ${share.host}` : null, share.when, "A gathering on Oka"].filter(Boolean).join(" · ")
+      : "You've been invited to an Oka gathering. Sign in to save your spot.";
+    const url = `https://www.oneworldfamily.app/join/${params.slug}`;
+    return {
+      meta: [
+        { title },
+        { name: "description", content: desc },
+        { property: "og:title", content: title },
+        { property: "og:description", content: desc },
+        { property: "og:type", content: "article" },
+        { property: "og:url", content: url },
+        { name: "twitter:card", content: share?.image ? "summary_large_image" : "summary" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: desc },
+        ...(share?.image ? [{ property: "og:image", content: share.image }, { name: "twitter:image", content: share.image }] : []),
+      ],
+    };
+  },
   component: JoinPage,
 });
 
@@ -36,6 +54,24 @@ function JoinPage() {
   const [state, setState] = useState<State>("checking");
   const [busy, setBusy] = useState(false);
   const ran = useRef(false);
+  const preview = useQuery({
+    queryKey: ["public-event", slug],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("public_event_preview_v2", { _slug: slug });
+      if (error) throw error;
+      return data?.[0] ?? null;
+    },
+    enabled: state === "signed_out",
+    refetchInterval: 60_000,
+  });
+
+  const fetchPhoto = useServerFn(getPublicEventPhoto);
+  const cover = useQuery({
+    queryKey: ["public-event-photo", slug],
+    queryFn: async () => (await fetchPhoto({ data: { slug } })).url,
+    enabled: state === "signed_out" && !!preview.data,
+    staleTime: 30 * 60_000,
+  });
 
   useEffect(() => {
     saveEventJoinSlug(slug);
@@ -91,18 +127,53 @@ function JoinPage() {
             <Button asChild size="lg" className="mt-10 rounded-full px-10"><Link to="/events">See all events</Link></Button>
           </>
         ) : state === "signed_out" ? (
-          <>
-            <Video className="mx-auto size-8 text-primary" strokeWidth={1.5} />
-            <p className="section-label mt-6">You're invited</p>
-            <h1 className="mt-6 text-5xl leading-tight text-foreground">Join the gathering</h1>
-            <p className="mx-auto mt-6 max-w-md text-muted-foreground">Sign in with Google and we'll save your spot, then bring you straight to the call.</p>
-            <Button size="lg" className="mt-10 rounded-full px-10" disabled={busy} onClick={() => void signIn()}>
-              {busy && <Loader2 className="size-4 animate-spin" strokeWidth={1.5} />}Continue with Google
-            </Button>
-          </>
+          preview.isLoading ? (
+            <p className="flex items-center justify-center gap-2 text-muted-foreground"><Loader2 className="size-4 animate-spin text-primary" strokeWidth={1.5} /> Opening the event…</p>
+          ) : preview.data ? (
+            <div className="text-left">
+              <p className="section-label text-center">You're invited</p>
+              <h1 className="mt-6 text-center text-5xl leading-tight text-foreground">{preview.data.title}</h1>
+              {cover.data && <img src={cover.data} alt="" className="mt-8 h-auto w-full rounded-3xl object-contain object-center shadow-soft" />}
+              <div className="mt-8 grid gap-3 rounded-2xl border border-border bg-card p-6 text-foreground shadow-soft sm:grid-cols-2">
+                <span className="flex items-center gap-3"><CalendarDays className="size-5 text-primary" strokeWidth={1.5} />{formatEventDate(preview.data.starts_at, preview.data.timezone)}</span>
+                <span className="flex min-w-0 items-start gap-3"><Clock className="mt-0.5 size-5 shrink-0 text-primary" strokeWidth={1.5} /><EventTime start={preview.data.starts_at} end={preview.data.ends_at} timezone={preview.data.timezone} /></span>
+                {preview.data.host_name && <span className="flex items-center gap-3"><Users className="size-5 text-primary" strokeWidth={1.5} />Hosted by {preview.data.host_name}</span>}
+                <span className="flex items-center gap-3"><Video className="size-5 text-primary" strokeWidth={1.5} />{preview.data.format === "virtual" ? "Online" : "In person"} · {preview.data.going_count} going</span>
+              </div>
+              <p className="section-label mt-10">About</p>
+              <p className="mt-3 whitespace-pre-line leading-relaxed text-foreground">{preview.data.description || "More details soon."}</p>
+              <EventVideo url={preview.data.video_url} />
+              <div className="mt-10 flex flex-col items-center gap-3">
+                {preview.data.live_link ? (
+                  <>
+                    <Button asChild size="lg" className="rounded-full px-10"><a href={preview.data.live_link} target="_blank" rel="noreferrer">Join the call now</a></Button>
+                    <p className="text-sm text-muted-foreground">It's live — anyone can join.</p>
+                    <Button variant="ghost" className="rounded-full" disabled={busy} onClick={() => void signIn()}>Sign in or sign up to RSVP</Button>
+                  </>
+                ) : (
+                  <>
+                    <Button size="lg" className="rounded-full px-10" disabled={busy} onClick={() => void signIn()}>
+                      {busy && <Loader2 className="size-4 animate-spin" strokeWidth={1.5} />}Sign in or sign up to RSVP
+                    </Button>
+                    {preview.data.is_live && <p className="text-sm text-muted-foreground">It's live now — sign in to join the room.</p>}
+                  </>
+                )}
+              </div>
+            </div>
+          ) : (
+            <>
+              <Video className="mx-auto size-8 text-primary" strokeWidth={1.5} />
+              <p className="section-label mt-6">You're invited</p>
+              <h1 className="mt-6 text-5xl leading-tight text-foreground">Join the gathering</h1>
+              <p className="mx-auto mt-6 max-w-md text-muted-foreground">Sign in with Google and we'll bring you to the gathering, where you can save your spot.</p>
+              <Button size="lg" className="mt-10 rounded-full px-10" disabled={busy} onClick={() => void signIn()}>
+                {busy && <Loader2 className="size-4 animate-spin" strokeWidth={1.5} />}Continue with Google
+              </Button>
+            </>
+          )
         ) : (
           <p className="flex items-center justify-center gap-2 text-muted-foreground">
-            <Loader2 className="size-4 animate-spin text-primary" strokeWidth={1.5} /> Saving your spot…
+            <Loader2 className="size-4 animate-spin text-primary" strokeWidth={1.5} /> Opening the gathering…
           </p>
         )}
       </main>

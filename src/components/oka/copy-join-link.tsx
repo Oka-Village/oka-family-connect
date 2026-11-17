@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { joinUrl } from "@/lib/join-link";
 
-export function CopyJoinLink({ slug, refCode, size = "sm", className }: { slug: string; refCode?: string | null; size?: "sm" | "default"; className?: string }) {
+export function CopyJoinLink({ slug, refCode, size = "sm", className, label = "Copy join link", disabled = false }: { slug: string; refCode?: string | null; size?: "sm" | "default"; className?: string; label?: string; disabled?: boolean }) {
   async function copy() {
     try {
       await navigator.clipboard.writeText(joinUrl(slug, refCode));
@@ -14,8 +14,8 @@ export function CopyJoinLink({ slug, refCode, size = "sm", className }: { slug: 
     }
   }
   return (
-    <Button size={size} variant="outline" className={className ?? "rounded-full"} onClick={() => void copy()}>
-      <Link2 className="size-4 text-primary" strokeWidth={1.5} /> Copy join link
+    <Button size={size} variant="outline" className={className ?? "rounded-full"} disabled={disabled} onClick={() => void copy()}>
+      <Link2 className="size-4 text-primary" strokeWidth={1.5} /> {label}
     </Button>
   );
 }

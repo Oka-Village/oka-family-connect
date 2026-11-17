@@ -1,9 +1,22 @@
-export const FULL_ACCESS_OPENS_AT = "2026-12-01T00:00:00.000Z";
-export type MemberStatus = "full" | "limited";
+import { TRIAL_ACCESS_LAUNCH_AT, trialState } from "./trial-access";
 
-/** Matches public.is_full_member(): the soft-launch boundary is midnight UTC. */
-export function isFullMember(profile: { member_status: MemberStatus } | null | undefined, now = new Date(), hasVerifiedPaymentAccess = false): boolean {
-  return Boolean(profile && (profile.member_status === "full" || (profile.member_status === "limited" && hasVerifiedPaymentAccess && now.getTime() >= Date.parse(FULL_ACCESS_OPENS_AT))));
+export const FULL_ACCESS_OPENS_AT = TRIAL_ACCESS_LAUNCH_AT;
+export type MemberStatus = "full" | "limited";
+export type MemberAccessProfile = {
+  member_status: MemberStatus;
+  trial_started_at?: string | null;
+  trial_ends_at?: string | null;
+  complimentary_access?: boolean | null;
+};
+
+/** Matches public.is_full_member(), including launch-aware trials and admin grants. */
+export function isFullMember(profile: MemberAccessProfile | null | undefined, now = new Date(), hasVerifiedPaymentAccess = false): boolean {
+  return Boolean(profile && (
+    profile.complimentary_access === true
+    || profile.member_status === "full"
+    || trialState(profile.trial_started_at, now, profile.trial_ends_at) === "active"
+    || (profile.member_status === "limited" && hasVerifiedPaymentAccess && now.getTime() >= Date.parse(FULL_ACCESS_OPENS_AT))
+  ));
 }
 
 const ALLOWED_ROUTES = new Set(["/profile", "/onboarding", "/welcome", "/skills/new", "/houses/new", "/events", "/events/new", "/skills", "/houses", "/affiliate", "/earnings", "/privacy", "/terms", "/open-accounting"]);

@@ -5,6 +5,7 @@ import { EventForm } from "@/components/oka/event-form";
 import { useCurrentUserId, useIsStaff } from "@/hooks/use-is-admin";
 import { supabase } from "@/integrations/supabase/client";
 import { EVENT_SELECT, type EventRow } from "@/lib/events";
+import { canEditEvent } from "@/lib/event-edit";
 
 export const Route = createFileRoute("/_authenticated/events/edit/$eventId")({
   head: () => ({
@@ -42,7 +43,11 @@ function EditEvent() {
       <h1 className="mt-3 text-4xl text-foreground">{q.data?.event?.title ?? "Event"}</h1>
       {q.data && !q.data.event && <p className="mt-6 text-muted-foreground">This event isn't available to edit.</p>}
       {q.data?.event && uid.data && !admin.isLoading && (
-        <EventForm mode="edit" isAdmin={!!admin.data} userId={uid.data} initial={q.data.event} initialLocation={q.data.location} />
+        canEditEvent(q.data.event, uid.data, Boolean(admin.data)) ? (
+          <EventForm mode="edit" isAdmin={!!admin.data} userId={uid.data} initial={q.data.event} initialLocation={q.data.location} />
+        ) : (
+          <p className="mt-6 text-muted-foreground">You don't have permission to edit this gathering.</p>
+        )
       )}
     </div>
   );

@@ -10,6 +10,7 @@
 <!-- LOVABLE:END -->
 
 - In-app event calls use `@daily-co/daily-js` call-object mode with a custom Campfire UI; keep access, token, and expiry enforcement in `video.functions.ts` so presentation changes cannot weaken room security.
+- Shared event links always stop at the event page: the call only opens from an explicit member click, never automatically on arrival; external meeting links take precedence over the built-in room.
 - The four discovery pages share the reusable dealt-hand pattern; keep recommendation presentation client-side so visual shuffling never changes backend rules.
 - Appreciation read receipts must go through the authenticated server function and its service-only database function; never add a broad member update policy.
 - Appreciation send motion uses one requestAnimationFrame timeline; keep persistence immediate and independent from decorative playback.
@@ -28,4 +29,9 @@
 - Free onboarding is the sole root payment-boundary exception; incomplete entry profiles route there without changing AppShell or member-access helpers. The post-onboarding support dialog reuses existing checkout functions, while authenticated trial recording atomically sets a write-once profile timestamp and never grants access.
 - Root session verification has a bounded failure exit that clears only this client's persisted session and reloads the landing page; abandon a stuck auth client rather than waiting for sign-out, preserving normal OAuth and sign-out behavior.
 - Displayed and copied event share URLs use the shared production-origin joinUrl helper, so preview hosts never leak into shared links.
+- Personalized event sharing uses the per-account affiliate query and idempotent activation RPC; host-attributed sharing uses an authenticated server function and staff-checked event-scoped database RPC, so no impersonation or broad affiliate read access is needed.
 - Notification RPCs live in a client-safe *.functions.ts entry, re-exported from src/server/notifications.ts for server callers; all queries use the verified caller and fail gently until the future tables exist, and the email helper remains inert.
+- Event time displays share the pure event-time formatter and EventTime presentation; resolve the viewer timezone only after hydration to keep server-rendered markup stable without changing stored event instants.
+- Event edit screens share the browser-safe event-edit helpers; detail updates whitelist editable fields and never write status or ownership, preserving pending review and immediate published edits under existing database authorization.
+- Calendar exports use the browser-safe calendar utility with UTC instants and stable per-event UIDs; export only the RSVP'd occurrence and location already authorized by the event read, because repeated gatherings are separate events and RSVPs.
+- Public videos use events.video_url, a shared safe YouTube player and published-only preview RPC; private call links stay separate.
