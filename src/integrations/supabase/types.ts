@@ -215,6 +215,122 @@ export type Database = {
           },
         ]
       }
+      company_equity_cap_table: {
+        Row: {
+          created_at: string
+          id: string
+          is_verified: boolean
+          percentage: number
+          stakeholder_group: string
+          units_count: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_verified?: boolean
+          percentage: number
+          stakeholder_group: string
+          units_count: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_verified?: boolean
+          percentage?: number
+          stakeholder_group?: string
+          units_count?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      company_expenses: {
+        Row: {
+          amount_cents: number
+          budget_cents: number
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          kind: string
+          month_key: string
+          updated_at: string
+        }
+        Insert: {
+          amount_cents: number
+          budget_cents?: number
+          category: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          kind: string
+          month_key: string
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          budget_cents?: number
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          kind?: string
+          month_key?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_expenses_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_financial_snapshots: {
+        Row: {
+          closing_cash_cents: number
+          contributor_allocated_cents: number
+          membership_cash_cents: number
+          opening_cash_cents: number
+          operating_expenses_cents: number
+          period_key: string
+          recognized_revenue_cents: number
+          referral_allocated_cents: number
+          runway_months: number | null
+          updated_at: string
+        }
+        Insert: {
+          closing_cash_cents?: number
+          contributor_allocated_cents?: number
+          membership_cash_cents?: number
+          opening_cash_cents?: number
+          operating_expenses_cents?: number
+          period_key: string
+          recognized_revenue_cents?: number
+          referral_allocated_cents?: number
+          runway_months?: number | null
+          updated_at?: string
+        }
+        Update: {
+          closing_cash_cents?: number
+          contributor_allocated_cents?: number
+          membership_cash_cents?: number
+          opening_cash_cents?: number
+          operating_expenses_cents?: number
+          period_key?: string
+          recognized_revenue_cents?: number
+          referral_allocated_cents?: number
+          runway_months?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       credit_ledger: {
         Row: {
           created_at: string
@@ -250,6 +366,60 @@ export type Database = {
           {
             foreignKeyName: "credit_ledger_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_contributions: {
+        Row: {
+          base_points: number
+          converted_amount_cents: number
+          created_at: string
+          event_id: string
+          host_id: string
+          id: string
+          status: string
+          total_points: number | null
+          updated_at: string
+          verified_attendees: number
+        }
+        Insert: {
+          base_points?: number
+          converted_amount_cents?: number
+          created_at?: string
+          event_id: string
+          host_id: string
+          id?: string
+          status?: string
+          total_points?: number | null
+          updated_at?: string
+          verified_attendees?: number
+        }
+        Update: {
+          base_points?: number
+          converted_amount_cents?: number
+          created_at?: string
+          event_id?: string
+          host_id?: string
+          id?: string
+          status?: string
+          total_points?: number | null
+          updated_at?: string
+          verified_attendees?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_contributions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: true
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_contributions_host_id_fkey"
+            columns: ["host_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -326,6 +496,7 @@ export type Database = {
       }
       event_rsvps: {
         Row: {
+          attended: boolean
           created_at: string
           event_id: string
           id: string
@@ -333,6 +504,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          attended?: boolean
           created_at?: string
           event_id: string
           id?: string
@@ -340,6 +512,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          attended?: boolean
           created_at?: string
           event_id?: string
           id?: string
@@ -370,6 +543,7 @@ export type Database = {
           created_by: string | null
           description: string | null
           ends_at: string | null
+          event_number: number
           event_type: string
           format: string
           going_count: number
@@ -391,6 +565,7 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           ends_at?: string | null
+          event_number?: number
           event_type: string
           format: string
           going_count?: number
@@ -412,6 +587,7 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           ends_at?: string | null
+          event_number?: number
           event_type?: string
           format?: string
           going_count?: number
@@ -569,6 +745,138 @@ export type Database = {
           },
         ]
       }
+      member_earnings_ledger: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          description: string
+          id: string
+          kind: string
+          period_month: string
+          reference_code: string
+          related_id: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          description: string
+          id?: string
+          kind: string
+          period_month: string
+          reference_code: string
+          related_id?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          description?: string
+          id?: string
+          kind?: string
+          period_month?: string
+          reference_code?: string
+          related_id?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_earnings_ledger_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      member_payout_methods: {
+        Row: {
+          account_last4: string | null
+          bank_name: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          method_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_last4?: string | null
+          bank_name?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          method_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_last4?: string | null
+          bank_name?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          method_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_payout_methods_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      member_payouts: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          id: string
+          payout_method: string
+          scheduled_for: string
+          status: string
+          stripe_payout_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          id?: string
+          payout_method?: string
+          scheduled_for: string
+          status?: string
+          stripe_payout_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          id?: string
+          payout_method?: string
+          scheduled_for?: string
+          status?: string
+          stripe_payout_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_payouts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       member_suspensions: {
         Row: {
           created_at: string
@@ -696,6 +1004,7 @@ export type Database = {
           profession: string | null
           profile_completed: boolean
           relationship_status: string | null
+          show_on_referral_leaderboard: boolean
           skill_tags: string[]
           stripe_customer_id: string | null
           travel_desired: string[]
@@ -721,6 +1030,7 @@ export type Database = {
           profession?: string | null
           profile_completed?: boolean
           relationship_status?: string | null
+          show_on_referral_leaderboard?: boolean
           skill_tags?: string[]
           stripe_customer_id?: string | null
           travel_desired?: string[]
@@ -746,6 +1056,7 @@ export type Database = {
           profession?: string | null
           profile_completed?: boolean
           relationship_status?: string | null
+          show_on_referral_leaderboard?: boolean
           skill_tags?: string[]
           stripe_customer_id?: string | null
           travel_desired?: string[]
@@ -1003,6 +1314,10 @@ export type Database = {
           test_cents: number
         }[]
       }
+      apply_referral_refund_deduction: {
+        Args: { p_amount_cents?: number; p_payment_id: string }
+        Returns: undefined
+      }
       can_read_member_image: {
         Args: { _name: string; _owner: string }
         Returns: boolean
@@ -1055,6 +1370,8 @@ export type Database = {
           reserved: number
         }[]
       }
+      my_earnings_raw: { Args: never; Returns: Json }
+      open_accounting_raw: { Args: { p_start_month: string }; Returns: Json }
       profile_is_complete: {
         Args: { p: Database["public"]["Tables"]["profiles"]["Row"] }
         Returns: boolean
@@ -1126,6 +1443,18 @@ export type Database = {
         Returns: string
       }
       rsvp_event: { Args: { _event_id: string }; Returns: string }
+      run_monthly_contribution_conversion: {
+        Args: { p_period_month: string }
+        Returns: undefined
+      }
+      schedule_member_payouts: { Args: { p_for?: string }; Returns: number }
+      sync_event_contributions: { Args: never; Returns: undefined }
+      sync_financial_snapshots: {
+        Args: { p_start_month: string }
+        Returns: undefined
+      }
+      sync_member_earnings: { Args: never; Returns: undefined }
+      sync_open_accounting: { Args: { p_as_of?: string }; Returns: undefined }
       update_booking: {
         Args: { _action: string; _booking_id: string }
         Returns: string
