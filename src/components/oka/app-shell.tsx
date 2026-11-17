@@ -31,14 +31,14 @@ const NAV_ITEMS = [
   { to: "/houses", label: "Houses", icon: Home },
   { to: "/collections", label: "Collections", icon: Bookmark },
   { to: "/open-accounting", label: "Open Accounting", icon: BookOpen },
-  { to: "/earnings", label: "My Earnings", icon: Gift },
   { to: "/profile", label: "My Profile", icon: User },
   { to: "/credits", label: "Credits", icon: Coins },
+  { to: "/earnings", label: "My Earnings", icon: Gift },
   { to: "/affiliate", label: "Invite & earn", icon: Gift },
 ] as const;
 
-/** Desktop bar runs through Collections, then Open Accounting and My Earnings. */
-const PRIMARY_ITEMS = NAV_ITEMS.slice(0, 8);
+/** Desktop bar runs through Collections, then Open Accounting. */
+const PRIMARY_ITEMS = NAV_ITEMS.slice(0, 7);
 /** Mobile bottom bar matches handoff: Home, Events, Homes, Members, Skills. */
 const MOBILE_TAB_ITEMS = [
   { to: "/home", label: "Home" },
