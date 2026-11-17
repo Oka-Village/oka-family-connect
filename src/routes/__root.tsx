@@ -124,7 +124,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Inter:wght@300;400;500;600&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,500&family=Inter:wght@300;400;500;600&family=Noto+Sans+JP:wght@400;500&family=Plus+Jakarta+Sans:wght@200;300;600&display=swap",
       },
       { rel: "icon", href: "/favicon.png", type: "image/png" },
     ],
@@ -137,11 +137,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className="overflow-x-hidden">
       <head>
         <HeadContent />
       </head>
-      <body>
+      <body className="overflow-x-hidden">
         {children}
         <Scripts />
       </body>
@@ -177,12 +177,12 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <MembershipBoundary>
-      <div className="flex min-h-screen flex-col">
+      <div className="flex min-h-screen w-full min-w-0 flex-col overflow-x-hidden">
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <div className="min-h-screen flex-1">
+        <div className="min-h-screen min-w-0 flex-1">
           <Outlet />
         </div>
-        {!locationKey.startsWith("/membership") && <FooterAfterContent key={locationKey} />}
+        <FooterAfterContent key={locationKey} />
       </div>
       </MembershipBoundary>
       <Toaster />
@@ -192,11 +192,15 @@ function RootComponent() {
 
 function FooterAfterContent() {
   const [contentCommitted, setContentCommitted] = useState(false);
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => setContentCommitted(true));
     return () => window.cancelAnimationFrame(frame);
   }, []);
+
+  // Onboarding is a full-bleed flow — no house footer under Welcome / Create profile.
+  if (pathname.startsWith("/onboarding")) return null;
 
   return contentCommitted ? <LittleMomentFooter /> : null;
 }

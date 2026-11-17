@@ -28,7 +28,7 @@ export function MyOfferings({ userId }: { userId: string }) {
           <p className="section-label">My offerings</p>
           <h2 className="mt-2 text-3xl text-foreground">What I share</h2>
         </div>
-        <Button asChild className="rounded-full"><Link to="/skills/new"><Plus className="size-4" strokeWidth={1.5} />Offer a skill</Link></Button>
+        <Button asChild className="rounded-full bg-sage text-cream hover:bg-sage/90"><Link to="/skills/new"><Plus className="size-4" strokeWidth={1.5} />Offer a skill</Link></Button>
       </div>
       {q.data?.length ? (
         <div className="mt-6 grid gap-6 sm:grid-cols-2">

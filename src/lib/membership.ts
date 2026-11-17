@@ -34,13 +34,13 @@ export function hasPaidMembership(
 }
 
 /** Pre-choice unpaid members manage only their profile and the payment/legal pages. */
-const PROFILE_ONLY_ROUTES = new Set(["/onboarding", "/profile", "/welcome"]);
+const PROFILE_ONLY_ROUTES = new Set(["/onboarding", "/profile", "/home", "/welcome"]);
 /** An active trial adds skill and house creation on top of profile-only routes. Event proposals stay open for every member. */
 const CONTENT_ADDING_ROUTES = new Set(["/skills/new", "/houses/new", "/skills", "/houses", "/open-accounting"]);
 /** The invite space is open in every state, including before a member has chosen to pay or trial. */
 const ALWAYS_ALLOWED_ROUTES = new Set(["/membership", "/privacy", "/terms", "/founding", "/affiliate", "/earnings", "/events", "/skills/new", "/houses/new", "/skills", "/houses"]);
 
-export function paymentRedirect(pathname: string, fullAccess: boolean, paid: boolean, trial: TrialState): "/membership" | "/home" | "/welcome" | null {
+export function paymentRedirect(pathname: string, fullAccess: boolean, paid: boolean, trial: TrialState): "/membership" | "/home" | null {
   const path = pathname.replace(/\/+$/, "") || "/";
   if (fullAccess) return path === "/membership" ? "/home" : null;
   if (paid || trial === "active") return null;
@@ -49,7 +49,7 @@ export function paymentRedirect(pathname: string, fullAccess: boolean, paid: boo
   if (ownListingViewTarget(path) || ownEditTarget(path)) return null;
   if (trial === "expired") return "/membership";
   if (PROFILE_ONLY_ROUTES.has(path)) return null;
-  return "/welcome";
+  return "/home";
 }
 
 export function afterMembershipPayment(fullAccess: boolean): "/home" | "/onboarding" {

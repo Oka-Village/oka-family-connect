@@ -19,7 +19,7 @@ export function isFullMember(profile: MemberAccessProfile | null | undefined, no
   ));
 }
 
-const ALLOWED_ROUTES = new Set(["/profile", "/onboarding", "/welcome", "/skills/new", "/houses/new", "/events", "/events/new", "/skills", "/houses", "/affiliate", "/earnings", "/privacy", "/terms", "/open-accounting"]);
+const ALLOWED_ROUTES = new Set(["/profile", "/onboarding", "/home", "/welcome", "/skills/new", "/houses/new", "/events", "/events/new", "/skills", "/houses", "/affiliate", "/earnings", "/privacy", "/terms", "/open-accounting"]);
 
 export function ownEditTarget(pathname: string): { table: "skills" | "houses" | "events"; id: string } | null {
   const match = /^\/(skills|houses|events)\/edit\/([^/]+)$/.exec(pathname.replace(/\/+$/, ""));
