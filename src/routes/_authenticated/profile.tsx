@@ -255,7 +255,7 @@ function ProfileEditor({
     const path = `${profile.id}/${Date.now()}-${file.name.replace(/[^\w.-]/g, "_")}`;
     const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
     setUploading(false);
-    if (error) return void toast.error("That photo didn't upload. Please try again.");
+    if (error) return void toast.error(error.message ? `That photo didn't upload. ${error.message}` : "That photo didn't upload. Please try again.");
     set("photo_url", path);
   }
 
