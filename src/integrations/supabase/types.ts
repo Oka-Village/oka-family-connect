@@ -1397,6 +1397,14 @@ export type Database = {
         }[];
       };
       my_earnings_raw: { Args: Record<PropertyKey, never>; Returns: Json };
+      apply_referral_refund_deduction: {
+        Args: { p_payment_id: string; p_amount_cents?: number | null };
+        Returns: undefined;
+      };
+      schedule_member_payouts: {
+        Args: { p_for?: string };
+        Returns: number;
+      };
       open_accounting_raw: { Args: { p_start_month: string }; Returns: Json };
       profile_is_complete: {
         Args: {

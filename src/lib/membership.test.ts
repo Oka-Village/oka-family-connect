@@ -113,17 +113,20 @@ describe("membership payment rules", () => {
       expect(paymentRedirect(path, false, false, "expired")).toBeNull();
     },
   );
-  it.each(["/membership", "/privacy", "/terms", "/founding", "/affiliate", "/events"])("always allows %s", (path) => {
+  it.each(["/membership", "/privacy", "/terms", "/founding", "/affiliate", "/earnings", "/events"])("always allows %s", (path) => {
     expect(paymentRedirect(path, false, false, "none")).toBeNull();
     expect(paymentRedirect(path, false, false, "active")).toBeNull();
     expect(paymentRedirect(path, false, false, "expired")).toBeNull();
   });
   it.each(["none", "active", "expired"] as const)("keeps the invite space open for every unpaid state: %s", (trial) => {
     expect(paymentRedirect("/affiliate", false, false, trial)).toBeNull();
+    expect(paymentRedirect("/earnings", false, false, trial)).toBeNull();
   });
   it("sends paid members away from the payment page but keeps the invite space open", () => {
     expect(paymentRedirect("/affiliate", false, true, "expired")).toBeNull();
     expect(paymentRedirect("/affiliate", true, false, "none")).toBeNull();
+    expect(paymentRedirect("/earnings", false, true, "expired")).toBeNull();
+    expect(paymentRedirect("/earnings", true, false, "none")).toBeNull();
   });
   it.each(["/home", "/profile", "/welcome", "/onboarding", "/"])(
     "sends expired-trial members from %s to /membership",

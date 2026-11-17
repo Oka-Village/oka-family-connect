@@ -33,11 +33,11 @@ const NAV_ITEMS = [
   { to: "/open-accounting", label: "Open Accounting", icon: BookOpen },
   { to: "/profile", label: "My Profile", icon: User },
   { to: "/credits", label: "Credits", icon: Coins },
-  { to: "/affiliate", label: "Invite & earn", icon: Gift },
+  { to: "/earnings", label: "My Earnings", icon: Gift },
 ] as const;
 
 const PRIMARY_ITEMS = NAV_ITEMS.slice(0, 7);
-const MOBILE_ITEMS = [...PRIMARY_ITEMS, { to: "/affiliate", label: "Invite", icon: Gift } as const];
+const MOBILE_ITEMS = [...PRIMARY_ITEMS, { to: "/earnings", label: "Earnings", icon: Gift } as const];
 
 type AccountMenuItem =
   | (typeof NAV_ITEMS)[number]
