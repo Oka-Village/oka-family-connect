@@ -6,8 +6,8 @@ import { HeartHandshake, Home, Loader2, Sparkles } from "lucide-react";
 import { Wordmark } from "@/components/oka/wordmark";
 import { EmailAuthDialog } from "@/components/oka/email-auth";
 import { Button } from "@/components/ui/button";
-import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
+import { signInWithGoogle } from "@/lib/google-sign-in";
 import { saveInviteCode } from "@/lib/affiliates";
 import { useServerFn } from "@tanstack/react-start";
 import { beginSignupFlow } from "@/lib/signup-flow.functions";
@@ -49,10 +49,13 @@ function InvitePage() {
   async function join() {
     setBusy(true);
     saveInviteCode(code);
-    await beginSignup();
-    const res = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-    if (res.error) setBusy(false);
-    else if (!res.redirected) void navigate({ to: "/events" });
+    try {
+      await beginSignup();
+      const res = await signInWithGoogle(window.location.origin);
+      if (!res.redirected) void navigate({ to: "/events" });
+    } catch {
+      setBusy(false);
+    }
   }
 
   const name = info.data?.inviter_name;
