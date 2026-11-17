@@ -9,7 +9,7 @@ import { EventVideo } from "@/components/oka/event-video";
 import { toast } from "sonner";
 import { Wordmark } from "@/components/oka/wordmark";
 import { Button } from "@/components/ui/button";
-import { lovable } from "@/integrations/lovable/index";
+import { signInWithGoogle } from "@/lib/google-sign-in";
 import { supabase } from "@/integrations/supabase/client";
 import { saveReturnTo } from "@/lib/join-link";
 import { claimEventInvite, saveEventJoinSlug } from "@/lib/event-invite";
@@ -107,11 +107,8 @@ function JoinPage() {
     saveReturnTo(`/join/${slug}`);
     try {
       await beginSignup();
-      const res = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-      if (res.error) {
-        setBusy(false);
-        toast.error(res.error instanceof Error ? res.error.message : "We couldn't open Google sign-in. Please try again.");
-      } else if (!res.redirected) window.location.replace(`/join/${slug}`);
+      const res = await signInWithGoogle(window.location.origin);
+      if (!res.redirected) window.location.replace(`/join/${slug}`);
     } catch (e) {
       setBusy(false);
       toast.error(e instanceof Error ? e.message : "We couldn't open Google sign-in. Please try again.");

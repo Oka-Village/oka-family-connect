@@ -40,5 +40,10 @@ export async function verifyAndRecordMembership(sessionId: string, userId: strin
     _metadata: { terms_version: FOUNDING_TERMS_VERSION, source: kind === "founding" ? "payment_link" : "checkout" },
   });
   if (error) { console.error("Membership persistence failed", { code: error.code }); throw new Error("Your payment could not be recorded. Please try confirming again."); }
+  // Accrue referral earnings immediately so My Earnings does not wait on webhook replay.
+  const { error: syncError } = await admin.rpc("sync_member_earnings");
+  if (syncError) console.error("Referral earnings sync failed after membership confirm", { code: syncError.code });
+  const { error: payoutError } = await admin.rpc("schedule_member_payouts", {});
+  if (payoutError) console.error("Payout schedule failed after membership confirm", { code: payoutError.code });
   return { paid: true };
 }

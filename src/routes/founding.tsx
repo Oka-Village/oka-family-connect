@@ -6,8 +6,8 @@ import { Check, Infinity as InfinityIcon, Loader2, Sparkles } from "lucide-react
 
 import { Wordmark } from "@/components/oka/wordmark";
 import { Button } from "@/components/ui/button";
-import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
+import { signInWithGoogle } from "@/lib/google-sign-in";
 import { saveReturnTo } from "@/lib/join-link";
 import { confirmFoundingCheckout, createFoundingCheckout } from "@/lib/stripe/founding.functions";
 import { useProfile } from "@/hooks/use-profile";
@@ -86,8 +86,12 @@ function FoundingPage() {
 
   async function signIn() {
     saveReturnTo("/founding");
-    await beginSignup();
-    await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
+    try {
+      await beginSignup();
+      await signInWithGoogle(window.location.origin);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Google sign-in could not be opened. Please try again.");
+    }
   }
 
   async function pay() {

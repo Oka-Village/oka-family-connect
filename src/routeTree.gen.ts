@@ -23,8 +23,10 @@ import { Route as AuthenticatedAffiliateRouteImport } from './routes/_authentica
 import { Route as AuthenticatedCollectionsRouteImport } from './routes/_authenticated/collections'
 import { Route as AuthenticatedCreditsRouteImport } from './routes/_authenticated/credits'
 import { Route as AuthenticatedDirectoryRouteImport } from './routes/_authenticated/directory'
+import { Route as AuthenticatedEarningsRouteImport } from './routes/_authenticated/earnings'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
+import { Route as AuthenticatedOpenAccountingRouteImport } from './routes/_authenticated/open-accounting'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedSessionsRouteImport } from './routes/_authenticated/sessions'
 import { Route as AuthenticatedStaysRouteImport } from './routes/_authenticated/stays'
@@ -121,6 +123,11 @@ const AuthenticatedDirectoryRoute = AuthenticatedDirectoryRouteImport.update({
   path: '/directory',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedEarningsRoute = AuthenticatedEarningsRouteImport.update({
+  id: '/earnings',
+  path: '/earnings',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedNotificationsRoute =
   AuthenticatedNotificationsRouteImport.update({
     id: '/notifications',
@@ -132,6 +139,12 @@ const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedOpenAccountingRoute =
+  AuthenticatedOpenAccountingRouteImport.update({
+    id: '/open-accounting',
+    path: '/open-accounting',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -287,8 +300,10 @@ export interface FileRoutesByFullPath {
   '/collections': typeof AuthenticatedCollectionsRoute
   '/credits': typeof AuthenticatedCreditsRoute
   '/directory': typeof AuthenticatedDirectoryRoute
+  '/earnings': typeof AuthenticatedEarningsRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/open-accounting': typeof AuthenticatedOpenAccountingRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/sessions': typeof AuthenticatedSessionsRoute
   '/stays': typeof AuthenticatedStaysRoute
@@ -329,8 +344,10 @@ export interface FileRoutesByTo {
   '/collections': typeof AuthenticatedCollectionsRoute
   '/credits': typeof AuthenticatedCreditsRoute
   '/directory': typeof AuthenticatedDirectoryRoute
+  '/earnings': typeof AuthenticatedEarningsRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/open-accounting': typeof AuthenticatedOpenAccountingRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/sessions': typeof AuthenticatedSessionsRoute
   '/stays': typeof AuthenticatedStaysRoute
@@ -373,8 +390,10 @@ export interface FileRoutesById {
   '/_authenticated/collections': typeof AuthenticatedCollectionsRoute
   '/_authenticated/credits': typeof AuthenticatedCreditsRoute
   '/_authenticated/directory': typeof AuthenticatedDirectoryRoute
+  '/_authenticated/earnings': typeof AuthenticatedEarningsRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
+  '/_authenticated/open-accounting': typeof AuthenticatedOpenAccountingRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/sessions': typeof AuthenticatedSessionsRoute
   '/_authenticated/stays': typeof AuthenticatedStaysRoute
@@ -417,8 +436,10 @@ export interface FileRouteTypes {
     | '/collections'
     | '/credits'
     | '/directory'
+    | '/earnings'
     | '/notifications'
     | '/onboarding'
+    | '/open-accounting'
     | '/profile'
     | '/sessions'
     | '/stays'
@@ -459,8 +480,10 @@ export interface FileRouteTypes {
     | '/collections'
     | '/credits'
     | '/directory'
+    | '/earnings'
     | '/notifications'
     | '/onboarding'
+    | '/open-accounting'
     | '/profile'
     | '/sessions'
     | '/stays'
@@ -502,8 +525,10 @@ export interface FileRouteTypes {
     | '/_authenticated/collections'
     | '/_authenticated/credits'
     | '/_authenticated/directory'
+    | '/_authenticated/earnings'
     | '/_authenticated/notifications'
     | '/_authenticated/onboarding'
+    | '/_authenticated/open-accounting'
     | '/_authenticated/profile'
     | '/_authenticated/sessions'
     | '/_authenticated/stays'
@@ -645,6 +670,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDirectoryRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/earnings': {
+      id: '/_authenticated/earnings'
+      path: '/earnings'
+      fullPath: '/earnings'
+      preLoaderRoute: typeof AuthenticatedEarningsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/notifications': {
       id: '/_authenticated/notifications'
       path: '/notifications'
@@ -657,6 +689,13 @@ declare module '@tanstack/react-router' {
       path: '/onboarding'
       fullPath: '/onboarding'
       preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/open-accounting': {
+      id: '/_authenticated/open-accounting'
+      path: '/open-accounting'
+      fullPath: '/open-accounting'
+      preLoaderRoute: typeof AuthenticatedOpenAccountingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/profile': {
@@ -843,8 +882,10 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCollectionsRoute: typeof AuthenticatedCollectionsRoute
   AuthenticatedCreditsRoute: typeof AuthenticatedCreditsRoute
   AuthenticatedDirectoryRoute: typeof AuthenticatedDirectoryRoute
+  AuthenticatedEarningsRoute: typeof AuthenticatedEarningsRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
+  AuthenticatedOpenAccountingRoute: typeof AuthenticatedOpenAccountingRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedSessionsRoute: typeof AuthenticatedSessionsRoute
   AuthenticatedStaysRoute: typeof AuthenticatedStaysRoute
@@ -876,8 +917,10 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCollectionsRoute: AuthenticatedCollectionsRoute,
   AuthenticatedCreditsRoute: AuthenticatedCreditsRoute,
   AuthenticatedDirectoryRoute: AuthenticatedDirectoryRoute,
+  AuthenticatedEarningsRoute: AuthenticatedEarningsRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
+  AuthenticatedOpenAccountingRoute: AuthenticatedOpenAccountingRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedSessionsRoute: AuthenticatedSessionsRoute,
   AuthenticatedStaysRoute: AuthenticatedStaysRoute,
