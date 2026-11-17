@@ -53,7 +53,7 @@ export function OpenAccountingBooks() {
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
-        <div className="sticky top-0 z-20 -mx-1 border-b border-border bg-background/95 px-1 py-3 backdrop-blur">
+        <div className="sticky top-0 z-20 -mx-1 border-b border-border bg-background/95 px-1 py-3 backdrop-blur lg:top-19">
           <div className="flex min-w-0 gap-2 overflow-x-auto pb-1" role="group" aria-label="Reporting range">
             {(
               [
@@ -113,7 +113,7 @@ export function OpenAccountingBooks() {
 
         <Participation view={view} />
 
-        <section id="details" className="flex min-w-0 scroll-mt-28 flex-col gap-6">
+        <section id="details" className="flex min-w-0 scroll-mt-36 flex-col gap-6 lg:scroll-mt-52">
           <h2 className="font-serif text-3xl">Details</h2>
           <Expenses view={view} />
           <Profit view={view} />

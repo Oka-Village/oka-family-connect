@@ -9,8 +9,14 @@ export function EventTime({ start, end, timezone }: { start: string; end?: strin
   const display = formatEventTimeDual(start, end, timezone, viewerTimezone);
   return (
     <span className="min-w-0 break-words">
-      <span className="block">{display.primary}</span>
-      {display.local && <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">{display.local}</span>}
+      {display.local ? (
+        <>
+          <span className="block font-semibold">{display.local}</span>
+          <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">{display.primary}</span>
+        </>
+      ) : (
+        <span className="block">{display.primary}</span>
+      )}
     </span>
   );
 }
