@@ -6,8 +6,8 @@ import { FamilyCircle } from "@/components/oka/onboarding-visual/family-circle";
 import { Wordmark } from "@/components/oka/wordmark";
 import { EmailAuthDialog } from "@/components/oka/email-auth";
 import { Button } from "@/components/ui/button";
-import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
+import { signInWithGoogle } from "@/lib/google-sign-in";
 import { takeReturnTo } from "@/lib/join-link";
 import { useServerFn } from "@tanstack/react-start";
 import { beginSignupFlow } from "@/lib/signup-flow.functions";
@@ -65,19 +65,15 @@ function Landing() {
 
   async function handleGoogleSignIn() {
     setSigningIn(true);
-    await beginSignup();
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-
-    if (result.error) {
+    try {
+      await beginSignup();
+      const result = await signInWithGoogle(window.location.origin);
+      if (result.redirected) return;
+      navigate({ to: "/home", replace: true });
+    } catch {
       setSigningIn(false);
       toast.error("We couldn't open Google sign-in. Please try again.");
-      return;
     }
-    if (result.redirected) return;
-
-    navigate({ to: "/home", replace: true });
   }
 
   return (

@@ -337,8 +337,74 @@ function EventDetail() {
               )}
             </div>
           )}
+
+          {past && (isManager || isAdmin) && <AttendanceCheckIn eventId={ev.id} />}
         </aside>
       </div>
+    </div>
+  );
+}
+
+type AttendeeRow = { user_id: string; attended: boolean; display_name: string | null };
+
+/** Host/admin attendance check-in. Feeds event_contributions.verified_attendees
+ * (via public.sync_event_contributions), which is the real source for
+ * contribution points on Open Accounting — there is no attendance tracking
+ * anywhere else in the app. */
+function AttendanceCheckIn({ eventId }: { eventId: string }) {
+  const qc = useQueryClient();
+  const attendees = useQuery({
+    queryKey: ["event", eventId, "attendees"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("event_rsvps")
+        .select("user_id,attended,profile:profiles!event_rsvps_user_id_fkey(display_name)")
+        .eq("event_id", eventId)
+        .eq("status", "going")
+        .order("created_at");
+      if (error) throw error;
+      return (data ?? []).map((row) => ({
+        user_id: row.user_id,
+        attended: row.attended,
+        display_name: (row as unknown as { profile: { display_name: string | null } | null }).profile?.display_name ?? null,
+      })) as AttendeeRow[];
+    },
+  });
+
+  const toggle = useMutation({
+    mutationFn: async ({ userId, attended }: { userId: string; attended: boolean }) => {
+      const { error } = await supabase.from("event_rsvps").update({ attended }).eq("event_id", eventId).eq("user_id", userId);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["event", eventId, "attendees"] }),
+    onError: () => toast.error("That didn't save."),
+  });
+
+  const rows = attendees.data ?? [];
+  if (attendees.isLoading) return null;
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-5 shadow-soft">
+      <p className="section-label">Attendance check-in</p>
+      <p className="mt-2 text-sm text-muted-foreground">Verified attendees earn contribution points on Open Accounting.</p>
+      <ul className="mt-4 grid gap-2 text-sm">
+        {rows.length === 0 && <p className="text-muted-foreground">No one RSVP'd as going.</p>}
+        {rows.map((row) => (
+          <li key={row.user_id} className="flex items-center justify-between gap-3">
+            <span className="text-foreground">{row.display_name ?? "Member"}</span>
+            <Button
+              type="button"
+              size="sm"
+              variant={row.attended ? "default" : "outline"}
+              className="rounded-full"
+              disabled={toggle.isPending}
+              onClick={() => toggle.mutate({ userId: row.user_id, attended: !row.attended })}
+            >
+              {row.attended ? "Attended" : "Mark attended"}
+            </Button>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
