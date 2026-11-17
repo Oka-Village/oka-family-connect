@@ -204,6 +204,13 @@
       "when": 1794895998130,
       "tag": "0028_my_earnings_stripe_parity",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1794896657941,
+      "tag": "0029_fix_my_earnings_created_at_v2",
+      "breakpoints": true
     }
   ]
 }
