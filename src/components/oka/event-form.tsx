@@ -88,7 +88,7 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
     const path = `${userId}/events/${Date.now()}-${file.name.replace(/[^\w.-]/g, "_")}`;
     const { error } = await supabase.storage.from("avatars").upload(path, file);
     setUploading(false);
-    if (error) return void toast.error("That photo didn't upload. Please try again.");
+    if (error) return void toast.error(error.message ? `That photo didn't upload. ${error.message}` : "That photo didn't upload. Please try again.");
     setF((x) => ({ ...x, photo_url: path }));
     setPhotoError(false);
   }

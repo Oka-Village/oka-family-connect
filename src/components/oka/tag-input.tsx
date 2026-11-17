@@ -36,7 +36,7 @@ export function TagInput({
             onClick={() => toggle(s)}
             className={cn(
               "rounded-full border px-4 py-1.5 text-sm transition-colors",
-              has(s) ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground hover:bg-secondary",
+              has(s) ? "border-sage bg-sage text-cream" : "border-border bg-card text-foreground hover:bg-sage-light",
             )}
           >
             {s}
@@ -46,7 +46,7 @@ export function TagInput({
           <span key={t} className="flex items-center gap-1 rounded-full bg-secondary px-4 py-1.5 text-sm text-secondary-foreground">
             {t}
             <button type="button" aria-label={`Remove ${t}`} onClick={() => toggle(t)}>
-              <X className="size-3.5 text-primary" strokeWidth={1.5} />
+              <X className="size-3.5 text-sage" strokeWidth={1.5} />
             </button>
           </span>
         ))}
@@ -60,10 +60,10 @@ export function TagInput({
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === ",") { e.preventDefault(); add(); }
           }}
-          className="rounded-full"
+          className="h-12 rounded-2xl border-0 bg-cream-deep px-4 shadow-none focus-visible:ring-sage"
         />
-        <button type="button" onClick={add} aria-label="Add tag" className="flex size-10 shrink-0 items-center justify-center rounded-full border border-border hover:bg-secondary">
-          <Plus className="size-4 text-primary" strokeWidth={1.5} />
+        <button type="button" onClick={add} aria-label="Add tag" className="flex size-12 shrink-0 items-center justify-center rounded-full border border-border hover:bg-sage-light">
+          <Plus className="size-4 text-sage" strokeWidth={1.5} />
         </button>
       </div>
     </div>
@@ -71,7 +71,7 @@ export function TagInput({
 }
 
 export function TagList({ tags, empty = "Not shared yet" }: { tags: string[] | null | undefined; empty?: string }) {
-  if (!tags?.length) return <p className="text-sm text-muted-foreground">{empty}</p>;
+  if (!tags?.length) return <p className="font-serif text-lg italic text-muted-foreground">{empty}</p>;
   return (
     <div className="flex flex-wrap gap-2">
       {tags.map((t) => (

@@ -21,8 +21,11 @@ export function MyHouses({ userId }: { userId: string }) {
   return (
     <section className="mt-12">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <h2 className="text-3xl text-foreground">My home</h2>
-        <Button asChild className="rounded-full"><Link to="/houses/new"><Plus className="size-4" strokeWidth={1.5} />List my home</Link></Button>
+        <div>
+          <p className="section-label">My home</p>
+          <h2 className="mt-2 text-3xl text-foreground">My home</h2>
+        </div>
+        <Button asChild className="rounded-full bg-sage text-cream hover:bg-sage/90"><Link to="/houses/new"><Plus className="size-4" strokeWidth={1.5} />List my home</Link></Button>
       </div>
       {q.data?.length ? (
         <div className="mt-6 grid gap-6 sm:grid-cols-2">
