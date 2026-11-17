@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCurrentUserId, useRoles } from "@/hooks/use-is-admin";
 import { supabase } from "@/integrations/supabase/client";
-import { getAdminMemberStatuses } from "@/lib/admin-members.functions";
+import { getAdminMemberStatuses, searchAdminMembers } from "@/lib/admin-members.functions";
 import { deleteEvent, setEventStatus } from "@/lib/event-admin";
 import { groupEventSeries, type GroupedEvent } from "@/lib/event-series";
 import { EVENT_SELECT, TYPE_LABELS, formatEventDate, formatEventTime, hostName, type EventRow } from "@/lib/events";
@@ -236,23 +236,31 @@ function MembersSection({ viewerIsAdmin }: { viewerIsAdmin: boolean }) {
   const [adjusting, setAdjusting] = useState<string | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
   const [accessing, setAccessing] = useState<string | null>(null);
+  const [shown, setShown] = useState(25);
   const { data: suspendedIds } = useSuspendedIds();
   const q = useQuery({
-    queryKey: ["admin", "members", term],
+    queryKey: ["admin", "members", term, shown],
+    placeholderData: (prev) => prev,
     queryFn: async () => {
       const BASE = "id,display_name,location,profession,photo_url,trial_started_at,trial_ends_at,complimentary_access";
-      const run = (cols: string) => {
-        let pq = supabase.from("profiles").select(cols).order("display_name").limit(25);
-        if (term.trim()) pq = pq.ilike("display_name", `%${term.trim().replace(/[%_]/g, "")}%`);
-        return pq;
-      };
+      const found = await searchAdminMembers({ data: { term: term.trim(), offset: 0, limit: 100 } });
+      const all = found.members.slice(0, shown);
+      // Fetch in batches of 100 when more are shown.
+      for (let off = 100; off < shown && off < found.total; off += 100) {
+        const more = await searchAdminMembers({ data: { term: term.trim(), offset: off, limit: Math.min(100, shown - off) } });
+        all.push(...more.members);
+      }
+      const order = all.map((m) => m.id);
+      const emailBy = new Map(all.map((m) => [m.id, m.email]));
+      const run = (cols: string) => supabase.from("profiles").select(cols).in("id", order.length ? order : ["00000000-0000-0000-0000-000000000000"]);
       type Person = { id: string; display_name: string | null; location: string | null; profession: string | null; photo_url: string | null; trial_started_at: string | null; trial_ends_at: string | null; complimentary_access: boolean; approved_at?: string | null };
       // approved_at may not exist yet; fall back to today's query if it errors.
       let hasApproval = true;
       let res = await run(`${BASE},approved_at`);
       if (res.error) { hasApproval = false; res = await run(BASE); }
       if (res.error) throw res.error;
-      const people = (res.data ?? []) as unknown as Person[];
+      const fetched = new Map(((res.data ?? []) as unknown as Person[]).map((p) => [p.id, p]));
+      const people = order.map((id) => fetched.get(id)).filter((p): p is Person => Boolean(p));
       const ids = (people ?? []).map((p) => p.id);
       const { data: roles } = ids.length
         ? await supabase.from("user_roles").select("user_id,role").in("user_id", ids)
@@ -263,14 +271,17 @@ function MembersSection({ viewerIsAdmin }: { viewerIsAdmin: boolean }) {
         ? await supabase.from("affiliates").select("user_id,status").in("user_id", ids)
         : { data: [] as { user_id: string; status: string }[] };
       const affBy = new Map((affs ?? []).map((a) => [a.user_id, a.status]));
-      const membershipBy = ids.length ? await getAdminMemberStatuses({ data: { userIds: ids } }) : {};
-      return (people ?? []).map((p) => ({
+      const membershipBy: Record<string, Awaited<ReturnType<typeof getAdminMemberStatuses>>[string]> = {};
+      for (let i = 0; i < ids.length; i += 100) Object.assign(membershipBy, await getAdminMemberStatuses({ data: { userIds: ids.slice(i, i + 100) } }));
+      const members = people.map((p) => ({
         ...p,
+        email: emailBy.get(p.id) ?? null,
         roles: byUser.get(p.id) ?? new Set<string>(),
         affiliate: affBy.get(p.id) ?? null,
         membership: membershipBy[p.id] ?? null,
         pendingApproval: hasApproval && p.approved_at == null,
       }));
+      return { members, total: found.total };
     },
   });
 
@@ -313,11 +324,12 @@ function MembersSection({ viewerIsAdmin }: { viewerIsAdmin: boolean }) {
     <section className="mt-10">
       <div className="relative max-w-md">
         <Search className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-primary" strokeWidth={1.5} />
-        <Input value={term} onChange={(e) => setTerm(e.target.value)} placeholder="Search members by name" className="rounded-full pl-10" />
+        <Input value={term} onChange={(e) => { setTerm(e.target.value); setShown(25); }} placeholder="Search members by name or email" className="rounded-full pl-10" />
       </div>
       <ul className="mt-6 grid gap-3">
-        {q.data?.length === 0 && <p className="text-muted-foreground">No members match that name.</p>}
-        {q.data?.map((p) => {
+        {q.data && <p className="text-sm text-muted-foreground">Showing {q.data.members.length} of {q.data.total} members</p>}
+        {q.data?.members.length === 0 && <p className="text-muted-foreground">No members match that name or email.</p>}
+        {q.data?.members.map((p) => {
           const isAdmin = p.roles.has("admin");
           const isMod = p.roles.has("moderator");
           const now = new Date();
@@ -331,6 +343,7 @@ function MembersSection({ viewerIsAdmin }: { viewerIsAdmin: boolean }) {
               <AdminMemberPhoto photoUrl={p.photo_url} name={p.display_name} />
               <div>
                 <p className="font-serif text-xl text-foreground">{p.display_name || "Unnamed member"}{self && <span className="ml-2 text-sm text-muted-foreground">(you)</span>}</p>
+                {p.email && <p className="text-sm text-muted-foreground">{p.email}</p>}
                 <p className="text-sm text-muted-foreground">{[p.profession, p.location].filter(Boolean).join(" · ") || "—"}</p>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {p.pendingApproval && <span className="rounded-full bg-golden-tint px-3 py-0.5 text-xs text-golden-ink">Pending approval</span>}
@@ -376,6 +389,13 @@ function MembersSection({ viewerIsAdmin }: { viewerIsAdmin: boolean }) {
           );
         })}
       </ul>
+      {q.data && q.data.members.length < q.data.total && (
+        <div className="mt-6 flex justify-center">
+          <Button variant="outline" className="rounded-full" disabled={q.isFetching} onClick={() => setShown((n) => n + 25)}>
+            {q.isFetching ? "Loading…" : "Load more"}
+          </Button>
+        </div>
+      )}
       <BlockedEmails />
     </section>
   );

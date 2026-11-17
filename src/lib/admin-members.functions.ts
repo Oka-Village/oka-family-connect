@@ -46,3 +46,46 @@ export const getAdminMemberStatuses = createServerFn({ method: "POST" })
     for (const m of memberships ?? []) byUser[m.user_id] = m;
     return byUser;
   });
+
+/** Pure helper: filter members by name or email (case-insensitive), named first alphabetically, then paginate. */
+export function filterAdminMembers(
+  rows: { id: string; display_name: string | null; email: string | null }[],
+  term: string,
+  offset: number,
+  limit: number,
+) {
+  const t = term.trim().toLowerCase();
+  const matched = rows
+    .filter((r) => !t || (r.display_name ?? "").toLowerCase().includes(t) || (r.email ?? "").toLowerCase().includes(t))
+    .sort((a, b) => {
+      if (!a.display_name && !b.display_name) return (a.email ?? "").localeCompare(b.email ?? "");
+      if (!a.display_name) return 1;
+      if (!b.display_name) return -1;
+      return a.display_name.localeCompare(b.display_name);
+    });
+  return { page: matched.slice(offset, offset + limit), total: matched.length };
+}
+
+/** Admin-only: page through all members (including unfinished profiles), searching by name or email. */
+export const searchAdminMembers = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((value: unknown) =>
+    z.object({ term: z.string().max(200), offset: z.number().int().min(0), limit: z.number().int().min(1).max(100) }).parse(value),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: isAdmin, error } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
+    if (error || !isAdmin) throw new Error("Only admins can list members.");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const emails = new Map<string, string | null>();
+    for (let p = 1; p <= 50; p++) {
+      const res = await supabaseAdmin.auth.admin.listUsers({ page: p, perPage: 1000 });
+      if (res.error) throw new Error("We couldn't read member emails.");
+      for (const u of res.data.users) emails.set(u.id, u.email ?? null);
+      if (res.data.users.length < 1000) break;
+    }
+    const { data: profiles, error: pErr } = await supabaseAdmin.from("profiles").select("id,display_name");
+    if (pErr) throw new Error("We couldn't read members.");
+    const rows = (profiles ?? []).map((p) => ({ id: p.id, display_name: p.display_name, email: emails.get(p.id) ?? null }));
+    const { page, total } = filterAdminMembers(rows, data.term, data.offset, data.limit);
+    return { members: page.map((m) => ({ id: m.id, email: m.email })), total };
+  });
