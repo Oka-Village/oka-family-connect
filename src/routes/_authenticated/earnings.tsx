@@ -1,17 +1,16 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Copy, Gift, Loader2, Users } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Loader2, Users } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { toast } from "sonner";
 
+import { InviteEarnSection } from "@/components/oka/invite-earn-section";
 import { Bars, chartColors } from "@/components/oka/open-accounting-charts";
 import { Button } from "@/components/ui/button";
 import { useCurrentUserId } from "@/hooks/use-is-admin";
 import { canFollowUp, fetchMyEarnings, statusLabel } from "@/data/open-accounting/my-earnings";
 import { formatCents } from "@/lib/affiliates";
 import { POINT_RULES } from "@/lib/open-accounting/allocate";
-import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/earnings")({
   head: () => ({
@@ -50,9 +49,6 @@ function shortMonthLabel(id: string) {
 
 function EarningsPage() {
   const { data: uid } = useCurrentUserId();
-  const qc = useQueryClient();
-  const [copied, setCopied] = useState(false);
-  const [busy, setBusy] = useState(false);
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [monthId, setMonthId] = useState<string | null>(null);
 
@@ -78,18 +74,6 @@ function EarningsPage() {
     [series],
   );
 
-  async function activate() {
-    setBusy(true);
-    const { error } = await supabase.rpc("activate_affiliate");
-    setBusy(false);
-    if (error) {
-      toast.error("That didn't work. Please try again.");
-      return;
-    }
-    await qc.invalidateQueries({ queryKey: ["my-earnings"] });
-    await qc.invalidateQueries({ queryKey: ["affiliate"] });
-  }
-
   const conversion =
     selectedMonth && selectedMonth.invitedCount > 0
       ? Math.round((selectedMonth.payingCount / selectedMonth.invitedCount) * 100)
@@ -97,74 +81,29 @@ function EarningsPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-12 lg:py-16">
-      <p className="section-label">My Earnings</p>
-      <h1 className="mt-4 text-4xl text-foreground lg:text-5xl">Your invitations and payments</h1>
-      <p className="mt-3 max-w-2xl text-muted-foreground">
-        Only your invitations, points, and payments. No other member&apos;s balance is on this page.
-      </p>
+      <InviteEarnSection />
 
       {account.isLoading || !uid ? (
-        <Loader2 className="mt-10 size-6 animate-spin text-primary" strokeWidth={1.5} />
+        <Loader2 className="mt-16 size-6 animate-spin text-primary" strokeWidth={1.5} />
       ) : account.isError ? (
-        <div className="surface-card mt-10 p-6">
+        <div className="surface-card mt-16 p-6">
           <p className="text-sm text-destructive">Couldn&apos;t load your earnings.</p>
           <Button className="mt-4 rounded-full" variant="outline" onClick={() => void account.refetch()}>
             Try again
           </Button>
         </div>
       ) : data ? (
-        <>
-          {!data.affiliate ? (
-            <div className="surface-card mt-10 p-8">
-              <Gift className="size-7 text-primary" strokeWidth={1.5} />
-              <p className="mt-4 font-serif text-3xl text-foreground">Get your invitation link</p>
-              <p className="mt-2 text-muted-foreground">It takes one click. You can share it anywhere.</p>
-              <Button className="mt-6 rounded-full px-8" onClick={() => void activate()} disabled={busy}>
-                {busy && <Loader2 className="size-4 animate-spin" strokeWidth={1.5} />}
-                Activate invite link
-              </Button>
-            </div>
-          ) : (
-            <div className="mt-10 grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-              <div className="surface-card p-6">
-                <p className="section-label">Your invitation link</p>
-                {data.affiliate.status === "paused" && (
-                  <p className="mt-3 rounded-2xl bg-accent p-4 text-sm text-accent-foreground">
-                    Your invite link is paused by the Oka team. Reach out if you think this is a mistake.
-                  </p>
-                )}
-                <p className="mt-3 text-sm text-muted-foreground">
-                  Share this personal link. When someone you invite pays for membership, {data.affiliate.commissionPct}% is tracked as your affiliate credit.
-                </p>
-                <div className="mt-4 flex flex-wrap items-center gap-3">
-                  <code className="min-w-0 flex-1 truncate rounded-full bg-secondary px-5 py-2.5 text-sm text-secondary-foreground">
-                    {data.affiliate.url}
-                  </code>
-                  <Button
-                    className="rounded-full"
-                    onClick={() => {
-                      void navigator.clipboard.writeText(data.affiliate!.url);
-                      setCopied(true);
-                      setTimeout(() => setCopied(false), 2000);
-                    }}
-                  >
-                    {copied ? <Check className="size-4" strokeWidth={1.5} /> : <Copy className="size-4" strokeWidth={1.5} />}
-                    {copied ? "Copied" : "Copy link"}
-                  </Button>
-                </div>
-              </div>
-              <article className="surface-card p-6">
-                <p className="section-label">{data.balance.title}</p>
-                <p className="mt-3 font-serif text-5xl tabular-nums text-foreground">{formatCents(Math.abs(data.balance.cents))}</p>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {data.balance.tone === "offset"
-                    ? "This offsets future earnings. It is not a demand for immediate cash."
-                    : "After deductions and previous payouts. Subject to the payout schedule."}
-                </p>
-                <p className="mt-4 text-sm text-muted-foreground">Next payout {data.nextPayout.label}</p>
-              </article>
-            </div>
-          )}
+        <div className="mt-16">
+          <article className="surface-card p-6">
+            <p className="section-label">{data.balance.title}</p>
+            <p className="mt-3 font-serif text-5xl tabular-nums text-foreground">{formatCents(Math.abs(data.balance.cents))}</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {data.balance.tone === "offset"
+                ? "This offsets future earnings. It is not a demand for immediate cash."
+                : "After deductions and previous payouts. Subject to the payout schedule."}
+            </p>
+            <p className="mt-4 text-sm text-muted-foreground">Next payout {data.nextPayout.label}</p>
+          </article>
 
           <section className="mt-12">
             <h2 className="font-serif text-3xl text-foreground">Your earnings</h2>
@@ -462,7 +401,7 @@ function EarningsPage() {
               )}
             </div>
           </section>
-        </>
+        </div>
       ) : null}
     </div>
   );

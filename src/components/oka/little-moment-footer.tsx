@@ -21,7 +21,7 @@ const LINKS = [
   { to: "/skills", label: "Skills" },
   { to: "/houses", label: "Houses" },
   { to: "/collections", label: "Collections" },
-  { to: "/affiliate", label: "Invite a friend" },
+  { to: "/earnings", label: "Invite a friend" },
   { to: "/privacy", label: "Privacy" },
   { to: "/terms", label: "Terms" },
 ] as const;

@@ -149,7 +149,7 @@ export function HomeWaysToBegin() {
         <Item to="/skills/new" icon={Sparkles} title="Add a skill" hint="Something you'd love to share." done={p?.skill} />
         <Item to="/houses/new" icon={Home} title="Add your home" hint="A door you could open to family." done={p?.house} />
         <Item to="/events/new" icon={CalendarPlus} title="Add an event" hint="A gathering, a walk, a circle." done={p?.event} />
-        <Item to="/affiliate" icon={Gift} title="Invite a friend" hint="Bring someone you'd trust with your home." done={p?.invited}>
+        <Item to="/earnings" icon={Gift} title="Invite a friend" hint="Bring someone you'd trust with your home." done={p?.invited}>
           {!p?.invited && link ? (
             <div className="mt-3 flex items-center gap-2">
               <code className="min-w-0 flex-1 truncate rounded-full bg-secondary px-3 py-1.5 text-xs text-secondary-foreground">{link}</code>
@@ -173,7 +173,7 @@ function Item({
   done,
   children,
 }: {
-  to: "/skills/new" | "/houses/new" | "/events/new" | "/affiliate";
+  to: "/skills/new" | "/houses/new" | "/events/new" | "/earnings";
   icon: LucideIcon;
   title: string;
   hint: string;
