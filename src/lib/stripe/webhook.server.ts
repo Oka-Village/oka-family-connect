@@ -165,7 +165,6 @@ async function handleRefund(admin: AdminClient, obj: Record<string, unknown>) {
   // Null amount lets SQL compute commission from the original payment.
   await admin.rpc("apply_referral_refund_deduction", {
     p_payment_id: payment.id,
-    p_amount_cents: null,
   });
 }
 

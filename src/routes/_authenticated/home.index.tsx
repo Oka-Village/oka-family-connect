@@ -6,8 +6,10 @@ import { z } from "zod";
 
 import { Postcard, SPACE_ART, type SpaceId, type TapeColor } from "@/components/oka/postcard";
 import { HomeInspirations } from "@/components/oka/home-inspirations";
+import { HomeForYouToday, HomeWaysToBegin } from "@/components/oka/home-begin";
 import { HomeEvents } from "@/components/oka/home-events";
 import { HomeFeatured } from "@/components/oka/home-featured";
+import { HomeMobileHeader } from "@/components/oka/home-mobile-header";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useProfile } from "@/hooks/use-profile";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,14 +29,16 @@ export const Route = createFileRoute("/_authenticated/home/")({
     if (search.space === "inspiration") throw redirect({ to: "/home/inspiration" });
     if (search.space === "appreciation") throw redirect({ to: "/home/appreciation", search: { t: search.t, demo: search.demo } });
   },
-  head: () => ({ meta: [
-    { title: "Home — Oka" },
-    { name: "description", content: "Three postcards each morning: a reflection, an inspiration, and a note of appreciation." },
-    { property: "og:title", content: "Home — Oka" },
-    { property: "og:description", content: "Three postcards each morning: a reflection, an inspiration, and a note of appreciation." },
-    { property: "og:type", content: "website" },
-    { name: "twitter:card", content: "summary_large_image" },
-  ] }),
+  head: () => ({
+    meta: [
+      { title: "Home — Oka" },
+      { name: "description", content: "Make yourself at home — today's theme, a few gentle first steps, and three postcards each morning." },
+      { property: "og:title", content: "Home — Oka" },
+      { property: "og:description", content: "Make yourself at home — today's theme, a few gentle first steps, and three postcards each morning." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: HomePage,
 });
 
@@ -52,7 +56,7 @@ function HomePage() {
   const [flipping, setFlipping] = useState<SpaceId | null>(null);
   const timer = useRef<number | null>(null);
   useEffect(() => () => { if (timer.current) window.clearTimeout(timer.current); }, []);
-  const firstName = profile?.display_name?.trim().split(/\s+/)[0];
+  const name = profile?.display_name?.trim();
 
   const unread = useQuery({
     queryKey: ["appreciation-unread", profile?.id ?? null],
@@ -73,51 +77,63 @@ function HomePage() {
   }
 
   return (
-    <div className="postcard-settle mx-auto flex max-w-[1280px] flex-col gap-12 px-5 pb-20 pt-12 md:gap-16 md:px-10 md:pt-[84px] xl:px-24">
-      <header className="grid items-end gap-6 md:grid-cols-[1fr_auto]">
-        <div>
-          <p className="section-label">Your place in Oka</p>
-          {isLoading ? <Skeleton className="mt-4 h-9 w-72" /> : <p className="mt-2.5 font-serif text-[28px] text-foreground md:text-[34px]">{isError ? "Welcome home." : `Welcome home${firstName ? `, ${firstName}` : ""}.`}</p>}
-          <p className="mt-3 max-w-[620px] text-[17px] leading-[1.6] text-muted-foreground">A quiet corner to pause, gather a little light, or let someone know they matter.</p>
-        </div>
-        <p className="font-serif text-xl italic text-postcard-label md:text-right">Three cards arrived<br />this morning.</p>
+    <div className="postcard-settle mx-auto flex max-w-[1280px] flex-col gap-10 pb-20 md:gap-12 md:px-10 md:pt-[84px] xl:px-24">
+      <HomeMobileHeader />
+
+      <header className="hidden px-5 md:block md:px-0">
+        <p className="section-label">Welcome to Oka</p>
+        {isLoading ? (
+          <Skeleton className="mt-4 h-12 w-80 max-w-full" />
+        ) : (
+          <h1 className="mt-4 font-serif text-4xl leading-tight text-foreground sm:text-6xl">
+            {isError ? (
+              "Make yourself at home."
+            ) : (
+              <>
+                Make yourself at home{name ? <>, <span className="italic text-sage">{name}.</span></> : "."}
+              </>
+            )}
+          </h1>
+        )}
       </header>
 
-      <HomeInspirations />
+      <div className="flex flex-col gap-10 px-5 md:gap-12 md:px-0">
+        <HomeInspirations />
 
-      <HomeEvents />
+        <HomeForYouToday />
 
-      <HomeFeatured />
+        <HomeWaysToBegin />
 
+        <HomeEvents />
 
+        <HomeFeatured />
 
+        <div className="postcard-scene flex flex-col items-center pb-5 pt-2.5 md:flex-row md:flex-nowrap md:justify-center md:gap-6 xl:gap-11">
+          {CARDS.map((card, i) => (
+            <button
+              key={card.id}
+              type="button"
+              onClick={() => open(card.id)}
+              aria-label={`Open ${card.title}${card.id === "appreciation" && unreadCount ? `, ${unreadCount} unread` : ""}`}
+              className={cn("group w-[92%] text-left focus-visible:outline-none md:w-[340px] md:min-w-0 md:shrink", i > 0 && "max-md:-mt-5", flipping && flipping !== card.id && "postcard-fade-out", flipping === card.id && "postcard-flip-out")}
+              style={{ transition: "opacity 300ms ease-out", zIndex: flipping === card.id ? 10 : undefined }}
+            >
+              <Postcard rotate={card.rotate} translateY={card.ty} tape={card.tape} tapeRotate={card.tapeRotate} className="postcard-lift px-3.5 pb-7 pt-3.5 max-md:pb-16 group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-4" style={card.id === "inspiration" ? { boxShadow: "0 22px 46px rgb(55 44 36 / .18)" } : undefined}>
+                <div className="h-[216px] bg-postcard-inner"><img src={SPACE_ART[card.id]} alt="" className="size-full object-contain" /></div>
+                <div className="flex flex-col gap-2 px-2 pt-5">
+                  <span className="font-serif text-[38px] leading-none text-foreground">{card.title}</span>
+                  <span className="text-sm leading-[1.55] text-postcard-muted">{card.sub}</span>
+                </div>
+                {card.id === "appreciation" && unreadCount > 0 && (
+                  <span className="absolute -right-2.5 -top-2.5 z-10 flex size-[30px] items-center justify-center rounded-full text-[13px] font-medium text-primary-foreground shadow-[0_3px_8px_rgb(55_44_36/0.25)]" style={{ background: "var(--wax-badge)" }} aria-hidden>{unreadCount > 9 ? "9+" : unreadCount}</span>
+                )}
+              </Postcard>
+            </button>
+          ))}
+        </div>
 
-      <div className="postcard-scene flex flex-col items-center pb-5 pt-2.5 md:flex-row md:flex-nowrap md:justify-center md:gap-6 xl:gap-11">
-
-        {CARDS.map((card, i) => (
-          <button
-            key={card.id}
-            type="button"
-            onClick={() => open(card.id)}
-            aria-label={`Open ${card.title}${card.id === "appreciation" && unreadCount ? `, ${unreadCount} unread` : ""}`}
-            className={cn("group w-[92%] text-left focus-visible:outline-none md:w-[340px] md:min-w-0 md:shrink", i > 0 && "max-md:-mt-5", flipping && flipping !== card.id && "postcard-fade-out", flipping === card.id && "postcard-flip-out")}
-            style={{ transition: "opacity 300ms ease-out", zIndex: flipping === card.id ? 10 : undefined }}
-          >
-            <Postcard rotate={card.rotate} translateY={card.ty} tape={card.tape} tapeRotate={card.tapeRotate} className="postcard-lift px-3.5 pb-7 pt-3.5 max-md:pb-16 group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-4" style={card.id === "inspiration" ? { boxShadow: "0 22px 46px rgb(55 44 36 / .18)" } : undefined}>
-              <div className="h-[216px] bg-postcard-inner"><img src={SPACE_ART[card.id]} alt="" className="size-full object-contain" /></div>
-              <div className="flex flex-col gap-2 px-2 pt-5">
-                <span className="font-serif text-[38px] leading-none text-foreground">{card.title}</span>
-                <span className="text-sm leading-[1.55] text-postcard-muted">{card.sub}</span>
-              </div>
-              {card.id === "appreciation" && unreadCount > 0 && (
-                <span className="absolute -right-2.5 -top-2.5 z-10 flex size-[30px] items-center justify-center rounded-full text-[13px] font-medium text-primary-foreground shadow-[0_3px_8px_rgb(55_44_36/0.25)]" style={{ background: "var(--wax-badge)" }} aria-hidden>{unreadCount > 9 ? "9+" : unreadCount}</span>
-              )}
-            </Postcard>
-          </button>
-        ))}
+        <p className="border-t border-sand pt-8 text-center font-serif text-[28px] text-foreground md:text-4xl">Choose a space when you’re ready.</p>
       </div>
-
-      <p className="border-t border-sand pt-8 text-center font-serif text-[28px] text-foreground md:text-4xl">Choose a space when you’re ready.</p>
     </div>
   );
 }

@@ -34,10 +34,19 @@ const NAV_ITEMS = [
   { to: "/profile", label: "My Profile", icon: User },
   { to: "/credits", label: "Credits", icon: Coins },
   { to: "/earnings", label: "My Earnings", icon: Gift },
+  { to: "/affiliate", label: "Invite & earn", icon: Gift },
 ] as const;
 
+/** Desktop bar runs through Collections, then Open Accounting. */
 const PRIMARY_ITEMS = NAV_ITEMS.slice(0, 7);
-const MOBILE_ITEMS = [...PRIMARY_ITEMS, { to: "/earnings", label: "Earnings", icon: Gift } as const];
+/** Mobile bottom bar matches handoff: Home, Events, Homes, Members, Skills. */
+const MOBILE_TAB_ITEMS = [
+  { to: "/home", label: "Home" },
+  { to: "/events", label: "Events" },
+  { to: "/houses", label: "Homes" },
+  { to: "/directory", label: "Members" },
+  { to: "/skills", label: "Skills" },
+] as const;
 
 type AccountMenuItem =
   | (typeof NAV_ITEMS)[number]
@@ -191,7 +200,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div className="min-h-screen bg-background lg:min-h-[calc(100vh-1.5rem)] lg:rounded-2xl lg:border lg:border-border">
       <header className="sticky top-0 z-30 hidden items-center gap-8 border-b border-border bg-background/95 px-8 py-5 backdrop-blur lg:flex xl:px-14">
         <Link to="/home" aria-label="Oka home"><Wordmark /></Link>
-        <nav className="flex rounded-full bg-cream-deep p-1">
+        <nav className="flex items-center gap-7 xl:gap-8">
           {PRIMARY_ITEMS.map((item) => {
             const active = pathname.startsWith(item.to);
             return (
@@ -199,11 +208,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 key={item.to}
                 to={item.to}
                 className={cn(
-                  "rounded-full px-5 py-2 text-sm transition-all",
-                  active ? "bg-card text-foreground shadow-nav" : "text-muted-foreground hover:text-foreground",
+                  "inline-flex items-center gap-2 whitespace-nowrap text-sm transition-colors",
+                  active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                <span className="relative">{item.label}{item.to === "/home" && unreadCount > 0 && <span className="absolute -right-3 -top-1 size-2 rounded-full bg-primary" aria-label={`${unreadCount} unread appreciation letters`} />}</span>
+                {active && <span className="size-1.5 shrink-0 rounded-full bg-golden" aria-hidden />}
+                <span className="relative">
+                  {item.label}
+                  {item.to === "/home" && unreadCount > 0 && <span className="absolute -right-2.5 -top-1 size-1.5 rounded-full bg-primary" aria-label={`${unreadCount} unread appreciation letters`} />}
+                </span>
               </Link>
             );
           })}
@@ -215,7 +228,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <header className="flex items-center justify-between border-b border-border px-6 py-4 lg:hidden">
+      <header className={cn("flex items-center justify-between border-b border-border px-6 py-4 lg:hidden", pathname === "/home" && "hidden")}>
         <Link to="/home" aria-label="Oka home"><Wordmark className="text-2xl" /></Link>
         <div className="flex items-center gap-1">
           <NotificationsBell userId={profile?.id} />
@@ -233,21 +246,34 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           setSupportOpen(false);
           queryClient.invalidateQueries({ queryKey: ["profile"] });
           queryClient.invalidateQueries({ queryKey: ["membership"] });
-          if (pathname !== "/welcome") void navigate({ to: "/welcome", replace: true });
+          if (pathname !== "/home") void navigate({ to: "/home", replace: true });
         }}
       />
 
-      <nav aria-label="Mobile navigation" className="fixed inset-x-0 bottom-0 z-10 grid grid-cols-7 border-t border-border bg-sidebar px-1 py-2 lg:hidden">
-        {MOBILE_ITEMS.map((item) => {
+      <nav aria-label="Mobile navigation" className="fixed inset-x-0 bottom-0 z-10 grid grid-cols-5 bg-card px-2 pb-[22px] pt-1.5 lg:hidden">
+        {MOBILE_TAB_ITEMS.map((item) => {
           const active = pathname.startsWith(item.to);
           return (
             <Link
               key={item.to}
               to={item.to}
-              className={cn("flex min-w-0 flex-col items-center gap-1 py-2 text-[0.6rem] whitespace-nowrap transition-colors", active ? "text-primary" : "text-muted-foreground")}
+              className={cn(
+                "flex min-h-12 min-w-0 flex-col items-center justify-center gap-1 text-[11px] whitespace-nowrap transition-colors",
+                active ? "font-semibold text-brown" : "text-muted-foreground",
+              )}
             >
-              <item.icon className={cn("size-5", active && "text-primary")} strokeWidth={1.5} />
-              <span className="relative">{item.label}{item.to === "/home" && unreadCount > 0 && <span className="absolute -right-3 -top-1 flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[0.55rem] leading-4 text-primary-foreground" aria-label={`${unreadCount} unread appreciation letters`}>{unreadCount > 9 ? "9+" : unreadCount}</span>}</span>
+              <span className={cn("size-1.5 rounded-full", active ? "bg-golden" : "bg-transparent")} aria-hidden />
+              <span className="relative">
+                {item.label}
+                {item.to === "/home" && unreadCount > 0 && (
+                  <span
+                    className="absolute -right-3 -top-1 flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[0.55rem] leading-4 text-primary-foreground"
+                    aria-label={`${unreadCount} unread appreciation letters`}
+                  >
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </span>
             </Link>
           );
         })}

@@ -12,7 +12,7 @@ const LABELS = {
 };
 
 export function NotificationPreferences({ userId }: { userId: string }) {
-  return <section className="mt-12 border-t border-border pt-8">
+  return <section className="surface-card mt-12 p-6 md:p-8">
     <p className="section-label">Notification preferences</p>
     <Suspense fallback={<p className="mt-4 text-sm text-muted-foreground" role="status">A moment, please…</p>}>
       <PreferencesRows userId={userId} />
