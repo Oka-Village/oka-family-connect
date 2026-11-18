@@ -21,6 +21,7 @@ const LINKS = [
   { to: "/skills", label: "Skills" },
   { to: "/houses", label: "Houses" },
   { to: "/collections", label: "Collections" },
+  { to: "/open-accounting", label: "Open Accounting" },
   { to: "/earnings", label: "Invite a friend" },
   { to: "/privacy", label: "Privacy" },
   { to: "/terms", label: "Terms" },
