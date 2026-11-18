@@ -85,10 +85,6 @@ export function LittleMomentFooter() {
         <span className="ml-auto hidden text-terracotta md:inline">Made with care by the One World Family</span>
       </div>
 
-      <div className="relative mx-auto mt-5 flex max-w-[1180px] flex-wrap items-center justify-center gap-x-6 gap-y-1 font-sans text-[12px] text-muted-foreground md:hidden">
-        <Link to="/privacy" className="transition-colors hover:text-sage">Privacy</Link>
-        <Link to="/terms" className="transition-colors hover:text-sage">Terms</Link>
-      </div>
     </footer>
   );
 }
