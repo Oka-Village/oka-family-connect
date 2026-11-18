@@ -35,7 +35,7 @@ function EditSkill() {
     },
   });
   return (
-    <div className="mx-auto max-w-2xl px-6 py-12 lg:py-16">
+    <div className="mx-auto max-w-2xl px-5 sm:px-6 py-12 lg:py-16">
       <Link to="/skills/$skillId" params={{ skillId }} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeft className="size-4 text-primary" strokeWidth={1.5} /> Back to offering
       </Link>

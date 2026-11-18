@@ -86,8 +86,8 @@ export function SkillForm({ userId, initial }: { userId: string; initial?: Skill
   }
 
   return (
-    <form onSubmit={submit} className="surface-card grid gap-6 p-6">
-      <div className="flex items-center gap-5">
+    <form onSubmit={submit} className="surface-card grid min-w-0 gap-6 p-5 sm:p-6 [&>*]:min-w-0">
+      <div className="flex flex-wrap items-center gap-5">
         {preview ? <img src={preview} alt="" className="size-24 rounded-2xl object-cover" /> : <div className="size-24 rounded-2xl bg-accent/60" />}
         <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const x = e.target.files?.[0]; if (x) void upload(x); e.target.value = ""; }} />
         <div className="flex flex-wrap gap-2">
@@ -106,10 +106,10 @@ export function SkillForm({ userId, initial }: { userId: string; initial?: Skill
           {SKILL_CATEGORIES.map((c) => <button key={c} type="button" className={pill(f.category === c)} onClick={() => setF({ ...f, category: f.category === c ? "" : c })}>{c}</button>)}
         </div>
       </div>
-      <div className="grid gap-6 sm:grid-cols-2">
+      <div className="grid min-w-0 gap-6 sm:grid-cols-2 [&>*]:min-w-0">
         <div>
           <L>Format</L>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {SKILL_FORMATS.map((x) => <button key={x} type="button" className={pill(f.format === x)} onClick={() => setF({ ...f, format: x })}>{SKILL_FORMAT_LABELS[x]}</button>)}
           </div>
         </div>
