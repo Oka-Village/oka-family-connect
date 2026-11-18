@@ -151,7 +151,7 @@ export function HomeWaysToBegin() {
         <Item to="/events/new" icon={CalendarPlus} title="Add an event" hint="A gathering, a walk, a circle." done={p?.event} />
         <Item to="/earnings" icon={Gift} title="Invite a friend" hint="Bring someone you'd trust with your home." done={p?.invited}>
           {!p?.invited && link ? (
-            <div className="mt-3 flex items-center gap-2">
+            <div className="mt-3 flex min-w-0 flex-wrap items-center gap-2">
               <code className="min-w-0 flex-1 truncate rounded-full bg-secondary px-3 py-1.5 text-xs text-secondary-foreground">{link}</code>
               <Button size="sm" variant="outline" className="rounded-full" onClick={() => void copy()}>
                 <Copy className="size-4 text-sage" strokeWidth={1.5} />
@@ -181,7 +181,7 @@ function Item({
   children?: ReactNode;
 }) {
   return (
-    <div className="surface-card flex min-h-[76px] flex-col justify-center rounded-full px-4 py-3">
+    <div className="surface-card flex min-h-[76px] min-w-0 flex-col justify-center rounded-2xl px-4 py-3 sm:rounded-full">
       <div className="flex items-center gap-3">
         <span className={`flex size-9 shrink-0 items-center justify-center rounded-full ${done ? "bg-sage text-cream" : "bg-sage-light text-sage-ink"}`}>
           {done ? <Check className="size-4" strokeWidth={1.5} /> : <Icon className="size-4" strokeWidth={1.5} />}
@@ -200,7 +200,7 @@ function Item({
               <Link to={to} className="font-medium text-foreground hover:text-sage">
                 {title}
               </Link>
-              <p className="truncate text-xs text-muted-foreground">{hint}</p>
+              <p className="break-words text-xs text-muted-foreground">{hint}</p>
             </>
           )}
         </div>
