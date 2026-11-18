@@ -101,7 +101,6 @@ function ProfilePage() {
               <Link to="/members/$memberId" params={{ memberId: profile.id }} className="text-sm text-sage hover:underline">
                 See how others see you
               </Link>
-              <Link to="/affiliate" className="text-sm text-sage hover:underline">Invite & earn</Link>
               <Link to="/earnings" className="text-sm text-sage hover:underline">My Earnings</Link>
             </div>
           </div>

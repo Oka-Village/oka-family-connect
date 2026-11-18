@@ -7,7 +7,7 @@ const CONTRIBUTIONS = [
   { to: "/skills/new", label: "Add a skill", icon: Sparkles },
   { to: "/houses/new", label: "Add your house", icon: Home },
   { to: "/events/new", label: "Add an event", icon: CalendarPlus },
-  { to: "/affiliate", label: "Invite friends", icon: Gift },
+  { to: "/earnings", label: "Invite friends", icon: Gift },
 ] as const;
 
 export function MemberAccessGate({ onSignOut }: { onSignOut: () => Promise<void> }) {

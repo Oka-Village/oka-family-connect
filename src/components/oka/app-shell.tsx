@@ -34,7 +34,6 @@ const NAV_ITEMS = [
   { to: "/profile", label: "My Profile", icon: User },
   { to: "/credits", label: "Credits", icon: Coins },
   { to: "/earnings", label: "My Earnings", icon: Gift },
-  { to: "/affiliate", label: "Invite & earn", icon: Gift },
 ] as const;
 
 /** Desktop bar runs through Collections, then Open Accounting. */
