@@ -257,6 +257,8 @@ function ListView({ search }: { search: Search }) {
         </>
       )}
 
+      <MyEvents />
+
       <section>
         <button
           type="button"
@@ -300,8 +302,6 @@ function ListView({ search }: { search: Search }) {
           </div>
         )}
       </section>
-
-      <MyEvents />
     </div>
   );
 }
