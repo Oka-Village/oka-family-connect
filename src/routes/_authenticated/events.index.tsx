@@ -12,11 +12,11 @@ import {
   startOfMonth,
   startOfWeek,
 } from "date-fns";
-import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, List, MapPin, Plus, Video } from "lucide-react";
+import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { useState } from "react";
 import { z } from "zod";
 
-import { EventCard } from "@/components/oka/event-card";
+import { ComingSoonCard, EventListRow, FeaturedEvent, PastEventRow } from "@/components/oka/event-card";
 import { MyEvents } from "@/components/oka/my-events";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,10 +28,9 @@ import {
   fetchMyRsvps,
   type EventRow,
 } from "@/lib/events";
-import { cn } from "@/lib/utils";
-import { DealtHand } from "@/components/oka/dealt-hand";
-import { hostName, spotsLeft } from "@/lib/events";
 import { groupEventSeries } from "@/lib/event-series";
+import { bucketUpcomingEvents } from "@/lib/event-schedule";
+import { cn } from "@/lib/utils";
 
 const searchSchema = z.object({
   view: z.enum(["list", "calendar"]).optional().catch(undefined),
@@ -59,7 +58,7 @@ export const Route = createFileRoute("/_authenticated/events/")({
 });
 
 const selectCls =
-  "h-10 rounded-full border border-border bg-card px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring";
+  "h-10 min-w-0 flex-1 rounded-full border border-border bg-card px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring sm:flex-none";
 
 function EventsPage() {
   const search = Route.useSearch();
@@ -69,78 +68,64 @@ function EventsPage() {
     navigate({ search: (prev: Search) => ({ ...prev, ...patch }), replace: true });
 
   return (
-    <div className="mx-auto max-w-[1180px] px-6 py-6 lg:px-10 lg:py-8">
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex rounded-full border border-border bg-card p-1">
-          {(["list", "calendar"] as const).map((v) => {
-            const Icon = v === "list" ? List : CalendarDays;
-            return (
-              <button
-                key={v}
-                onClick={() => set({ view: v === "list" ? undefined : v })}
-                className={cn(
-                  "flex items-center gap-2 rounded-full px-4 py-1.5 text-sm capitalize",
-                  view === v ? "bg-secondary text-secondary-foreground" : "text-muted-foreground",
-                )}
-              >
-                <Icon className="size-4 text-primary" strokeWidth={1.5} /> {v}
-              </button>
-            );
-          })}
-        </div>
-        <select
-          aria-label="Event type"
-          className={selectCls}
-          value={search.type ?? ""}
-          onChange={(e) => set({ type: (e.target.value || undefined) as Search["type"] })}
-        >
-          <option value="">All types</option>
-          {EVENT_TYPES.map((t) => (
-            <option key={t} value={t}>{TYPE_LABELS[t]}</option>
-          ))}
-        </select>
-        <select
-          aria-label="Format"
-          className={selectCls}
-          value={search.format ?? ""}
-          onChange={(e) => set({ format: (e.target.value || undefined) as Search["format"] })}
-        >
-          <option value="">Any format</option>
-          {EVENT_FORMATS.map((f) => (
-            <option key={f} value={f}>{FORMAT_LABELS[f]}</option>
-          ))}
-        </select>
-        {view === "list" && (
-          <>
-            <input
-              type="date"
-              aria-label="From date"
-              className={selectCls}
-              value={search.from ?? ""}
-              onChange={(e) => set({ from: e.target.value || undefined })}
-            />
-            <input
-              type="date"
-              aria-label="To date"
-              className={selectCls}
-              value={search.to ?? ""}
-              onChange={(e) => set({ to: e.target.value || undefined })}
-            />
-          </>
-        )}
-        {(search.type || search.format || search.from || search.to) && (
-          <button
-            className="text-sm text-primary underline-offset-4 hover:underline"
-            onClick={() => set({ type: undefined, format: undefined, from: undefined, to: undefined })}
+    <div className="mx-auto max-w-[1180px] overflow-x-hidden px-6 py-6 lg:px-10 lg:py-8">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+        <div className="flex min-w-0 flex-1 flex-wrap gap-3">
+          <select
+            aria-label="Event type"
+            className={selectCls}
+            value={search.type ?? ""}
+            onChange={(e) => set({ type: (e.target.value || undefined) as Search["type"] })}
           >
-            Clear filters
-          </button>
-        )}
+            <option value="">All types</option>
+            {EVENT_TYPES.map((t) => (
+              <option key={t} value={t}>{TYPE_LABELS[t]}</option>
+            ))}
+          </select>
+          <select
+            aria-label="Format"
+            className={selectCls}
+            value={search.format ?? ""}
+            onChange={(e) => set({ format: (e.target.value || undefined) as Search["format"] })}
+          >
+            <option value="">Any format</option>
+            {EVENT_FORMATS.map((f) => (
+              <option key={f} value={f}>{FORMAT_LABELS[f]}</option>
+            ))}
+          </select>
+          <input
+            type="date"
+            aria-label="From date"
+            className={selectCls}
+            value={search.from ?? ""}
+            onChange={(e) => set({ from: e.target.value || undefined })}
+          />
+          <input
+            type="date"
+            aria-label="To date"
+            className={selectCls}
+            value={search.to ?? ""}
+            onChange={(e) => set({ to: e.target.value || undefined })}
+          />
+          {(search.type || search.format || search.from || search.to) && (
+            <button
+              className="text-sm text-primary underline-offset-4 hover:underline"
+              onClick={() => set({ type: undefined, format: undefined, from: undefined, to: undefined })}
+            >
+              Clear filters
+            </button>
+          )}
+        </div>
+        <Button asChild className="min-h-10 w-full rounded-full sm:ml-auto sm:w-auto">
+          <Link to="/events/new"><Plus strokeWidth={1.5} /> Propose an event</Link>
+        </Button>
       </div>
 
-      <MyEvents />
-
-      {view === "list" ? <ListView search={search} onCalendar={() => set({ view: "calendar" })} /> : <CalendarView search={search} onMonth={(m) => set({ month: m })} />}
+      {view === "calendar" ? (
+        <CalendarView search={search} onMonth={(m) => set({ month: m })} />
+      ) : (
+        <ListView search={search} />
+      )}
     </div>
   );
 }
@@ -166,24 +151,17 @@ function QuietCalendar() {
   );
 }
 
-function EventFanCard({ event, front, seriesLabel }: { event: EventRow; front: boolean; seriesLabel?: string | null | undefined }) {
-  const d = new Date(event.starts_at);
-  const FormatIcon = event.format === "virtual" ? Video : MapPin;
-  return <Link to="/events/$eventId" params={{ eventId: event.id }} className="flex h-full flex-col bg-card">
-    <div className={cn("flex h-[42%] items-center justify-center", event.event_type === "retreat" ? "bg-golden-tint" : event.event_type === "meditation" ? "bg-sage-light" : event.event_type === "pod_session" ? "bg-sand" : "bg-terracotta-tint")}>
-      <span className="font-serif text-6xl text-foreground">{d.toLocaleDateString(undefined, { day: "numeric" })}</span>
+function SectionHeading({ label, hint }: { label: string; hint?: string }) {
+  return (
+    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+      <h2 className="section-label">{label}</h2>
+      {hint && <p className="text-sm text-muted-foreground">{hint}</p>}
+      <span className="hidden h-px flex-1 bg-border sm:block" />
     </div>
-    <div className="flex flex-1 flex-col p-5">
-      <p className="text-[0.65rem] uppercase tracking-[.2em] text-terracotta-ink">{d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}</p>
-      <h3 className="mt-2 text-2xl leading-[1.05] text-foreground">{event.title}</h3>
-      {seriesLabel && <p className="mt-2 text-xs text-muted-foreground">{seriesLabel}</p>}
-      <p className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground"><FormatIcon className="size-3.5 text-primary" strokeWidth={1.5} />{FORMAT_LABELS[event.format]} · {hostName(event.host)}</p>
-      {front && <span className="mt-auto inline-flex w-fit rounded-full bg-primary px-4 py-2 text-xs text-primary-foreground">{spotsLeft(event) === 0 ? "Join waitlist" : "Save me a seat"}</span>}
-    </div>
-  </Link>;
+  );
 }
 
-function ListView({ search, onCalendar }: { search: Search; onCalendar: () => void }) {
+function ListView({ search }: { search: Search }) {
   const filters = { type: search.type, format: search.format, from: search.from, to: search.to };
   const [showPast, setShowPast] = useState(false);
   const upcoming = useQuery({ queryKey: ["events", "upcoming", filters], queryFn: () => fetchEvents(filters, { limit: 400 }) });
@@ -194,61 +172,136 @@ function ListView({ search, onCalendar }: { search: Search; onCalendar: () => vo
   });
   const list = groupEventSeries(upcoming.data ?? [], "upcoming");
   const pastList = groupEventSeries(past.data ?? [], "past");
-  const rsvps = useRsvpMap([...list.map((item) => item.event), ...pastList.map((item) => item.event)]);
-  const groups: [string, typeof list][] = [];
-  for (const e of list) {
-    const label = fmt(new Date(e.event.starts_at), "MMMM yyyy");
-    const g = groups.at(-1);
-    if (g && g[0] === label) g[1].push(e);
-    else groups.push([label, [e]]);
+  const featured = list[0] ?? null;
+  const comingSoon = list.slice(1, 4);
+  const featuredIds = new Set([featured?.event.id, ...comingSoon.map((item) => item.event.id)].filter(Boolean) as string[]);
+  const remaining = list.filter((item) => !featuredIds.has(item.event.id));
+  const buckets = bucketUpcomingEvents(remaining.map((item) => item.event));
+  const remainingById = new Map(remaining.map((item) => [item.event.id, item]));
+  const thisWeekItems = buckets.thisWeek.map((event) => remainingById.get(event.id)).filter(Boolean) as typeof remaining;
+  const laterItems = buckets.later.map((event) => remainingById.get(event.id)).filter(Boolean) as typeof remaining;
+
+  const rsvps = useRsvpMap([
+    ...list.map((item) => item.event),
+    ...pastList.map((item) => item.event),
+  ]);
+
+  const pastGroups: [string, typeof pastList][] = [];
+  for (const item of pastList) {
+    const label = fmt(new Date(item.event.starts_at), "MMMM yyyy");
+    const g = pastGroups.at(-1);
+    if (g && g[0] === label) g[1].push(item);
+    else pastGroups.push([label, [item]]);
   }
 
   if (upcoming.isLoading) return <p className="mt-12 text-muted-foreground">Gathering the schedule…</p>;
   if (upcoming.error) return <p className="mt-12 text-destructive">We couldn't load events. Please try again.</p>;
 
   return (
-    <div>
+    <div className="mt-8 space-y-12 sm:mt-10 sm:space-y-14">
       {upcoming.data!.length === 0 ? (
         <QuietCalendar />
       ) : (
         <>
-          <DealtHand
-            items={list}
-            itemKey={(item) => item.event.id}
-            label="Events · dealt for you"
-            title={<>Three gatherings<br />you might love</>}
-            description="Picked from what you're seeking, and the people already gathering around you."
-            secondaryAction={<Button variant="secondary" className="rounded-full px-6" onClick={onCalendar}><CalendarDays strokeWidth={1.5} />See calendar</Button>}
-            renderCard={(item, front) => <EventFanCard event={item.event} seriesLabel={item.label} front={front} />}
-          />
-          <div className="flex justify-end"><Button asChild variant="outline" className="rounded-full"><Link to="/events/new"><Plus strokeWidth={1.5} />Propose an event</Link></Button></div>
-          {groups.map(([label, items]) => (
-            <section key={label} className="mt-14">
-              <div className="flex items-center gap-4">
-                <h2 className="section-label">All of {label}</h2>
-                <span className="h-px flex-1 bg-border" />
-              </div>
-              <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-                {items.map((item) => <EventCard key={item.event.id} event={item.event} seriesLabel={item.label} rsvp={rsvps.data?.[item.event.id]} />)}
+          {featured && (
+            <FeaturedEvent event={featured.event} rsvp={rsvps.data?.[featured.event.id]} />
+          )}
+
+          {comingSoon.length > 0 && (
+            <section>
+              <SectionHeading label="Coming soon" hint="The next three gatherings." />
+              <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {comingSoon.map((item) => (
+                  <ComingSoonCard
+                    key={item.event.id}
+                    event={item.event}
+                    seriesLabel={item.label}
+                    rsvp={rsvps.data?.[item.event.id]}
+                  />
+                ))}
               </div>
             </section>
-          ))}
+          )}
+
+          {thisWeekItems.length > 0 && (
+            <section>
+              <SectionHeading label="This week" hint={buckets.thisWeekHint} />
+              <div className="mt-5 grid gap-3">
+                {thisWeekItems.map((item) => (
+                  <EventListRow
+                    key={item.event.id}
+                    event={item.event}
+                    seriesLabel={item.label}
+                    rsvp={rsvps.data?.[item.event.id]}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {laterItems.length > 0 && (
+            <section>
+              <SectionHeading label={buckets.laterTitle} hint={buckets.laterHint} />
+              <div className="mt-5 grid gap-3">
+                {laterItems.map((item) => (
+                  <EventListRow
+                    key={item.event.id}
+                    event={item.event}
+                    seriesLabel={item.label}
+                    rsvp={rsvps.data?.[item.event.id]}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
         </>
       )}
-      <button
-        onClick={() => setShowPast((s) => !s)}
-        className="mt-12 flex items-center gap-2 text-sm uppercase tracking-widest text-muted-foreground"
-      >
-        <ChevronDown className={cn("size-4 text-primary transition-transform", showPast && "rotate-180")} strokeWidth={1.5} />
-        Past events
-      </button>
-      {showPast && (
-        <div className="mt-5 grid gap-5 opacity-80">
-          {past.isLoading && <p className="text-muted-foreground">Looking back…</p>}
-          {past.data?.length === 0 && <p className="text-muted-foreground">No past events yet.</p>}
-          {pastList.map((item) => <EventCard key={item.event.id} event={item.event} seriesLabel={item.label} rsvp={rsvps.data?.[item.event.id]} />)}
-        </div>
-      )}
+
+      <section>
+        <button
+          type="button"
+          aria-expanded={showPast}
+          onClick={() => setShowPast((s) => !s)}
+          className="flex w-full flex-wrap items-center gap-x-3 gap-y-1 text-left"
+        >
+          <h2 className="section-label">Past events</h2>
+          <p className="text-sm text-muted-foreground">Gatherings that already happened</p>
+          {showPast && past.isSuccess && (
+            <span className="rounded-full bg-sand/70 px-2.5 py-0.5 text-xs text-brown-muted">{pastList.length}</span>
+          )}
+          <span className="hidden h-px flex-1 bg-border sm:block" />
+          <span className="inline-flex items-center gap-1.5 text-sm text-primary">
+            {showPast ? "Hide" : "Show"}
+            <ChevronDown className={cn("size-4 transition-transform", showPast && "rotate-180")} strokeWidth={1.5} />
+          </span>
+        </button>
+        {showPast && (
+          <div className="mt-6 space-y-8">
+            {past.isLoading && <p className="text-muted-foreground">Looking back…</p>}
+            {past.isError && <p className="text-destructive">We couldn't load past events. Please try again.</p>}
+            {past.isSuccess && past.data.length === 0 && (
+              <p className="text-muted-foreground">No past events yet.</p>
+            )}
+            {past.isSuccess && pastGroups.map(([label, items]) => (
+              <div key={label}>
+                <SectionHeading label={label} />
+                <div className="mt-4 grid gap-3">
+                  {items.map((item) => (
+                    <PastEventRow
+                      key={item.event.id}
+                      event={item.event}
+                      seriesLabel={item.label}
+                      rsvp={rsvps.data?.[item.event.id]}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <MyEvents />
     </div>
   );
 }
@@ -335,4 +388,3 @@ function CalendarView({ search, onMonth }: { search: Search; onMonth: (m: string
     </div>
   );
 }
-
