@@ -5,6 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
+    "db:start": "bunx supabase start",
+    "db:stop": "bunx supabase stop",
+    "db:reset": "bunx supabase db reset --no-seed && bun scripts/apply-local-drizzle.mjs",
+    "db:pull": "bun scripts/pull-prod-data.mjs",
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
