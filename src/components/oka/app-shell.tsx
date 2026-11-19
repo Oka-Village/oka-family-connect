@@ -45,6 +45,7 @@ const MOBILE_TAB_ITEMS = [
   { to: "/houses", label: "Homes" },
   { to: "/directory", label: "Members" },
   { to: "/skills", label: "Skills" },
+  { to: "/open-accounting", label: "Accounting" },
 ] as const;
 
 type AccountMenuItem =
@@ -249,7 +250,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         }}
       />
 
-      <nav aria-label="Mobile navigation" className="fixed inset-x-0 bottom-0 z-10 grid grid-cols-5 bg-card px-2 pb-[22px] pt-1.5 lg:hidden">
+      <nav aria-label="Mobile navigation" className="fixed inset-x-0 bottom-0 z-10 grid grid-cols-6 bg-card px-2 pb-[22px] pt-1.5 lg:hidden">
         {MOBILE_TAB_ITEMS.map((item) => {
           const active = pathname.startsWith(item.to);
           return (

@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { inviteUrl } from "@/lib/affiliate-share";
+import { reconcileOpenAccounting } from "@/lib/stripe/reconcile.functions";
 import {
   canFollowUp,
   monthLabel,
@@ -191,6 +192,12 @@ function payoutStatusLabel(status: string): string {
 
 /** Loads the caller's personal My Earnings view from live DB (Stripe-backed payments). */
 export async function fetchMyEarnings(userId: string): Promise<MemberEarningsAccount> {
+  // Stripe first: fix missing/changed payments before earnings are computed.
+  try {
+    await reconcileOpenAccounting();
+  } catch {
+    // Show recorded figures if the Stripe check is unavailable.
+  }
   await supabase.rpc("sync_member_earnings");
   await supabase.rpc("sync_event_contributions");
   await supabase.rpc("schedule_member_payouts", {});

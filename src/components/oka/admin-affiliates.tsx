@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { formatCents } from "@/lib/affiliates";
+import { reconcileOpenAccounting } from "@/lib/stripe/reconcile.functions";
 
 type Aff = { id: string; invite_code: string; status: string; commission_pct: number; created_at: string; owner: { display_name: string | null } | null };
 type Stat = { referred_user_id: string; display_name: string | null; paid_cents: number; test_cents: number; earned_cents: number };
@@ -15,6 +16,12 @@ export function AffiliatesSection() {
   const q = useQuery({
     queryKey: ["admin", "affiliates"],
     queryFn: async () => {
+      // Stripe first: fix missing/changed payments before affiliate earnings are read.
+      try {
+        await reconcileOpenAccounting();
+      } catch {
+        // Show recorded figures if the Stripe check is unavailable.
+      }
       const { data, error } = await supabase.from("affiliates")
         .select("id,invite_code,status,commission_pct,created_at,owner:profiles!affiliates_user_id_fkey(display_name)")
         .order("created_at", { ascending: false }).limit(200);

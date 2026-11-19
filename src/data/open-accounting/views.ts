@@ -308,6 +308,8 @@ export type AccountingData = {
   homes: ParticipationHome[];
   skills: ParticipationSkill[];
   creditReasons: CreditReasonRow[];
+  /** Last Stripe reconciliation before this read. */
+  stripeCheck?: { checkedAt: string | null; unmatched: number; ok: boolean };
 };
 
 const COST_IDS: ExpenseId[] = ["facilitator", "support", "travel"];
