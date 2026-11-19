@@ -139,7 +139,7 @@ async function emailPreferenceOn(userId: string, type: "event_reminder") {
   return (data as { email?: boolean }).email !== false;
 }
 
-async function inAppPreferenceOn(userId: string, type: "event_changed" | "event_cancelled") {
+async function inAppPreferenceOn(userId: string, type: "event_cancelled") {
   const { data, error } = await db().from("notification_preferences").select("in_app").eq("user_id", userId).eq("type", type).maybeSingle();
   if (error || !data) return true;
   return (data as { in_app?: boolean }).in_app !== false;
@@ -417,12 +417,11 @@ export async function dispatchScheduleChange(input: { event: EventRecord; previo
       templateKey: "event_rescheduled", channel: "email", recipientUserId: userId, recipientAddress: await memberEmail(userId), recipientKey: userId,
       eventId: input.event.id, scheduleKey, timezone: input.event.timezone, scheduledFor: null, notice,
     });
-    if (await inAppPreferenceOn(userId, "event_changed")) {
-      await deliver({
-        templateKey: "event_rescheduled", channel: "in_app", recipientUserId: userId, recipientAddress: null, recipientKey: userId,
-        eventId: input.event.id, scheduleKey, timezone: input.event.timezone, scheduledFor: null, notice,
-      });
-    }
+    // Schedule edits always bell — preference cannot drop the in-app channel.
+    await deliver({
+      templateKey: "event_rescheduled", channel: "in_app", recipientUserId: userId, recipientAddress: null, recipientKey: userId,
+      eventId: input.event.id, scheduleKey, timezone: input.event.timezone, scheduledFor: null, notice,
+    });
   }
 }
 
