@@ -218,6 +218,13 @@
       "when": 1794982324656,
       "tag": "0030_restrict_accounting_table_reads",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1795059784021,
+      "tag": "0031_stripe_reconciliation_runs",
+      "breakpoints": true
     }
   ]
 }

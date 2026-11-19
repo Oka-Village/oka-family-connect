@@ -78,6 +78,7 @@ export function OpenAccountingBooks() {
               {view.range.label}
               {stale ? " · Stale snapshot" : ""}
             </p>
+            <StripeCheckNote check={data.data?.stripeCheck} />
             <a href="#details" className="text-primary underline decoration-primary/40 underline-offset-4">
               Details
             </a>
@@ -1004,5 +1005,21 @@ function Mini({ label, value }: { label: string; value: string }) {
       <dt className="text-xs font-medium tracking-[0.12em] text-foreground/60 uppercase">{label}</dt>
       <dd className="mt-1 font-serif text-2xl tabular-nums">{value}</dd>
     </div>
+  );
+}
+
+function StripeCheckNote({ check }: { check: { checkedAt: string | null; unmatched: number; ok: boolean } | undefined }) {
+  if (!check) return null;
+  const time = check.checkedAt
+    ? new Date(check.checkedAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })
+    : null;
+  if (!check.ok) {
+    return <p className="text-xs">Stripe check unavailable{time ? ` · last matched ${time}` : ""} · showing recorded figures</p>;
+  }
+  return (
+    <p className="text-xs">
+      Matched with Stripe{time ? ` · ${time}` : ""}
+      {check.unmatched > 0 ? ` · ${check.unmatched} payment${check.unmatched === 1 ? "" : "s"} need a member match` : ""}
+    </p>
   );
 }
