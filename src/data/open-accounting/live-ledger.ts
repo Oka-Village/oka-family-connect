@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { reconcileOpenAccounting, type StripeCheck } from "@/lib/stripe/reconcile.functions";
 import type {
   AccountingData,
   CreditReasonRow,
@@ -59,6 +60,13 @@ async function earliestMonthId(): Promise<string> {
  * earnings and financial snapshots reflect the latest recorded payments
  * before reading. Cash figures come from payments.amount_cents. */
 export async function fetchAccountingData(): Promise<AccountingData> {
+  // Stripe first: fix missing/changed payments before totals are computed.
+  let stripeCheck: StripeCheck = { checkedAt: null, unmatched: 0, ok: false };
+  try {
+    stripeCheck = await reconcileOpenAccounting();
+  } catch {
+    // Show recorded figures if the Stripe check is unavailable.
+  }
   await supabase.rpc("sync_open_accounting");
   const startMonth = await earliestMonthId();
   const { data, error } = await supabase.rpc("open_accounting_raw", { p_start_month: startMonth });
@@ -89,6 +97,7 @@ export async function fetchAccountingData(): Promise<AccountingData> {
     homes: raw.homes ?? [],
     skills: raw.skills ?? [],
     creditReasons: raw.creditReasons ?? [],
+    stripeCheck,
   };
 }
 

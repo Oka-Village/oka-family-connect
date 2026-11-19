@@ -1210,6 +1210,24 @@ export type Database = {
           },
         ]
       }
+      stripe_reconciliation_runs: {
+        Row: {
+          id: number
+          last_run_at: string
+          summary: Json
+        }
+        Insert: {
+          id?: number
+          last_run_at?: string
+          summary?: Json
+        }
+        Update: {
+          id?: number
+          last_run_at?: string
+          summary?: Json
+        }
+        Relationships: []
+      }
       themes: {
         Row: {
           body: string | null
