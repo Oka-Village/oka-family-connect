@@ -687,7 +687,23 @@ function Expenses({ view }: { view: AccountingView }) {
         money
         label="Monthly expense trend"
       />
-      <div className="mt-4 max-w-full overflow-x-auto">
+      <ul className="mt-4 flex flex-col gap-3 md:hidden">
+        {view.expenseLines.map((line) => (
+          <li key={line.id} className="rounded-2xl border border-border bg-background p-4 text-sm">
+            <p className="font-medium break-words">
+              {line.label}
+              {line.bridge ? " · Already in the revenue bridge" : ""}
+            </p>
+            <p className="text-xs text-muted-foreground capitalize">{line.kind}</p>
+            <dl className="mt-3 grid grid-cols-3 gap-2">
+              <div className="min-w-0"><dt className="text-xs text-muted-foreground">Actual</dt><dd>{formatUsd(line.actualCents)}</dd></div>
+              <div className="min-w-0"><dt className="text-xs text-muted-foreground">Budget</dt><dd>{view.range.kind === "today" ? "—" : formatUsd(line.budgetCents)}</dd></div>
+              <div className="min-w-0"><dt className="text-xs text-muted-foreground">Variance</dt><dd>{view.range.kind === "today" ? "—" : formatSigned(line.budgetCents - line.actualCents)}</dd></div>
+            </dl>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-4 hidden max-w-full overflow-x-auto md:block">
         <table className="w-full min-w-[720px] text-left text-sm">
           <thead className="text-xs tracking-[0.12em] text-primary uppercase">
             <tr>
@@ -844,7 +860,7 @@ function Ledger({
         
       </p>
       <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-        <label className="text-sm">
+        <label className="min-w-0 text-sm">
           Type
           <select
             className="mt-1 block rounded-full border border-border bg-background px-4 py-2"
@@ -866,7 +882,28 @@ function Ledger({
           />
         </label>
       </div>
-      <div className="mt-4 max-w-full overflow-x-auto">
+      <ul className="mt-4 flex flex-col gap-3 md:hidden">
+        {visible.length === 0 && <li className="py-4 text-sm text-muted-foreground">No transactions in this filter.</li>}
+        {visible.map((row) => (
+          <li key={row.id} className="rounded-2xl border border-border bg-background p-4 text-sm">
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+              <div className="min-w-0">
+                <p className="font-medium">{row.type}</p>
+                <p className="text-xs text-muted-foreground">{formatIsoDate(row.date)} · {row.category}</p>
+              </div>
+              <p className="shrink-0 font-medium">{formatSigned(row.netCents)}</p>
+            </div>
+            <dl className="mt-3 grid grid-cols-2 gap-2">
+              <div className="min-w-0"><dt className="text-xs text-muted-foreground">Gross</dt><dd>{formatSigned(row.grossCents)}</dd></div>
+              <div className="min-w-0"><dt className="text-xs text-muted-foreground">Fees</dt><dd>{formatSigned(row.feeCents)}</dd></div>
+              <div className="min-w-0"><dt className="text-xs text-muted-foreground">Allocation</dt><dd>{row.allocation}</dd></div>
+              <div className="min-w-0"><dt className="text-xs text-muted-foreground">Settlement</dt><dd>{row.settlement} · {row.source}</dd></div>
+            </dl>
+            <p className="mt-2 truncate text-xs text-muted-foreground">Ref {row.reference}</p>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-4 hidden max-w-full overflow-x-auto md:block">
         <table className="w-full min-w-[980px] text-left text-sm">
           <thead className="text-xs tracking-[0.12em] text-primary uppercase">
             <tr>
