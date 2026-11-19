@@ -1,5 +1,14 @@
 /** Bound only session verification, not profile reads or Google sign-in. */
-export const SESSION_RESTORE_TIMEOUT_MS = 6_000;
+export const SESSION_RESTORE_TIMEOUT_MS = 15_000;
+
+/** Only a server-confirmed invalid session may clear the stored login; slow or offline networks never do. */
+export function isAuthFailure(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const e = error as { name?: string; status?: number; message?: string; code?: string };
+  if (e.name === "AuthRetryableFetchError" || e.message === "Session restore timed out") return false;
+  if (e.status === 401 || e.status === 403) return true;
+  return /invalid refresh token|refresh token not found|session_not_found|user_not_found|jwt expired|invalid jwt/i.test(`${e.code ?? ""} ${e.message ?? ""}`);
+}
 
 export async function restoreSession<T>(read: () => Promise<T>): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
