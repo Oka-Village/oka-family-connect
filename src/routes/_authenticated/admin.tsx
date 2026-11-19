@@ -11,7 +11,9 @@ import { Input } from "@/components/ui/input";
 import { useCurrentUserId, useRoles } from "@/hooks/use-is-admin";
 import { supabase } from "@/integrations/supabase/client";
 import { getAdminMemberStatuses, searchAdminMembers } from "@/lib/admin-members.functions";
-import { deleteEvent, setEventStatus } from "@/lib/event-admin";
+import { deleteEvent } from "@/lib/event-admin";
+import { notifyEventStatus } from "@/lib/event-notifications.functions";
+import { useServerFn } from "@tanstack/react-start";
 import { groupEventSeries, type GroupedEvent } from "@/lib/event-series";
 import { EVENT_SELECT, TYPE_LABELS, formatEventDate, formatEventTime, hostName, type EventRow } from "@/lib/events";
 import { memberStatusIndicators } from "@/lib/member-status";
@@ -112,12 +114,13 @@ async function loadEvents(statuses: string[], upcomingOnly: boolean) {
 
 function EventsSection() {
   const qc = useQueryClient();
+  const changeStatus = useServerFn(notifyEventStatus);
   const pending = useQuery({ queryKey: ["admin", "pending"], queryFn: () => loadEvents(["pending_approval"], false) });
   const live = useQuery({ queryKey: ["admin", "live"], queryFn: () => loadEvents(["published"], true) });
   const cancelled = useQuery({ queryKey: ["admin", "cancelled"], queryFn: () => loadEvents(["cancelled"], false) });
   const act = useMutation({
     mutationFn: async ({ ids, status }: { ids: string[]; status: "published" | "rejected" | "cancelled" }) => {
-      for (const id of ids) await setEventStatus(id, status);
+      for (const id of ids) await changeStatus({ data: { eventId: id, status } });
     },
     onSuccess: () => { toast.success("Event updated"); qc.invalidateQueries(); },
     onError: (e: Error) => toast.error(e.message),

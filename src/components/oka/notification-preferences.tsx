@@ -11,6 +11,8 @@ const LABELS = {
   referral_credit: "Referral credit",
 };
 
+const ALWAYS_EMAIL = new Set<NotificationPreference["type"]>(["event_changed", "event_cancelled"]);
+
 export function NotificationPreferences({ userId }: { userId: string }) {
   return <section className="surface-card mt-12 p-6 md:p-8">
     <p className="section-label">Notification preferences</p>
@@ -43,12 +45,15 @@ function PreferencesRows({ userId }: { userId: string }) {
       <span /><span>In-app</span><span>Email</span>
     </div>
     {data.preferences.map((preference) => <div key={preference.type} className="grid grid-cols-[minmax(0,1fr)_3.5rem_3.5rem] items-center gap-4 border-b border-border py-4">
-      <span className="text-sm text-foreground">{LABELS[preference.type]}</span>
-      {(["in_app", "email"] as const).map((channel) => <div key={channel} className="flex min-h-11 items-center justify-center">
-        <Switch checked={preference[channel]} disabled={!data.available || mutation.isPending}
-          aria-label={`${LABELS[preference.type]} — ${channel === "in_app" ? "In-app" : "Email"}`}
-          onCheckedChange={(checked) => { setSaveError(false); mutation.mutate({ ...preference, [channel]: checked }); }} />
-      </div>)}
+      <span className="text-sm text-foreground">{LABELS[preference.type]}{ALWAYS_EMAIL.has(preference.type) ? " — email always sent" : ""}</span>
+      {(["in_app", "email"] as const).map((channel) => {
+        const alwaysSent = channel === "email" && ALWAYS_EMAIL.has(preference.type);
+        return <div key={channel} className="flex min-h-11 items-center justify-center">
+          <Switch checked={alwaysSent ? true : preference[channel]} disabled={!data.available || mutation.isPending || alwaysSent}
+            aria-label={alwaysSent ? `${LABELS[preference.type]} — Email, always sent` : `${LABELS[preference.type]} — ${channel === "in_app" ? "In-app" : "Email"}`}
+            onCheckedChange={(checked) => { setSaveError(false); mutation.mutate({ ...preference, [channel]: checked }); }} />
+        </div>;
+      })}
     </div>)}
     {saveError && <p role="alert" className="mt-3 text-sm text-destructive">Your preference didn’t save. Please try again.</p>}
   </>;

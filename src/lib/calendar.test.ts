@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calendarIcs, googleCalendarUrl, outlookCalendarUrl, type CalendarEvent } from "./calendar";
+import { calendarIcs, calendarInviteIcs, googleCalendarUrl, outlookCalendarUrl, type CalendarEvent } from "./calendar";
 
 const event: CalendarEvent = {
   id: "test-event", title: "Stories & connection, together",
@@ -43,6 +43,21 @@ describe("event calendar exports", () => {
     expect(calendarIcs(single)).not.toContain("DTEND:");
     expect(calendarIcs(single)).not.toContain("LOCATION:");
     expect(new URL(googleCalendarUrl(single)).searchParams.get("dates")).toBe("20261129T090000Z/20261129T090000Z");
+  });
+  it("emails a request and a cancellation with one stable UID and a rising sequence", () => {
+    const now = new Date("2026-11-15T06:26:00Z");
+    const request = calendarInviteIcs(event, { method: "REQUEST", sequence: 0, now });
+    const update = calendarInviteIcs(event, { method: "REQUEST", sequence: 1, now });
+    const cancel = calendarInviteIcs(event, { method: "CANCEL", sequence: 1, now });
+    expect(request).toContain("METHOD:REQUEST");
+    expect(request).toContain("UID:event-test-event@oneworldfamily.app");
+    expect(request).toContain("SEQUENCE:0");
+    expect(update).toContain("SEQUENCE:1");
+    expect(cancel).toContain("METHOD:CANCEL");
+    expect(cancel).toContain("UID:event-test-event@oneworldfamily.app");
+    expect(cancel).toContain("STATUS:CANCELLED");
+    expect(calendarIcs(event, now)).toContain("METHOD:PUBLISH");
+    expect(calendarIcs(event, now)).not.toContain("SEQUENCE:");
   });
   it("rejects invalid dates and an end before the start", () => {
     expect(() => calendarIcs({ ...event, startsAt: "invalid" })).toThrow();

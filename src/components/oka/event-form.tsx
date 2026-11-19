@@ -1,5 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
 import { Camera, Loader2 } from "lucide-react";
 import { signPaths } from "@/lib/skills";
@@ -25,7 +26,8 @@ import {
   type EventType,
 } from "@/lib/events";
 import { MAX_OCCURRENCES, REPEAT_LABELS, occurrenceStarts, type Repeat } from "@/lib/recurrence";
-import { canEditEvent, eventDetailsUpdate } from "@/lib/event-edit";
+import { canEditEvent } from "@/lib/event-edit";
+import { notifyEventCreated, saveEventDetails } from "@/lib/event-notifications.functions";
 import { eventMeetingLink, youtubeVideoId } from "@/lib/event-video";
 
 type Props = {
@@ -42,6 +44,8 @@ const selectCls =
 export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: Props) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const notifyCreated = useServerFn(notifyEventCreated);
+  const saveDetails = useServerFn(saveEventDetails);
   const tz0 = initial?.timezone || defaultTimezone();
   const [f, setF] = useState({
     title: initial?.title ?? "",
@@ -198,6 +202,11 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
       if (!first) { setSaving(false); return; }
       const firstId = first.id;
       const { error: locErr } = await supabase.from("event_locations").upsert(data.map((r) => ({ event_id: r.id, ...location })));
+      if (!locErr) {
+        for (const row of data) {
+          try { await notifyCreated({ data: { eventId: row.id } }); } catch { /* the event is saved even when mail cannot be sent */ }
+        }
+      }
       setSaving(false);
       if (locErr) return toast.error(locErr.message);
       await queryClient.invalidateQueries();
@@ -208,9 +217,13 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
     }
     if (!initial) { setSaving(false); return; }
     const eventId = initial.id;
-    const { data: updated, error } = await supabase.from("events")
-      .update(eventDetailsUpdate(payload)).eq("id", eventId).select("id,status").single();
-    if (error || !updated) { setSaving(false); return toast.error(error?.message ?? "Couldn't save the event."); }
+    let updated: { status: string };
+    try {
+      updated = await saveDetails({ data: { eventId, ...payload } });
+    } catch (error) {
+      setSaving(false);
+      return toast.error(error instanceof Error ? error.message : "Couldn't save the event.");
+    }
     const { error: locErr } = await supabase.from("event_locations").upsert({ event_id: eventId, ...location });
     setSaving(false);
     if (locErr) return toast.error(locErr.message);

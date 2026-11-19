@@ -58,20 +58,30 @@ function foldLine(line: string): string {
   return result;
 }
 
-export function calendarIcs(event: CalendarEvent, now = new Date()): string {
+function vevent(event: CalendarEvent, now: Date, method: "PUBLISH" | "REQUEST" | "CANCEL", sequence = 0) {
   const { start, end } = dates(event);
   const lines = [
     "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Oka//Event Calendar//EN",
-    "CALSCALE:GREGORIAN", "METHOD:PUBLISH", "BEGIN:VEVENT",
+    "CALSCALE:GREGORIAN", `METHOD:${method}`, "BEGIN:VEVENT",
     `UID:event-${escapeText(event.id)}@oneworldfamily.app`,
     `DTSTAMP:${utc(now)}`, `DTSTART:${utc(start)}`,
     ...(end ? [`DTEND:${utc(end)}`] : []),
     `SUMMARY:${escapeText(event.title)}`, `DESCRIPTION:${escapeText(details(event))}`,
     `URL:${event.url.replace(/[\r\n]/g, "")}`,
     ...(event.location ? [`LOCATION:${escapeText(event.location)}`] : []),
+    ...(method === "PUBLISH" ? [] : [`SEQUENCE:${sequence}`, `STATUS:${method === "CANCEL" ? "CANCELLED" : "CONFIRMED"}`]),
     "END:VEVENT", "END:VCALENDAR",
   ];
   return `${lines.map(foldLine).join("\r\n")}\r\n`;
+}
+
+export function calendarIcs(event: CalendarEvent, now = new Date()): string {
+  return vevent(event, now, "PUBLISH");
+}
+
+/** Emailed invitation. The downloadable file stays a plain publish. */
+export function calendarInviteIcs(event: CalendarEvent, options: { method: "REQUEST" | "CANCEL"; sequence: number; now?: Date }) {
+  return vevent(event, options.now ?? new Date(), options.method, options.sequence);
 }
 
 /** Only called by an explicit browser download action. */
