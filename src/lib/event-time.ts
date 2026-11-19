@@ -13,7 +13,7 @@ function dateKey(iso: string, zone: string) {
 }
 
 function time(iso: string, zone: string) {
-  return new Intl.DateTimeFormat("en-US", { timeZone: zone, hour: "numeric", minute: "2-digit", timeZoneName: "short" }).format(new Date(iso));
+  return new Intl.DateTimeFormat("en-US", { timeZone: zone, hour: "numeric", minute: "2-digit" }).format(new Date(iso));
 }
 
 function datedTime(iso: string, zone: string) {

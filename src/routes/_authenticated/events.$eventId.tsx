@@ -4,7 +4,7 @@ import { ArrowLeft, CalendarDays, Check, Clock, Hourglass, Lock, MapPin, Pencil,
 import { toast } from "sonner";
 
 import { RsvpBadge, useEventPhoto } from "@/components/oka/event-card";
-import { EventTime } from "@/components/oka/event-time";
+import { EventTime, ViewerTimezone } from "@/components/oka/event-time";
 import { AddToCalendarDropdown } from "@/components/oka/add-to-calendar-dropdown";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -221,7 +221,7 @@ function EventDetail() {
               <EventTime start={ev.starts_at} end={ev.ends_at} timezone={ev.timezone} />
             </Detail>
             {duration && <Detail icon={Hourglass}>Duration · {duration}</Detail>}
-            {ev.timezone && <Detail icon={Clock}>{ev.timezone}</Detail>}
+            <Detail icon={Clock}><ViewerTimezone /></Detail>
           </div>
 
           <div className="mt-8 rounded-2xl bg-secondary/50 p-5">
