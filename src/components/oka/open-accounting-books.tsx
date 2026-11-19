@@ -54,7 +54,7 @@ export function OpenAccountingBooks() {
   return (
     <div className="flex min-w-0 flex-col gap-6">
         <div className="sticky top-0 z-20 -mx-1 border-b border-border bg-background/95 px-1 py-3 backdrop-blur lg:top-19">
-          <div className="flex min-w-0 gap-2 overflow-x-auto pb-1" role="group" aria-label="Reporting range">
+          <div className="flex min-w-0 gap-2 no-scrollbar overflow-x-auto" role="group" aria-label="Reporting range">
             {(
               [
                 ["today", "Today"],
