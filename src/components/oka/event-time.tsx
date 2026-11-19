@@ -20,3 +20,12 @@ export function EventTime({ start, end, timezone }: { start: string; end?: strin
     </span>
   );
 }
+
+/** The visitor's own timezone, resolved only after hydration so SSR markup stays stable. */
+export function ViewerTimezone() {
+  const [zone, setZone] = useState<string | null>(null);
+  useEffect(() => {
+    setZone(Intl.DateTimeFormat().resolvedOptions().timeZone);
+  }, []);
+  return <span>{zone ?? "…"}</span>;
+}
