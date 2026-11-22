@@ -1,7 +1,15 @@
-ALTER TABLE public.profiles ADD COLUMN member_status text NOT NULL DEFAULT 'full';
-UPDATE public.profiles SET member_status = 'full';
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS member_status text;
+UPDATE public.profiles SET member_status = 'full' WHERE member_status IS NULL;
 ALTER TABLE public.profiles ALTER COLUMN member_status SET DEFAULT 'limited';
-ALTER TABLE public.profiles ADD CONSTRAINT profiles_member_status_valid CHECK (member_status IN ('full', 'limited'));
+ALTER TABLE public.profiles ALTER COLUMN member_status SET NOT NULL;
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'profiles_member_status_valid' AND conrelid = 'public.profiles'::regclass
+  ) THEN
+    ALTER TABLE public.profiles ADD CONSTRAINT profiles_member_status_valid CHECK (member_status IN ('full', 'limited'));
+  END IF;
+END $$;
 
 -- SECURITY DEFINER: read only the caller's status without recursive profiles RLS.
 CREATE OR REPLACE FUNCTION public.is_full_member() RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$

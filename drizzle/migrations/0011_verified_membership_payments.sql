@@ -1,4 +1,4 @@
-CREATE TABLE public.memberships (
+CREATE TABLE IF NOT EXISTS public.memberships (
  user_id uuid PRIMARY KEY REFERENCES public.profiles(id) ON DELETE CASCADE,
  kind text NOT NULL CHECK (kind IN ('founding','monthly')),
  active boolean NOT NULL DEFAULT true,
@@ -12,6 +12,7 @@ CREATE TABLE public.memberships (
 GRANT SELECT ON public.memberships TO authenticated;
 GRANT ALL ON public.memberships TO service_role;
 ALTER TABLE public.memberships ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS memberships_read_own ON public.memberships;
 CREATE POLICY memberships_read_own ON public.memberships FOR SELECT TO authenticated USING (user_id = auth.uid());
 INSERT INTO public.memberships(user_id,kind,stripe_checkout_session_id)
 SELECT user_id,'founding',stripe_checkout_session_id FROM (SELECT DISTINCT ON (user_id) * FROM public.payments WHERE purpose='founding_lifetime' AND status='paid' AND stripe_checkout_session_id IS NOT NULL ORDER BY user_id,created_at DESC) p;

@@ -56,6 +56,22 @@ describe("notification database boundaries", () => {
     expect(await invoke(setPreference, preference)).toEqual({ ok: false });
     expect(mocks.query['upsert']).toHaveBeenCalledWith({ user_id: "member-123", ...preference }, { onConflict: "user_id,type" });
   });
+  it("refuses to turn off locked schedule-change channels on upsert", async () => {
+    const preference = { type: "event_changed", in_app: false, email: false };
+    expect(await invoke(setPreference, preference)).toEqual({ ok: false });
+    expect(mocks.query['upsert']).toHaveBeenCalledWith(
+      { user_id: "member-123", type: "event_changed", in_app: true, email: true },
+      { onConflict: "user_id,type" },
+    );
+  });
+  it("forces reminder in-app off even when the client asks for it", async () => {
+    const preference = { type: "event_reminder", in_app: true, email: true };
+    expect(await invoke(setPreference, preference)).toEqual({ ok: false });
+    expect(mocks.query['upsert']).toHaveBeenCalledWith(
+      { user_id: "member-123", type: "event_reminder", in_app: false, email: true },
+      { onConflict: "user_id,type" },
+    );
+  });
   it("keeps email sending skipped with or without a configured key", async () => {
     const fetchSpy = vi.spyOn(globalThis, "fetch");
     vi.stubEnv("RESEND_API_KEY", "");

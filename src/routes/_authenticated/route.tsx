@@ -2,6 +2,7 @@ import { createFileRoute, Outlet, redirect, useRouterState } from "@tanstack/rea
 
 import { AppShell } from "@/components/oka/app-shell";
 import { supabase } from "@/integrations/supabase/client";
+import { saveReturnTo } from "@/lib/join-link";
 
 /**
  * Gate for every signed-in surface. Client-only because the Supabase session
@@ -9,9 +10,13 @@ import { supabase } from "@/integrations/supabase/client";
  */
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
-  beforeLoad: async () => {
+  beforeLoad: async ({ location }) => {
     const { data, error } = await supabase.auth.getUser();
-    if (error || !data.user) throw redirect({ to: "/" });
+    if (error || !data.user) {
+      const next = location.href.startsWith("/") ? location.href.split("#")[0] ?? location.pathname : location.pathname;
+      saveReturnTo(next);
+      throw redirect({ to: "/" });
+    }
     return { user: data.user };
   },
   component: AuthenticatedLayout,

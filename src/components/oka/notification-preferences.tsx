@@ -3,13 +3,28 @@ import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-q
 import { useServerFn } from "@tanstack/react-start";
 import { Switch } from "@/components/ui/switch";
 import { getPreferences, setPreference } from "@/lib/notifications.functions";
-import { defaultPreferences, type NotificationPreference } from "@/lib/notifications";
+import {
+  ALWAYS_EMAIL,
+  ALWAYS_IN_APP,
+  channelAlwaysOn,
+  channelUnavailable,
+  defaultPreferences,
+  type NotificationPreference,
+} from "@/lib/notifications";
 
 const LABELS = {
   event_reminder: "Event reminders", event_changed: "Event changes",
   event_cancelled: "Event cancellations", profile_approved: "Profile approval",
   referral_credit: "Referral credit",
 };
+
+function preferenceHint(type: NotificationPreference["type"]) {
+  const parts: string[] = [];
+  if (ALWAYS_IN_APP.has(type)) parts.push("in-app always sent");
+  if (ALWAYS_EMAIL.has(type)) parts.push("email always sent");
+  if (type === "event_reminder") parts.push("email only");
+  return parts.length ? ` — ${parts.join("; ")}` : "";
+}
 
 export function NotificationPreferences({ userId }: { userId: string }) {
   return <section className="surface-card mt-12 p-6 md:p-8">
@@ -43,12 +58,22 @@ function PreferencesRows({ userId }: { userId: string }) {
       <span /><span>In-app</span><span>Email</span>
     </div>
     {data.preferences.map((preference) => <div key={preference.type} className="grid grid-cols-[minmax(0,1fr)_3.5rem_3.5rem] items-center gap-4 border-b border-border py-4">
-      <span className="text-sm text-foreground">{LABELS[preference.type]}</span>
-      {(["in_app", "email"] as const).map((channel) => <div key={channel} className="flex min-h-11 items-center justify-center">
-        <Switch checked={preference[channel]} disabled={!data.available || mutation.isPending}
-          aria-label={`${LABELS[preference.type]} — ${channel === "in_app" ? "In-app" : "Email"}`}
-          onCheckedChange={(checked) => { setSaveError(false); mutation.mutate({ ...preference, [channel]: checked }); }} />
-      </div>)}
+      <span className="text-sm text-foreground">{LABELS[preference.type]}{preferenceHint(preference.type)}</span>
+      {(["in_app", "email"] as const).map((channel) => {
+        const lockedOn = channelAlwaysOn(preference.type, channel);
+        const unavailable = channelUnavailable(preference.type, channel);
+        const checked = unavailable ? false : lockedOn ? true : preference[channel];
+        const disabled = !data.available || mutation.isPending || lockedOn || unavailable;
+        const aria = unavailable
+          ? `${LABELS[preference.type]} — In-app, not available`
+          : lockedOn
+            ? `${LABELS[preference.type]} — ${channel === "in_app" ? "In-app" : "Email"}, always sent`
+            : `${LABELS[preference.type]} — ${channel === "in_app" ? "In-app" : "Email"}`;
+        return <div key={channel} className="flex min-h-11 items-center justify-center">
+          <Switch checked={checked} disabled={disabled} aria-label={aria}
+            onCheckedChange={(next) => { setSaveError(false); mutation.mutate({ ...preference, [channel]: next }); }} />
+        </div>;
+      })}
     </div>)}
     {saveError && <p role="alert" className="mt-3 text-sm text-destructive">Your preference didn’t save. Please try again.</p>}
   </>;
