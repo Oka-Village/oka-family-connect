@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
 const TABS = ["books", "expenses"] as const;
 type Tab = (typeof TABS)[number];
 
-const OG_IMAGE = `${PRODUCTION_ORIGIN}/og/open-accounting.jpg`;
+const OG_IMAGE = `${PRODUCTION_ORIGIN}/og/open-accounting.jpg?v=2`;
 const OG_URL = `${PRODUCTION_ORIGIN}/open-accounting`;
 const OG_DESCRIPTION = "See how Oka grows, creates value, and shares its prosperity.";
 
