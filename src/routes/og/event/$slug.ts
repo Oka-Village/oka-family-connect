@@ -18,17 +18,30 @@ export const Route = createFileRoute("/og/event/$slug")({
             .from("events").select("photo_url").eq("join_slug", slug.data).eq("status", "published").maybeSingle();
           const path = ev?.photo_url;
           if (!path) return fallback();
-          let src = path;
-          if (!path.startsWith("http")) {
-            const { data } = await supabaseAdmin.storage.from("avatars").createSignedUrl(path, 300);
-            if (!data?.signedUrl) return fallback();
-            src = data.signedUrl;
+          // WhatsApp drops preview images over ~300 KB, so serve a resized rendition.
+          const LIMIT = 280 * 1024;
+          const load = async (width: number | null) => {
+            let src = path;
+            if (!path.startsWith("http")) {
+              const { data } = await supabaseAdmin.storage.from("avatars").createSignedUrl(
+                path, 300, width ? { transform: { width, resize: "contain", quality: 70 } } : undefined,
+              );
+              if (!data?.signedUrl) return null;
+              src = data.signedUrl;
+            }
+            const res = await fetch(src);
+            const type = res.headers.get("content-type") ?? "";
+            if (!res.ok || !type.startsWith("image/")) return null;
+            return { type, buf: await res.arrayBuffer() };
+          };
+          let img: { type: string; buf: ArrayBuffer } | null = null;
+          for (const w of path.startsWith("http") ? [null] : [800, 400, 300]) {
+            img = await load(w);
+            if (!img || img.buf.byteLength <= LIMIT) break;
           }
-          const res = await fetch(src);
-          const type = res.headers.get("content-type") ?? "";
-          if (!res.ok || !type.startsWith("image/")) return fallback();
-          return new Response(res.body, {
-            headers: { "Content-Type": type, "Cache-Control": "public, max-age=86400" },
+          if (!img) return fallback();
+          return new Response(img.buf, {
+            headers: { "Content-Type": img.type, "Content-Length": String(img.buf.byteLength), "Cache-Control": "public, max-age=86400" },
           });
         } catch {
           return fallback();
