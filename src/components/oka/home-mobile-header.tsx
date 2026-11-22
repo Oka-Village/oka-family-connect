@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 
@@ -24,8 +25,35 @@ export function HomeMobileHeader() {
     ? `This month · ${theme.title}`
     : `This month · ${periodLabel("month", currentKey("month"))}`;
 
+  const headerRef = useRef<HTMLElement>(null);
+  const [compact, setCompact] = useState(false);
+  useEffect(() => {
+    const onScroll = () => {
+      const h = headerRef.current;
+      if (h) setCompact(h.getBoundingClientRect().bottom < 0);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <header className="rounded-b-[28px] bg-[#FFFDF9] px-5 pb-5 pt-10 shadow-[0_1px_0_var(--sand)] md:hidden">
+    <>
+    <div
+      aria-hidden={!compact}
+      className={`fixed inset-x-0 top-0 z-30 flex items-center justify-between gap-3 rounded-b-2xl bg-[#FFFDF9] px-5 py-2.5 shadow-[0_4px_16px_rgb(55_44_36/0.08)] transition-transform duration-300 md:hidden ${compact ? "translate-y-0" : "-translate-y-full"}`}
+    >
+      <div className="flex min-w-0 flex-col">
+        <span className="truncate font-serif text-[18px] leading-tight text-foreground">{name ? `Hi, ${name}` : "Welcome to Oka"}</span>
+        <span className="truncate text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+          {themeLabel} · <span className="text-terracotta">{daysUntilOpen} days</span>
+        </span>
+      </div>
+      <Link to="/profile" tabIndex={compact ? 0 : -1} aria-label="Your profile" className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-sage text-[13px] font-semibold text-cream">
+        {photoQuery.data ? <MemberAvatar src={photoQuery.data} name={name} className="size-full" /> : initial}
+      </Link>
+    </div>
+    <header ref={headerRef} className="rounded-b-[28px] bg-[#FFFDF9] px-5 pb-5 pt-10 shadow-[0_1px_0_var(--sand)] md:hidden">
       <div className="flex items-center justify-between">
         <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-terracotta">Welcome to Oka</p>
         <Link
@@ -86,5 +114,6 @@ export function HomeMobileHeader() {
         <span className="text-[13px] text-muted-foreground">days until the whole home opens on December 1</span>
       </div>
     </header>
+    </>
   );
 }

@@ -9,7 +9,7 @@ import { saveInviteCode, useClaimInvite } from "@/lib/affiliates";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { brokeredPreviewStorage } from "@/integrations/supabase/previewAuthStorage";
-import { recoverSession, restoreSession, sessionStorageKey } from "@/lib/session-restore";
+import { isAuthFailure, recoverSession, restoreSession, sessionStorageKey } from "@/lib/session-restore";
 
 /** Covers public routes and full-bleed onboarding too, before mounting their content. */
 export function MembershipBoundary({ children }: { children: ReactNode }) {
@@ -20,17 +20,23 @@ export function MembershipBoundary({ children }: { children: ReactNode }) {
   const session = useQuery({
     queryKey: ["membership-session"],
     queryFn: () => restoreSession(async () => {
+      // Read the stored login first; the server check below only confirms it.
+      const { data: local } = await supabase.auth.getSession();
+      if (!local.session) return null;
       const { data, error } = await supabase.auth.getUser();
-      if (error && error.name !== "AuthSessionMissingError") throw error;
-      return data.user?.id ?? null;
+      if (error && error.name === "AuthSessionMissingError") return null;
+      if (error && isAuthFailure(error)) throw error;
+      // Network trouble keeps the member signed in with their stored login.
+      return data.user?.id ?? local.session.user.id;
     }),
-    retry: false,
-    staleTime: 0,
+    retry: (count, error) => !isAuthFailure(error) && count < 3,
+    retryDelay: (attempt) => Math.min(1_000 * 2 ** attempt, 8_000),
+    staleTime: 5 * 60_000,
     refetchOnMount: "always",
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
   });
   useEffect(() => {
-    if (!session.isError || recovering.current) return;
+    if (!session.isError || !isAuthFailure(session.error) || recovering.current) return;
     recovering.current = true;
     void qc.cancelQueries();
     qc.clear();
@@ -45,7 +51,7 @@ export function MembershipBoundary({ children }: { children: ReactNode }) {
         await storage?.removeItem(name);
       }));
     }, (path) => window.location.replace(path));
-  }, [session.isError, qc]);
+  }, [session.isError, session.error, qc]);
   const profile = useProfile();
   const roles = useRoles();
   const membership = useMembership(profile.data?.id);
