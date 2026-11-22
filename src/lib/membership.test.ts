@@ -48,7 +48,7 @@ describe("membership payment rules", () => {
       expect(isPublicEntryRoute(path)).toBe(false);
     },
   );
-  it.each(["/", "/membership", "/privacy", "/terms", "/invite/FRIEND", "/join/gathering", "/facilitators"])(
+  it.each(["/", "/membership", "/privacy", "/terms", "/invite/FRIEND", "/join/gathering", "/facilitators", "/open-accounting"])(
     "preserves public entry at %s",
     (path) => {
       expect(isPublicEntryRoute(path)).toBe(true);
