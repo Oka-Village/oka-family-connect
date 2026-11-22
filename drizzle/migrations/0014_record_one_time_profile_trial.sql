@@ -1,4 +1,4 @@
-ALTER TABLE public.profiles ADD COLUMN trial_started_at timestamptz;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS trial_started_at timestamptz;
 
 CREATE FUNCTION public.profiles_trial_started_guard()
 RETURNS trigger

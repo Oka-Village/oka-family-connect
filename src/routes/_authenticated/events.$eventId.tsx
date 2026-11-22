@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { useCurrentUserId, useIsStaff } from "@/hooks/use-is-admin";
 import { resolvePhotoUrl } from "@/hooks/use-profile";
 import { supabase } from "@/integrations/supabase/client";
-import { setEventStatus } from "@/lib/event-admin";
+import { notifyEventStatus, notifyRsvpConfirmed } from "@/lib/event-notifications.functions";
 import { getVideoConfigured } from "@/lib/video.functions";
 import { VideoRoom } from "@/components/oka/video-room";
 import { useServerFn } from "@tanstack/react-start";
@@ -77,6 +77,8 @@ function EventDetail() {
   const { data: uid } = useCurrentUserId();
   const { data: isAdmin } = useIsStaff();
   const fetchVideoCfg = useServerFn(getVideoConfigured);
+  const confirmRsvp = useServerFn(notifyRsvpConfirmed);
+  const changeStatus = useServerFn(notifyEventStatus);
   const videoCfg = useQuery({ queryKey: ["video-configured"], queryFn: () => fetchVideoCfg(), staleTime: 5 * 60_000 });
 
   const q = useQuery({
@@ -122,6 +124,7 @@ function EventDetail() {
       return data as string;
     },
     onSuccess: (status) => {
+      if (status === "going") void confirmRsvp({ data: { eventId } }).catch(() => undefined);
       toast.success(status === "going" ? "You're going — see you there" : status === "waitlist" ? "It's full, so you're on the waitlist" : "Your RSVP is cancelled");
       const applyStatus = (current: { rsvp?: string } | undefined) => (current ? { ...current, rsvp: status } : current);
       qc.setQueryData(["event", eventId], applyStatus);
@@ -135,7 +138,7 @@ function EventDetail() {
   });
 
   const admin = useMutation({
-    mutationFn: (status: "published" | "rejected" | "cancelled") => setEventStatus(eventId, status),
+    mutationFn: (status: "published" | "rejected" | "cancelled") => changeStatus({ data: { eventId, status } }),
     onSuccess: () => { toast.success("Event updated"); qc.invalidateQueries(); },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -179,6 +182,16 @@ function EventDetail() {
       {ev.status !== "published" && (
         <div className={cn("mt-6 rounded-2xl px-5 py-3 text-sm", ev.status === "cancelled" ? "bg-destructive/10 text-destructive" : "bg-golden/25 text-foreground")}>
           {ev.status === "cancelled" ? "This event has been cancelled." : ev.status === "pending_approval" ? "Awaiting admin review — not yet on the public schedule." : ev.status === "rejected" ? "This proposal was not approved." : `Status: ${ev.status}`}
+        </div>
+      )}
+
+      {status === "awaiting_reconfirmation" && (
+        <div className="mt-6 rounded-2xl bg-golden/25 px-5 py-4 text-sm text-foreground">
+          <p>The time for this gathering has changed. Please confirm whether you can still join.</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button className="rounded-full" disabled={rsvp.isPending} onClick={() => rsvp.mutate("join")}>Confirm attendance</Button>
+            <Button variant="outline" className="rounded-full" disabled={rsvp.isPending} onClick={() => rsvp.mutate("leave")}>Can't make it</Button>
+          </div>
         </div>
       )}
 
@@ -312,6 +325,8 @@ function EventDetail() {
                 <Button variant="outline" className="mt-6 w-full rounded-full" disabled={rsvp.isPending} onClick={() => rsvp.mutate("leave")}>
                   Leave the waitlist
                 </Button>
+              ) : status === "awaiting_reconfirmation" ? (
+                <p className="mt-6 text-sm text-muted-foreground">Please confirm your attendance above.</p>
               ) : (
                 <Button className="mt-6 w-full rounded-full" disabled={rsvp.isPending} onClick={() => rsvp.mutate("join")}>
                   {left === 0 ? "Join the waitlist" : "I'm going"}

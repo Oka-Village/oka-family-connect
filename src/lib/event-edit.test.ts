@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canEditEvent, eventDetailsUpdate } from "./event-edit";
+import { canEditEvent, eventDetailsUpdate, scheduleChanged } from "./event-edit";
 
 const event = {
   host_id: "facilitator", created_by: "creator", title: "Gathering",
@@ -46,5 +46,13 @@ describe("facilitator event editing", () => {
     expect(update).not.toHaveProperty("status");
     expect(update).not.toHaveProperty("host_id");
     expect(update).not.toHaveProperty("created_by");
+  });
+  it("treats a new start, end, or timezone as a schedule change and ignores title edits", () => {
+    const before = { starts_at: "2026-11-20T12:00:00.000Z", ends_at: null, timezone: "Asia/Dhaka" };
+    expect(scheduleChanged(before, { ...before, title: "Renamed" } as typeof before)).toBe(false);
+    expect(scheduleChanged(before, { ...before, starts_at: "2026-11-20T12:00:00Z" })).toBe(false);
+    expect(scheduleChanged(before, { ...before, starts_at: "2026-11-21T12:00:00.000Z" })).toBe(true);
+    expect(scheduleChanged(before, { ...before, ends_at: "2026-11-20T13:00:00.000Z" })).toBe(true);
+    expect(scheduleChanged(before, { ...before, timezone: "UTC" })).toBe(true);
   });
 });

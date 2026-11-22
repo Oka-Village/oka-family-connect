@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { defaultPreferences, notificationSchema, preferenceSchema } from "@/lib/notifications";
+import { defaultPreferences, enforceLockedPreference, notificationSchema, preferenceSchema } from "@/lib/notifications";
 
 // The future tables deliberately aren't in the generated schema. This local
 // client type permits querying them without modifying the generated integration.
@@ -11,7 +11,7 @@ export const listNotifications = createServerFn({ method: "GET" })
     try {
       const client = context.supabase as unknown as SupabaseClient;
       const { data, error } = await client.from("notifications")
-        .select("id,title,body,created_at,read_at,link")
+        .select("id,type,title,body,created_at,read_at,link")
         .eq("user_id", context.userId).order("created_at", { ascending: false });
       if (error) return { notifications: [], available: false };
       const parsed = notificationSchema.array().safeParse(data ?? []);
@@ -46,7 +46,10 @@ export const getPreferences = createServerFn({ method: "GET" })
       if (error) return { preferences: defaults, available: false };
       const parsed = preferenceSchema.array().safeParse(data ?? []);
       if (!parsed.success) return { preferences: defaults, available: false };
-      return { preferences: defaults.map((item) => parsed.data.find((row) => row.type === item.type) ?? item), available: true };
+      return {
+        preferences: defaults.map((item) => enforceLockedPreference(parsed.data.find((row) => row.type === item.type) ?? item)),
+        available: true,
+      };
     } catch {
       return { preferences: defaults, available: false };
     }
@@ -57,9 +60,10 @@ export const setPreference = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => preferenceSchema.parse(input))
   .handler(async ({ data, context }) => {
     try {
+      const locked = enforceLockedPreference(data);
       const client = context.supabase as unknown as SupabaseClient;
       const { error } = await client.from("notification_preferences")
-        .upsert({ user_id: context.userId, ...data }, { onConflict: "user_id,type" });
+        .upsert({ user_id: context.userId, ...locked }, { onConflict: "user_id,type" });
       return { ok: !error };
     } catch {
       return { ok: false };
