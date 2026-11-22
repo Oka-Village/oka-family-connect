@@ -506,3 +506,9 @@
   .oka-tok-move { display: none; }
   .oka-tok-still { display: block; }
 }
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar { display: none; }
+}

@@ -11,7 +11,7 @@ function MonthlyThemeBanner() {
     : `This month · ${periodLabel("month", currentKey("month"))}`;
 
   return (
-    <section className="flex flex-col gap-4 rounded-3xl bg-sage-light/40 p-6 sm:flex-row sm:items-center sm:gap-8">
+    <section className="hidden flex-col gap-4 rounded-3xl bg-sage-light/40 p-6 md:flex sm:flex-row sm:items-center sm:gap-8">
       <div className="sm:max-w-xs sm:border-r sm:border-sand sm:pr-8">
         {isLoading ? (
           <div className="flex flex-col gap-2">

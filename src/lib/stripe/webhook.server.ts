@@ -4,8 +4,9 @@
  * ledger deductions, and payout status via the service-role client.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/integrations/supabase/types";
+import type { Database, Json } from "@/integrations/supabase/types";
 import { STRIPE_SECRET_NAMES } from "./config";
+import { stripeRequest } from "./membership.server";
 
 type AdminClient = SupabaseClient<Database>;
 
@@ -84,6 +85,22 @@ async function resolveUserId(admin: AdminClient, obj: Record<string, unknown>): 
   return data?.user_id ?? null;
 }
 
+type ChargeList = { data: { id: string; balance_transaction: { fee: number } | string | null }[] };
+
+/** Looks up the Stripe processing fee for a payment intent. Returns null when unavailable. */
+async function fetchFeeCents(paymentIntent: string | null): Promise<number | null> {
+  if (!paymentIntent) return null;
+  try {
+    const res = await stripeRequest<ChargeList>(
+      `charges?payment_intent=${encodeURIComponent(paymentIntent)}&limit=1&expand%5B%5D=data.balance_transaction`,
+    );
+    const bt = res.data[0]?.balance_transaction;
+    return bt && typeof bt === "object" ? bt.fee : null;
+  } catch {
+    return null;
+  }
+}
+
 async function upsertPaidPayment(
   admin: AdminClient,
   userId: string,
@@ -95,11 +112,14 @@ async function upsertPaidPayment(
   const amount = asNumber(obj["amount_total"]) ?? asNumber(obj["amount_paid"]) ?? 0;
   const customerId = asString(obj["customer"]);
   const subscriptionId = asString(obj["subscription"]);
+  const feeCents = await fetchFeeCents(paymentIntent);
+  const feeMeta = feeCents != null ? { processing_fee_cents: feeCents } : {};
 
   if (sessionId) {
-    const { data: existing } = await admin.from("payments").select("id").eq("stripe_checkout_session_id", sessionId).maybeSingle();
+    const { data: existing } = await admin.from("payments").select("id, metadata").eq("stripe_checkout_session_id", sessionId).maybeSingle();
     if (existing) {
-      await admin.from("payments").update({ status: "paid", amount_cents: amount, stripe_payment_intent_id: paymentIntent }).eq("id", existing.id);
+      const meta = { ...((existing.metadata ?? {}) as Record<string, unknown>), ...feeMeta };
+      await admin.from("payments").update({ status: "paid", amount_cents: amount, stripe_payment_intent_id: paymentIntent, metadata: meta as Json }).eq("id", existing.id);
     } else {
       await admin.from("payments").insert({
         user_id: userId,
@@ -109,13 +129,14 @@ async function upsertPaidPayment(
         currency: "usd",
         purpose,
         status: "paid",
-        metadata: { source: "stripe_webhook", stripe_customer_id: customerId, stripe_subscription_id: subscriptionId },
+        metadata: { source: "stripe_webhook", stripe_customer_id: customerId, stripe_subscription_id: subscriptionId, ...feeMeta },
       });
     }
   } else if (paymentIntent) {
-    const { data: existing } = await admin.from("payments").select("id").eq("stripe_payment_intent_id", paymentIntent).maybeSingle();
+    const { data: existing } = await admin.from("payments").select("id, metadata").eq("stripe_payment_intent_id", paymentIntent).maybeSingle();
     if (existing) {
-      await admin.from("payments").update({ status: "paid", amount_cents: amount }).eq("id", existing.id);
+      const meta = { ...((existing.metadata ?? {}) as Record<string, unknown>), ...feeMeta };
+      await admin.from("payments").update({ status: "paid", amount_cents: amount, metadata: meta as Json }).eq("id", existing.id);
     } else {
       await admin.from("payments").insert({
         user_id: userId,
@@ -125,7 +146,7 @@ async function upsertPaidPayment(
         currency: "usd",
         purpose,
         status: "paid",
-        metadata: { source: "stripe_webhook", stripe_customer_id: customerId, stripe_subscription_id: subscriptionId },
+        metadata: { source: "stripe_webhook", stripe_customer_id: customerId, stripe_subscription_id: subscriptionId, ...feeMeta },
       });
     }
   }
@@ -161,6 +182,9 @@ async function handleRefund(admin: AdminClient, obj: Record<string, unknown>) {
 
   const { data: payment } = await admin.from("payments").select("id").eq("stripe_payment_intent_id", paymentIntent).maybeSingle();
   if (!payment) return;
+
+  // Mark the payment refunded so Open Accounting stops counting it as revenue.
+  await admin.from("payments").update({ status: "refunded" }).eq("id", payment.id);
 
   // Null amount lets SQL compute commission from the original payment.
   await admin.rpc("apply_referral_refund_deduction", {

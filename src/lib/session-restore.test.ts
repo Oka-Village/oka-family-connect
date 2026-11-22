@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { recoverSession, restoreSession, sessionStorageKey } from "./session-restore";
+import { isAuthFailure, recoverSession, restoreSession, sessionStorageKey } from "./session-restore";
 
 afterEach(() => vi.useRealTimers());
 
@@ -17,14 +17,14 @@ describe("session restore recovery", () => {
     expect(order).toEqual(["clear", "/"]);
   });
 
-  it("exits a stalled restore after exactly six seconds and ignores a late result", async () => {
+  it("exits a stalled restore after exactly fifteen seconds and ignores a late result", async () => {
     vi.useFakeTimers();
     const clear = vi.fn(async () => undefined);
     const navigate = vi.fn();
     let resolveRead: ((value: string) => void) | undefined;
     const result = restoreSession(() => new Promise<string>((resolve) => { resolveRead = resolve; }))
       .catch(() => recoverSession(clear, navigate));
-    await vi.advanceTimersByTimeAsync(5_999);
+    await vi.advanceTimersByTimeAsync(14_999);
     expect(navigate).not.toHaveBeenCalled();
     await vi.advanceTimersByTimeAsync(1);
     await result;
@@ -52,5 +52,15 @@ describe("session restore recovery", () => {
 
   it("targets only this client's session storage key", () => {
     expect(sessionStorageKey("https://project.example.com")).toBe("sb-project-auth-token");
+  });
+
+  it("never treats slow or offline networks as a logout reason", () => {
+    expect(isAuthFailure(new Error("Session restore timed out"))).toBe(false);
+    expect(isAuthFailure({ name: "AuthRetryableFetchError", status: 0, message: "Failed to fetch" })).toBe(false);
+  });
+
+  it("signs out only when the server rejects the stored login", () => {
+    expect(isAuthFailure({ name: "AuthApiError", status: 400, message: "Invalid Refresh Token: Refresh Token Not Found" })).toBe(true);
+    expect(isAuthFailure({ name: "AuthApiError", status: 401, message: "unauthorized" })).toBe(true);
   });
 });

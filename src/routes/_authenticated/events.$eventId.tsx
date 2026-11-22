@@ -1,10 +1,11 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, CalendarDays, Check, Clock, Hourglass, Lock, MapPin, Pencil, Users, Video } from "lucide-react";
 import { toast } from "sonner";
+import type { ReactNode } from "react";
 
 import { RsvpBadge, useEventPhoto } from "@/components/oka/event-card";
-import { EventTime } from "@/components/oka/event-time";
+import { EventTime, ViewerTimezone } from "@/components/oka/event-time";
 import { AddToCalendarDropdown } from "@/components/oka/add-to-calendar-dropdown";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -50,6 +51,24 @@ export const Route = createFileRoute("/_authenticated/events/$eventId")({
   validateSearch: (s: Record<string, unknown>) => z.object({ via: z.enum(["link"]).optional() }).parse({ via: s["via"] === "link" ? "link" : undefined }),
   component: EventDetail,
 });
+
+/** Prefer history.back so Events filters + scroll restore; fall back to /events for cold entry. */
+function BackToEvents({ className, children }: { className?: string; children: ReactNode }) {
+  const router = useRouter();
+  const navigate = useNavigate();
+  return (
+    <button
+      type="button"
+      className={className}
+      onClick={() => {
+        if (router.history.canGoBack()) router.history.back();
+        else void navigate({ to: "/events" });
+      }}
+    >
+      {children}
+    </button>
+  );
+}
 
 function EventDetail() {
   const { eventId } = Route.useParams();
@@ -131,7 +150,7 @@ function EventDetail() {
       <div className="mx-auto max-w-3xl px-6 py-16">
         <h1 className="text-4xl text-foreground">This event isn't available</h1>
         <p className="mt-3 text-muted-foreground">It may still be waiting for review, or it has been removed.</p>
-        <Link to="/events" className="mt-6 inline-block text-primary">Back to events</Link>
+        <BackToEvents className="mt-6 inline-block text-primary">Back to events</BackToEvents>
       </div>
     );
   }
@@ -156,9 +175,9 @@ function EventDetail() {
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-10 lg:py-16">
-      <Link to="/events" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+      <BackToEvents className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeft className="size-4 text-primary" strokeWidth={1.5} /> All events
-      </Link>
+      </BackToEvents>
 
       {ev.status !== "published" && (
         <div className={cn("mt-6 rounded-2xl px-5 py-3 text-sm", ev.status === "cancelled" ? "bg-destructive/10 text-destructive" : "bg-golden/25 text-foreground")}>
@@ -234,7 +253,7 @@ function EventDetail() {
               <EventTime start={ev.starts_at} end={ev.ends_at} timezone={ev.timezone} />
             </Detail>
             {duration && <Detail icon={Hourglass}>Duration · {duration}</Detail>}
-            {ev.timezone && <Detail icon={Clock}>{ev.timezone}</Detail>}
+            <Detail icon={Clock}><ViewerTimezone /></Detail>
           </div>
 
           <div className="mt-8 rounded-2xl bg-secondary/50 p-5">

@@ -124,11 +124,11 @@ export function MyEvents() {
   if (!q.data?.length) return null;
 
   return (
-    <section className="mt-10 rounded-2xl border border-border/70 bg-card p-6 shadow-soft">
-      <div className="flex items-center gap-4">
+    <section className="rounded-2xl border border-border/70 bg-card p-4 shadow-soft sm:p-6">
+      <div className="flex flex-wrap items-center gap-3 sm:gap-4">
         <h2 className="section-label">Your proposals &amp; events</h2>
         <span className="rounded-full bg-sand/70 px-2.5 py-0.5 text-xs text-brown-muted">{q.data.length}</span>
-        <span className="h-px flex-1 bg-border/70" />
+        <span className="hidden h-px flex-1 bg-border/70 sm:block" />
       </div>
       <ul className="mt-3 divide-y divide-border/60">
         {q.data.map((item) => (
