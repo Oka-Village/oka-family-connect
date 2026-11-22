@@ -1,4 +1,4 @@
-// Browser-safe rules for admin gift links: two free months, once per member.
+// Browser-safe rules for member gift links: two free months, once per member.
 import { PRODUCTION_ORIGIN } from "./affiliate-share";
 
 export const GIFT_DAYS = 60;

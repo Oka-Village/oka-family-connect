@@ -122,10 +122,10 @@ export function InviteEarnSection() {
               </Button>
             </div>
           </div>
-          {roles.data?.isAdmin && aff.data.status === "active" && (
+          {aff.data.status === "active" && (
             <div className="surface-card mt-4 flex flex-wrap items-center justify-between gap-4 p-6">
               <div>
-                <p className="section-label">Admin gift</p>
+                <p className="section-label">Gift two months</p>
                 <p className="mt-2 text-sm text-muted-foreground">Show a QR code that opens two free months for someone new.</p>
               </div>
               <GiftQrDialog code={aff.data.invite_code} />

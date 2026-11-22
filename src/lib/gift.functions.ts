@@ -5,7 +5,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { hasPaidMembership } from "./membership";
 import { giftEligibility, giftEndsAt } from "./gift";
 
-/** Claims an admin's two-month gift for the signed-in caller only. */
+/** Claims a member's two-month gift for the signed-in caller only. */
 export const claimGift = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((value: unknown) => z.object({ code: z.string().trim().min(3).max(32) }).parse(value))
@@ -14,8 +14,6 @@ export const claimGift = createServerFn({ method: "POST" })
     const code = data.code.toUpperCase();
     const aff = await supabaseAdmin.from("affiliates").select("user_id,status").eq("invite_code", code).maybeSingle();
     if (aff.error || !aff.data || aff.data.status !== "active") throw new Error("This gift link isn't active.");
-    const role = await supabaseAdmin.from("user_roles").select("id").eq("user_id", aff.data.user_id).eq("role", "admin").maybeSingle();
-    if (role.error || !role.data) throw new Error("This gift link isn't active.");
 
     const [profile, membership] = await Promise.all([
       supabaseAdmin.from("profiles").select("trial_ends_at").eq("id", context.userId).maybeSingle(),
