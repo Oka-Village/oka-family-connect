@@ -35,13 +35,13 @@ export const Route = createFileRoute("/og/event/$slug")({
             return { type, buf: await res.arrayBuffer() };
           };
           let img: { type: string; buf: ArrayBuffer } | null = null;
-          for (const w of path.startsWith("http") ? [null] : [800, 400, 300]) {
+          for (const w of path.startsWith("http") ? [null] : [360, 300]) {
             img = await load(w);
             if (!img || img.buf.byteLength <= LIMIT) break;
           }
           if (!img) return fallback();
           return new Response(img.buf, {
-            headers: { "Content-Type": img.type, "Content-Length": String(img.buf.byteLength), "Cache-Control": "public, max-age=86400" },
+            headers: { "Content-Type": img.type, "Content-Length": String(img.buf.byteLength), "Cache-Control": "public, max-age=604800, s-maxage=604800, stale-while-revalidate=86400" },
           });
         } catch {
           return fallback();

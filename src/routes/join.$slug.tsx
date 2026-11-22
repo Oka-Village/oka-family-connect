@@ -44,6 +44,7 @@ export const Route = createFileRoute("/join/$slug")({
         { name: "twitter:description", content: desc },
         { property: "og:image", content: image },
         { property: "og:image:alt", content: title },
+        ...(share?.image ? [] : [{ property: "og:image:width", content: "1200" }, { property: "og:image:height", content: "630" }]),
         { name: "twitter:image", content: image },
       ],
     };
