@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Add approved-unpublished events, owner republishing and admin member/all-status filtering; migration 0033 applied. 22 tests passed; Fabia's real admin member filter, unpublish, date edit, republish and refresh verified with a removed temporary event; 390px loaded filters/cards have no overflow. Non-staff owner permissions covered by focused tests, not a separate signed-in account. No publishing or real event changes.
+
 - [x] Separate public YouTube videos from private event joining details; additive migration and published-only preview RPC applied, legacy YouTube backfill included, and shared player placed below About on details and invitation pages. Private meeting permissions unchanged.
 - [x] Verify video creation/edit/removal persistence, signed-out player loading and desktop/390px layout with temporary real events; 30 tests passed, build OK, temporary events/photos removed. No publishing.
 

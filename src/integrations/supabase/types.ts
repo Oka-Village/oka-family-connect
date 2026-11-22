@@ -558,6 +558,7 @@ export type Database = {
           status: string
           timezone: string | null
           title: string
+          unpublished_schedule: Json | null
           updated_at: string
           video_url: string | null
           waitlist_count: number
@@ -580,6 +581,7 @@ export type Database = {
           status?: string
           timezone?: string | null
           title: string
+          unpublished_schedule?: Json | null
           updated_at?: string
           video_url?: string | null
           waitlist_count?: number
@@ -602,6 +604,7 @@ export type Database = {
           status?: string
           timezone?: string | null
           title?: string
+          unpublished_schedule?: Json | null
           updated_at?: string
           video_url?: string | null
           waitlist_count?: number

@@ -1,5 +1,7 @@
 import { Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 import { ArrowRight, Clock, MapPin, Pencil, Video } from "lucide-react";
 
 import { TYPE_TINT } from "@/components/oka/event-card";
@@ -8,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { useCurrentUserId } from "@/hooks/use-is-admin";
 import { supabase } from "@/integrations/supabase/client";
 import { createdEventStatusLabel } from "@/lib/created-event-status";
+import { notifyEventStatus } from "@/lib/event-notifications.functions";
 import { groupEventSeries, type GroupedEvent, type SeriesEvent } from "@/lib/event-series";
 import {
   FORMAT_LABELS,
@@ -17,7 +20,7 @@ import {
 } from "@/lib/events";
 import { cn } from "@/lib/utils";
 
-const VISIBLE_STATUSES = ["pending_approval", "published", "rejected", "cancelled"] as const;
+const VISIBLE_STATUSES = ["draft", "pending_approval", "published", "unpublished", "rejected", "cancelled", "completed"] as const;
 
 /** Soft brand pill per review state, so status reads at a glance. */
 const STATUS_PILL: Record<string, string> = {
@@ -55,6 +58,13 @@ function DateTile({ iso, tz, tint }: { iso: string; tz: string | null; tint: str
 }
 
 function EventRowItem({ item }: { item: GroupedEvent<SeriesEvent> }) {
+  const qc = useQueryClient();
+  const changeStatus = useServerFn(notifyEventStatus);
+  const publish = useMutation({
+    mutationFn: async () => { for (const id of item.ids) await changeStatus({ data: { eventId: id, status: "published" } }); },
+    onSuccess: () => { toast.success("Event published"); void qc.invalidateQueries(); },
+    onError: (error: Error) => { toast.error(error.message); void qc.invalidateQueries(); },
+  });
   const { event } = item;
   const FormatIcon = event.format === "virtual" ? Video : MapPin;
   const cancelled = event.status === "cancelled";
@@ -97,6 +107,7 @@ function EventRowItem({ item }: { item: GroupedEvent<SeriesEvent> }) {
         <Pencil className="size-4 text-primary" strokeWidth={1.5} />
       </Link>
     </Button>
+    {event.status === "unpublished" && <Button size="sm" className="rounded-full" disabled={publish.isPending} onClick={() => publish.mutate()}>Publish</Button>}
     </div>
   );
 }
@@ -112,7 +123,7 @@ export function MyEvents() {
       const { data, error } = await supabase
         .from("events")
         .select("id,title,description,event_type,format,starts_at,timezone,capacity,created_by,created_at,photo_url,status")
-        .eq("created_by", uid)
+        .or(`created_by.eq.${uid},host_id.eq.${uid}`)
         .in("status", [...VISIBLE_STATUSES])
         .order("starts_at")
         .limit(200);

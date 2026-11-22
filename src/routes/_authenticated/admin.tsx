@@ -8,6 +8,8 @@ import { z } from "zod";
 import { EmptyState } from "@/components/oka/empty-state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { eventBelongsToMember } from "@/lib/event-publication";
 import { useCurrentUserId, useRoles } from "@/hooks/use-is-admin";
 import { supabase } from "@/integrations/supabase/client";
 import { getAdminMemberStatuses, searchAdminMembers } from "@/lib/admin-members.functions";
@@ -104,129 +106,122 @@ function Card({ children }: { children: React.ReactNode }) {
 }
 
 // ---------------- Events ----------------
-async function loadEvents(statuses: string[], upcomingOnly: boolean) {
-  let q = supabase.from("events").select(EVENT_SELECT).in("status", statuses).order("starts_at").limit(400);
-  if (upcomingOnly) q = q.gte("starts_at", new Date().toISOString());
-  const { data, error } = await q;
-  if (error) throw error;
-  return data as unknown as EventRow[];
+const EVENT_STATES = [
+  ["pending_approval", "Awaiting review"], ["published", "Published"],
+  ["unpublished", "Unpublished"], ["draft", "Drafts"],
+  ["rejected", "Rejected"], ["cancelled", "Cancelled"], ["completed", "Completed"],
+] as const;
+
+async function loadAllAdminEvents() {
+  const rows: EventRow[] = [];
+  for (let offset = 0; ; offset += 400) {
+    const { data, error } = await supabase.from("events").select(EVENT_SELECT)
+      .order("starts_at").order("id").range(offset, offset + 399);
+    if (error) throw error;
+    rows.push(...(data ?? []) as unknown as EventRow[]);
+    if ((data?.length ?? 0) < 400) return rows;
+  }
 }
 
 function EventsSection() {
   const qc = useQueryClient();
+  const [member, setMember] = useState("all");
+  const [state, setState] = useState("all");
+  const [memberSearch, setMemberSearch] = useState("");
   const changeStatus = useServerFn(notifyEventStatus);
-  const pending = useQuery({ queryKey: ["admin", "pending"], queryFn: () => loadEvents(["pending_approval"], false) });
-  const live = useQuery({ queryKey: ["admin", "live"], queryFn: () => loadEvents(["published"], true) });
-  const cancelled = useQuery({ queryKey: ["admin", "cancelled"], queryFn: () => loadEvents(["cancelled"], false) });
+  const events = useQuery({ queryKey: ["admin", "all-events"], queryFn: loadAllAdminEvents });
+  const members = useQuery({
+    queryKey: ["admin", "event-members"],
+    queryFn: async () => {
+      const rows: { id: string; display_name: string | null }[] = [];
+      for (let offset = 0; ; offset += 500) {
+        const { data, error } = await supabase.from("profiles").select("id,display_name").order("display_name").order("id").range(offset, offset + 499);
+        if (error) throw error;
+        rows.push(...(data ?? []));
+        if ((data?.length ?? 0) < 500) return rows;
+      }
+    },
+  });
   const act = useMutation({
-    mutationFn: async ({ ids, status }: { ids: string[]; status: "published" | "rejected" | "cancelled" }) => {
+    mutationFn: async ({ ids, status }: { ids: string[]; status: "published" | "unpublished" | "rejected" | "cancelled" }) => {
       for (const id of ids) await changeStatus({ data: { eventId: id, status } });
     },
-    onSuccess: () => { toast.success("Event updated"); qc.invalidateQueries(); },
-    onError: (e: Error) => toast.error(e.message),
+    onSuccess: () => { toast.success("Event updated"); void qc.invalidateQueries(); },
+    onError: (e: Error) => { toast.error(e.message); void qc.invalidateQueries(); },
   });
   const del = useMutation({
-    mutationFn: async (ids: string[]) => {
-      for (const id of ids) await deleteEvent(id);
-    },
-    onSuccess: () => { toast.success("Event deleted"); qc.invalidateQueries(); },
-    onError: (e: Error) => toast.error(e.message),
+    mutationFn: async (ids: string[]) => { for (const id of ids) await deleteEvent(id); },
+    onSuccess: () => { toast.success("Event deleted"); void qc.invalidateQueries(); },
+    onError: (e: Error) => { toast.error(e.message); void qc.invalidateQueries(); },
   });
-  const pendingList = groupEventSeries(pending.data ?? [], "upcoming");
-  const liveList = groupEventSeries(live.data ?? [], "upcoming");
-  const cancelledList = groupEventSeries(cancelled.data ?? [], "upcoming");
-
-  const DeleteButton = ({ item }: { item: GroupedEvent<EventRow> }) => (
-    <Button
-      size="sm"
-      variant="outline"
-      className="rounded-full text-destructive"
-      disabled={del.isPending && del.variables?.includes(item.event.id)}
-      onClick={() => {
-        const message = item.count > 1
-          ? `Delete all ${item.count} dates of "${item.event.title}" for good? They disappear from the schedule for everyone, along with their sign-ups and private locations. This cannot be undone.`
-          : `Delete "${item.event.title}" for good? It disappears from the schedule for everyone, along with its sign-ups and its private location. This cannot be undone.`;
-        if (confirm(message)) del.mutate(item.ids);
-      }}
-    >
-      <Trash2 className="size-4" strokeWidth={1.5} /> Delete
-    </Button>
-  );
-
-  const Row = ({ item, children }: { item: GroupedEvent<EventRow>; children: React.ReactNode }) => {
-    const e = item.event;
-    return (
-      <Card>
-        <div>
-          <p className="text-xs uppercase tracking-widest text-muted-foreground">{TYPE_LABELS[e.event_type]}</p>
-          <Link to="/events/$eventId" params={{ eventId: e.id }} className="font-serif mt-1 block text-xl text-foreground hover:underline">{e.title}</Link>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {formatEventDate(e.starts_at, e.timezone)} · {formatEventTime(e.starts_at, e.timezone)} · by {hostName(e.host)}
-            {e.capacity ? ` · ${e.going_count}/${e.capacity} going` : ""}
-          </p>
-          {item.label && <p className="mt-1 text-xs text-muted-foreground">{item.label}</p>}
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button asChild variant="outline" size="sm" className="rounded-full">
-            <Link to="/events/edit/$eventId" params={{ eventId: e.id }}>Edit</Link>
-          </Button>
-          {children}
-        </div>
-      </Card>
-    );
-  };
-
+  const filtered = (events.data ?? []).filter((e) => eventBelongsToMember(e, member === "all" ? "" : member) && (state === "all" || e.status === state));
+  const busy = act.isPending || del.isPending;
+  function update(item: GroupedEvent<EventRow>, status: "published" | "unpublished" | "rejected" | "cancelled") {
+    const action = status === "published" ? "Publish" : status === "unpublished" ? "Unpublish" : status === "rejected" ? "Reject" : "Cancel";
+    const extra = status === "unpublished" ? " Approval and RSVPs stay saved; the host can edit and publish again." : "";
+    if (confirm(`${action} ${item.count > 1 ? `all ${item.count} dates of ` : ""}"${item.event.title}"?${extra}`)) act.mutate({ ids: item.ids, status });
+  }
   return (
     <section className="mt-10">
-      <div className="flex justify-end">
-        <Button asChild className="rounded-full">
-          <Link to="/events/new"><Plus className="size-4" strokeWidth={1.5} /> Create event</Link>
-        </Button>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="grid w-full gap-3 sm:w-auto sm:grid-cols-2">
+          <div className="min-w-0 sm:w-64">
+            <label className="mb-2 block text-sm text-muted-foreground">Member</label>
+            <Input aria-label="Find event member" placeholder="Find member by name" value={memberSearch} onChange={(e) => setMemberSearch(e.target.value)} className="mb-2 rounded-full" />
+            <Select value={member} onValueChange={setMember}>
+              <SelectTrigger aria-label="Filter events by member" className="rounded-full"><SelectValue /></SelectTrigger>
+              <SelectContent><SelectItem value="all">All members</SelectItem>
+                {members.data?.filter((p) => p.id === member || (p.display_name ?? "Unnamed member").toLowerCase().includes(memberSearch.toLowerCase())).map((p) => <SelectItem key={p.id} value={p.id}>{p.display_name || "Unnamed member"}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="min-w-0 sm:w-52">
+            <label className="mb-2 block text-sm text-muted-foreground">Status</label>
+            <Select value={state} onValueChange={setState}>
+              <SelectTrigger aria-label="Filter events by status" className="rounded-full"><SelectValue /></SelectTrigger>
+              <SelectContent><SelectItem value="all">All statuses</SelectItem>{EVENT_STATES.map(([id, label]) => <SelectItem key={id} value={id}>{label}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+        </div>
+        <Button asChild className="rounded-full"><Link to="/events/new"><Plus className="size-4" strokeWidth={1.5} /> Create event</Link></Button>
       </div>
-      <p className="section-label mt-6">Awaiting review</p>
-      <ul className="mt-4 grid gap-4">
-        {pending.data?.length === 0 && <p className="text-muted-foreground">Nothing waiting — all caught up.</p>}
-        {pendingList.map((item) => (
-          <Row key={item.event.id} item={item}>
-            <Button size="sm" className="rounded-full" onClick={() => {
-              const ok = item.count === 1 || confirm(`Approve all ${item.count} dates of "${item.event.title}"?`);
-              if (ok) act.mutate({ ids: item.ids, status: "published" });
-            }}>Approve</Button>
-            <Button size="sm" variant="outline" className="rounded-full" onClick={() => {
-              const ok = item.count === 1 || confirm(`Reject all ${item.count} dates of "${item.event.title}"?`);
-              if (ok) act.mutate({ ids: item.ids, status: "rejected" });
-            }}>Reject</Button>
-            <DeleteButton item={item} />
-          </Row>
-        ))}
-      </ul>
-      <p className="section-label mt-12">Upcoming published</p>
-      <ul className="mt-4 grid gap-4">
-        {live.data?.length === 0 && <p className="text-muted-foreground">No upcoming events yet.</p>}
-        {liveList.map((item) => (
-          <Row key={item.event.id} item={item}>
-            {item.event.format === "virtual" && <CopyJoinLink slug={item.event.join_slug} />}
-            <Button size="sm" variant="outline" className="rounded-full text-destructive" onClick={() => {
-              const message = item.count > 1 ? `Cancel all ${item.count} dates of "${item.event.title}" for everyone?` : "Cancel this event for everyone?";
-              if (confirm(message)) act.mutate({ ids: item.ids, status: "cancelled" });
-            }}>Cancel</Button>
-            <DeleteButton item={item} />
-          </Row>
-        ))}
-      </ul>
-      {(cancelled.data?.length ?? 0) > 0 && (
-        <>
-          <p className="section-label mt-12">Cancelled</p>
-          <p className="mt-2 text-sm text-muted-foreground">Off the schedule, but still visible to the people who signed up. Deleting takes it away for good.</p>
-          <ul className="mt-4 grid gap-4">
-            {cancelledList.map((item) => (
-              <Row key={item.event.id} item={item}>
-                <DeleteButton item={item} />
-              </Row>
-            ))}
-          </ul>
-        </>
-      )}
+      {events.isPending && <p className="mt-6 text-muted-foreground">Loading events…</p>}
+      {(events.isError || members.isError) && <p className="mt-6 text-destructive">Couldn't load events or members. <Button variant="link" onClick={() => { void events.refetch(); void members.refetch(); }}>Try again</Button></p>}
+      {events.isSuccess && filtered.length === 0 && <p className="mt-6 text-muted-foreground">No events match these filters.</p>}
+      {EVENT_STATES.map(([status, label]) => {
+        const list = groupEventSeries(filtered.filter((e) => e.status === status), "upcoming");
+        if (!list.length) return null;
+        return <div key={status}>
+          <p className="section-label mt-10">{label}</p>
+          <ul className="mt-4 grid gap-4">{list.map((item) => {
+            const e = item.event;
+            return <Card key={e.id}>
+              <div className="min-w-0 flex-1 basis-64">
+                <p className="text-xs uppercase tracking-widest text-muted-foreground">{TYPE_LABELS[e.event_type]}</p>
+                <Link to="/events/$eventId" params={{ eventId: e.id }} className="mt-1 block break-words font-serif text-xl text-foreground hover:underline">{e.title}</Link>
+                <p className="mt-1 text-sm text-muted-foreground">{formatEventDate(e.starts_at, e.timezone)} · {formatEventTime(e.starts_at, e.timezone)} · by {hostName(e.host)}</p>
+                {item.label && <p className="mt-1 text-xs text-muted-foreground">{item.label}</p>}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button asChild variant="outline" size="sm" className="rounded-full"><Link to="/events/edit/$eventId" params={{ eventId: e.id }}>Edit</Link></Button>
+                {status === "pending_approval" && <>
+                  <Button size="sm" disabled={busy} onClick={() => update(item, "published")}>Approve</Button>
+                  <Button size="sm" variant="outline" disabled={busy} onClick={() => update(item, "rejected")}>Reject</Button>
+                </>}
+                {status === "published" && <>
+                  {e.format === "virtual" && <CopyJoinLink slug={e.join_slug} />}
+                  <Button size="sm" variant="outline" disabled={busy} onClick={() => update(item, "unpublished")}>Unpublish</Button>
+                </>}
+                {status === "unpublished" && <Button size="sm" disabled={busy} onClick={() => update(item, "published")}>Publish</Button>}
+                {["published", "unpublished"].includes(status) && <Button size="sm" variant="outline" className="text-destructive" disabled={busy} onClick={() => update(item, "cancelled")}>Cancel</Button>}
+                <Button size="sm" variant="outline" className="text-destructive" disabled={busy} onClick={() => {
+                  if (confirm(`Delete ${item.count > 1 ? `all ${item.count} dates of ` : ""}"${e.title}" for good, including sign-ups and private locations? This cannot be undone.`)) del.mutate(item.ids);
+                }}><Trash2 className="size-4" strokeWidth={1.5} /> Delete</Button>
+              </div>
+            </Card>;
+          })}</ul>
+        </div>;
+      })}
     </section>
   );
 }
