@@ -15,6 +15,7 @@ import { Route as FacilitatorsRouteImport } from './routes/facilitators'
 import { Route as FoundingRouteImport } from './routes/founding'
 import { Route as MembershipRouteImport } from './routes/membership'
 import { Route as OnboardingChatRouteImport } from './routes/onboarding-chat'
+import { Route as OpenAccountingRouteImport } from './routes/open-accounting'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as TermsRouteImport } from './routes/terms'
@@ -26,7 +27,6 @@ import { Route as AuthenticatedDirectoryRouteImport } from './routes/_authentica
 import { Route as AuthenticatedEarningsRouteImport } from './routes/_authenticated/earnings'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
-import { Route as AuthenticatedOpenAccountingRouteImport } from './routes/_authenticated/open-accounting'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedSessionsRouteImport } from './routes/_authenticated/sessions'
 import { Route as AuthenticatedStaysRouteImport } from './routes/_authenticated/stays'
@@ -80,6 +80,11 @@ const MembershipRoute = MembershipRouteImport.update({
 const OnboardingChatRoute = OnboardingChatRouteImport.update({
   id: '/onboarding-chat',
   path: '/onboarding-chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OpenAccountingRoute = OpenAccountingRouteImport.update({
+  id: '/open-accounting',
+  path: '/open-accounting',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -139,12 +144,6 @@ const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedOpenAccountingRoute =
-  AuthenticatedOpenAccountingRouteImport.update({
-    id: '/open-accounting',
-    path: '/open-accounting',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -292,6 +291,7 @@ export interface FileRoutesByFullPath {
   '/founding': typeof FoundingRoute
   '/membership': typeof MembershipRoute
   '/onboarding-chat': typeof OnboardingChatRoute
+  '/open-accounting': typeof OpenAccountingRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
@@ -303,7 +303,6 @@ export interface FileRoutesByFullPath {
   '/earnings': typeof AuthenticatedEarningsRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
-  '/open-accounting': typeof AuthenticatedOpenAccountingRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/sessions': typeof AuthenticatedSessionsRoute
   '/stays': typeof AuthenticatedStaysRoute
@@ -336,6 +335,7 @@ export interface FileRoutesByTo {
   '/founding': typeof FoundingRoute
   '/membership': typeof MembershipRoute
   '/onboarding-chat': typeof OnboardingChatRoute
+  '/open-accounting': typeof OpenAccountingRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
@@ -347,7 +347,6 @@ export interface FileRoutesByTo {
   '/earnings': typeof AuthenticatedEarningsRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
-  '/open-accounting': typeof AuthenticatedOpenAccountingRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/sessions': typeof AuthenticatedSessionsRoute
   '/stays': typeof AuthenticatedStaysRoute
@@ -382,6 +381,7 @@ export interface FileRoutesById {
   '/founding': typeof FoundingRoute
   '/membership': typeof MembershipRoute
   '/onboarding-chat': typeof OnboardingChatRoute
+  '/open-accounting': typeof OpenAccountingRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
@@ -393,7 +393,6 @@ export interface FileRoutesById {
   '/_authenticated/earnings': typeof AuthenticatedEarningsRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
-  '/_authenticated/open-accounting': typeof AuthenticatedOpenAccountingRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/sessions': typeof AuthenticatedSessionsRoute
   '/_authenticated/stays': typeof AuthenticatedStaysRoute
@@ -428,6 +427,7 @@ export interface FileRouteTypes {
     | '/founding'
     | '/membership'
     | '/onboarding-chat'
+    | '/open-accounting'
     | '/privacy'
     | '/reset-password'
     | '/terms'
@@ -439,7 +439,6 @@ export interface FileRouteTypes {
     | '/earnings'
     | '/notifications'
     | '/onboarding'
-    | '/open-accounting'
     | '/profile'
     | '/sessions'
     | '/stays'
@@ -472,6 +471,7 @@ export interface FileRouteTypes {
     | '/founding'
     | '/membership'
     | '/onboarding-chat'
+    | '/open-accounting'
     | '/privacy'
     | '/reset-password'
     | '/terms'
@@ -483,7 +483,6 @@ export interface FileRouteTypes {
     | '/earnings'
     | '/notifications'
     | '/onboarding'
-    | '/open-accounting'
     | '/profile'
     | '/sessions'
     | '/stays'
@@ -517,6 +516,7 @@ export interface FileRouteTypes {
     | '/founding'
     | '/membership'
     | '/onboarding-chat'
+    | '/open-accounting'
     | '/privacy'
     | '/reset-password'
     | '/terms'
@@ -528,7 +528,6 @@ export interface FileRouteTypes {
     | '/_authenticated/earnings'
     | '/_authenticated/notifications'
     | '/_authenticated/onboarding'
-    | '/_authenticated/open-accounting'
     | '/_authenticated/profile'
     | '/_authenticated/sessions'
     | '/_authenticated/stays'
@@ -563,6 +562,7 @@ export interface RootRouteChildren {
   FoundingRoute: typeof FoundingRoute
   MembershipRoute: typeof MembershipRoute
   OnboardingChatRoute: typeof OnboardingChatRoute
+  OpenAccountingRoute: typeof OpenAccountingRoute
   PrivacyRoute: typeof PrivacyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   TermsRoute: typeof TermsRoute
@@ -612,6 +612,13 @@ declare module '@tanstack/react-router' {
       path: '/onboarding-chat'
       fullPath: '/onboarding-chat'
       preLoaderRoute: typeof OnboardingChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/open-accounting': {
+      id: '/open-accounting'
+      path: '/open-accounting'
+      fullPath: '/open-accounting'
+      preLoaderRoute: typeof OpenAccountingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -689,13 +696,6 @@ declare module '@tanstack/react-router' {
       path: '/onboarding'
       fullPath: '/onboarding'
       preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/open-accounting': {
-      id: '/_authenticated/open-accounting'
-      path: '/open-accounting'
-      fullPath: '/open-accounting'
-      preLoaderRoute: typeof AuthenticatedOpenAccountingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/profile': {
@@ -885,7 +885,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedEarningsRoute: typeof AuthenticatedEarningsRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
-  AuthenticatedOpenAccountingRoute: typeof AuthenticatedOpenAccountingRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedSessionsRoute: typeof AuthenticatedSessionsRoute
   AuthenticatedStaysRoute: typeof AuthenticatedStaysRoute
@@ -920,7 +919,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedEarningsRoute: AuthenticatedEarningsRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
-  AuthenticatedOpenAccountingRoute: AuthenticatedOpenAccountingRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedSessionsRoute: AuthenticatedSessionsRoute,
   AuthenticatedStaysRoute: AuthenticatedStaysRoute,
@@ -956,6 +954,7 @@ const rootRouteChildren: RootRouteChildren = {
   FoundingRoute: FoundingRoute,
   MembershipRoute: MembershipRoute,
   OnboardingChatRoute: OnboardingChatRoute,
+  OpenAccountingRoute: OpenAccountingRoute,
   PrivacyRoute: PrivacyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   TermsRoute: TermsRoute,
