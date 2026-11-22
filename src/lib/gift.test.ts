@@ -19,3 +19,10 @@ describe("admin gift links", () => {
     expect(giftUrl("ABC")).toBe("https://www.oneworldfamily.app/gift/ABC");
   });
 });
+
+import { paymentRedirect } from "./membership";
+describe("gift page after sign-in", () => {
+  it("keeps a new unpaid member on the gift page", () => {
+    expect(paymentRedirect("/gift/ABC123", false, false, "none")).toBeNull();
+  });
+});
