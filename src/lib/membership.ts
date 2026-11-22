@@ -17,7 +17,7 @@ export function isPublicEntryRoute(pathname: string): boolean {
   const path = pathname.replace(/\/+$/, "") || "/";
   return (
     ["/", "/membership", "/founding", "/privacy", "/terms", "/facilitators", "/onboarding-chat", "/open-accounting"].includes(path) ||
-    /^\/(invite|join)\/[^/]+$/.test(path)
+    /^\/(invite|join|gift)\/[^/]+$/.test(path)
   );
 }
 

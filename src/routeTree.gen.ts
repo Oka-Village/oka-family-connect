@@ -31,6 +31,7 @@ import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedSessionsRouteImport } from './routes/_authenticated/sessions'
 import { Route as AuthenticatedStaysRouteImport } from './routes/_authenticated/stays'
 import { Route as AuthenticatedWelcomeRouteImport } from './routes/_authenticated/welcome'
+import { Route as GiftCodeRouteImport } from './routes/gift.$code'
 import { Route as InviteCodeRouteImport } from './routes/invite.$code'
 import { Route as JoinSlugRouteImport } from './routes/join.$slug'
 import { Route as AuthenticatedEventsIndexRouteImport } from './routes/_authenticated/events.index'
@@ -164,6 +165,11 @@ const AuthenticatedWelcomeRoute = AuthenticatedWelcomeRouteImport.update({
   id: '/welcome',
   path: '/welcome',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const GiftCodeRoute = GiftCodeRouteImport.update({
+  id: '/gift/$code',
+  path: '/gift/$code',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const InviteCodeRoute = InviteCodeRouteImport.update({
   id: '/invite/$code',
@@ -313,6 +319,7 @@ export interface FileRoutesByFullPath {
   '/sessions': typeof AuthenticatedSessionsRoute
   '/stays': typeof AuthenticatedStaysRoute
   '/welcome': typeof AuthenticatedWelcomeRoute
+  '/gift/$code': typeof GiftCodeRoute
   '/invite/$code': typeof InviteCodeRoute
   '/join/$slug': typeof JoinSlugRoute
   '/events/$eventId': typeof AuthenticatedEventsEventIdRoute
@@ -358,6 +365,7 @@ export interface FileRoutesByTo {
   '/sessions': typeof AuthenticatedSessionsRoute
   '/stays': typeof AuthenticatedStaysRoute
   '/welcome': typeof AuthenticatedWelcomeRoute
+  '/gift/$code': typeof GiftCodeRoute
   '/invite/$code': typeof InviteCodeRoute
   '/join/$slug': typeof JoinSlugRoute
   '/events/$eventId': typeof AuthenticatedEventsEventIdRoute
@@ -405,6 +413,7 @@ export interface FileRoutesById {
   '/_authenticated/sessions': typeof AuthenticatedSessionsRoute
   '/_authenticated/stays': typeof AuthenticatedStaysRoute
   '/_authenticated/welcome': typeof AuthenticatedWelcomeRoute
+  '/gift/$code': typeof GiftCodeRoute
   '/invite/$code': typeof InviteCodeRoute
   '/join/$slug': typeof JoinSlugRoute
   '/_authenticated/events/$eventId': typeof AuthenticatedEventsEventIdRoute
@@ -452,6 +461,7 @@ export interface FileRouteTypes {
     | '/sessions'
     | '/stays'
     | '/welcome'
+    | '/gift/$code'
     | '/invite/$code'
     | '/join/$slug'
     | '/events/$eventId'
@@ -497,6 +507,7 @@ export interface FileRouteTypes {
     | '/sessions'
     | '/stays'
     | '/welcome'
+    | '/gift/$code'
     | '/invite/$code'
     | '/join/$slug'
     | '/events/$eventId'
@@ -543,6 +554,7 @@ export interface FileRouteTypes {
     | '/_authenticated/sessions'
     | '/_authenticated/stays'
     | '/_authenticated/welcome'
+    | '/gift/$code'
     | '/invite/$code'
     | '/join/$slug'
     | '/_authenticated/events/$eventId'
@@ -578,6 +590,7 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   TermsRoute: typeof TermsRoute
+  GiftCodeRoute: typeof GiftCodeRoute
   InviteCodeRoute: typeof InviteCodeRoute
   JoinSlugRoute: typeof JoinSlugRoute
   OgEventSlugRoute: typeof OgEventSlugRoute
@@ -738,6 +751,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/welcome'
       preLoaderRoute: typeof AuthenticatedWelcomeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/gift/$code': {
+      id: '/gift/$code'
+      path: '/gift/$code'
+      fullPath: '/gift/$code'
+      preLoaderRoute: typeof GiftCodeRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/invite/$code': {
       id: '/invite/$code'
@@ -978,6 +998,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   TermsRoute: TermsRoute,
+  GiftCodeRoute: GiftCodeRoute,
   InviteCodeRoute: InviteCodeRoute,
   JoinSlugRoute: JoinSlugRoute,
   OgEventSlugRoute: OgEventSlugRoute,
