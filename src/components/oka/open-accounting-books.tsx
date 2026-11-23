@@ -79,9 +79,6 @@ export function OpenAccountingBooks() {
               {stale ? " · Stale snapshot" : ""}
             </p>
             <StripeCheckNote check={data.data?.stripeCheck} />
-            <a href="#details" className="text-primary underline decoration-primary/40 underline-offset-4">
-              Details
-            </a>
           </div>
         </div>
 
