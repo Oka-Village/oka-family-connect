@@ -1,6 +1,6 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Activity, CalendarDays, Palette, Gift, Home, Plus, Search, ShieldCheck, Sparkles, Star, Trash2, Users } from "lucide-react";
+import { Activity, CalendarDays, Mail, Palette, Gift, Home, Plus, Search, ShieldCheck, Sparkles, Star, Trash2, Users } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -18,6 +18,7 @@ import {
   countExceptionReminders,
   notifyEventStatus,
   sendExceptionReminders,
+  testSendExceptionReminder,
 } from "@/lib/event-notifications.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { groupEventSeries, type GroupedEvent } from "@/lib/event-series";
@@ -127,6 +128,16 @@ async function loadAllAdminEvents() {
   }
 }
 
+function ReminderStat({ label, value, hint, small }: { label: string; value: string; hint: string; small?: boolean }) {
+  return (
+    <div className="rounded-xl border border-border bg-cream-deep p-4">
+      <p className="text-xs uppercase tracking-widest text-muted-foreground">{label}</p>
+      <p className={cn("mt-1 leading-tight text-foreground", small ? "break-words font-sans text-sm" : "font-number text-xl")}>{value}</p>
+      <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
+    </div>
+  );
+}
+
 function EventsSection() {
   const qc = useQueryClient();
   const [member, setMember] = useState("all");
@@ -135,6 +146,7 @@ function EventsSection() {
   const changeStatus = useServerFn(notifyEventStatus);
   const countException = useServerFn(countExceptionReminders);
   const sendException = useServerFn(sendExceptionReminders);
+  const testException = useServerFn(testSendExceptionReminder);
   const events = useQuery({ queryKey: ["admin", "all-events"], queryFn: loadAllAdminEvents });
   const members = useQuery({
     queryKey: ["admin", "event-members"],
@@ -172,8 +184,15 @@ function EventsSection() {
     },
     onError: (e: Error) => { toast.error(e.message); },
   });
-  const filtered = (events.data ?? []).filter((e) => eventBelongsToMember(e, member === "all" ? "" : member) && (state === "all" || e.status === state));
+  const testBlast = useMutation({
+    mutationFn: () => testException(),
+    onSuccess: (result) => {
+      toast.success(result.skipped ? "Test reminder was already in your inbox — check for an earlier copy." : "Test reminder sent to your own inbox.");
+    },
+    onError: (e: Error) => { toast.error(e.message); },
+  });
   const busy = act.isPending || del.isPending;
+  const filtered = (events.data ?? []).filter((e) => eventBelongsToMember(e, member === "all" ? "" : member) && (state === "all" || e.status === state));
   function update(item: GroupedEvent<EventRow>, status: "published" | "unpublished" | "rejected" | "cancelled") {
     const action = status === "published" ? "Publish" : status === "unpublished" ? "Unpublish" : status === "rejected" ? "Reject" : "Cancel";
     const extra = status === "unpublished" ? " Approval and RSVPs stay saved; the host can edit and publish again." : "";
@@ -187,20 +206,37 @@ function EventsSection() {
   return (
     <section className="mt-10">
       <div className="rounded-2xl border border-border bg-card p-5 shadow-soft">
-        <p className="text-xs uppercase tracking-widest text-muted-foreground">One-time RSVP reminder</p>
-        <p className="mt-4 text-sm text-foreground">
-          {exceptionAudience.isPending && "Counting RSVPs…"}
-          {exceptionAudience.isError && "Couldn't load the RSVP audience."}
-          {exceptionAudience.isSuccess && (
-            <>
-              <span className="font-medium">{exceptionAudience.data.recipients}</span> going RSVPs across{" "}
-              <span className="font-medium">{exceptionAudience.data.events}</span> upcoming events
-            </>
-          )}
+        <p className="section-label flex items-center gap-2"><Mail className="size-4 text-primary" strokeWidth={1.5} /> Email campaign · One-time RSVP reminder</p>
+        <h3 className="mt-3 font-serif text-2xl text-foreground">Send RSVP reminder emails to event attendees</h3>
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          Sends Liran's personalized reminder to every member who RSVP'd "Going" for an upcoming gathering. Each email
+          carries the event title, the host's name, a direct link, and the start time in three major timezones.
         </p>
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <ReminderStat
+            label="Audience"
+            value={exceptionAudience.isPending ? "Counting…" : exceptionAudience.isError ? "Unavailable" : `${exceptionAudience.data.recipients}`}
+            hint="going RSVPs in the send list"
+          />
+          <ReminderStat
+            label="Coverage"
+            value={exceptionAudience.isPending ? "Counting…" : exceptionAudience.isError ? "Unavailable" : `${exceptionAudience.data.events}`}
+            hint="upcoming events covered"
+          />
+          <ReminderStat label="Safety" value="No duplicates" hint="members already sent are skipped" />
+          <ReminderStat
+            label="From"
+            value={exceptionAudience.data?.from ? exceptionAudience.data.from.replace(/^.*<|>$/g, "") : "Not configured"}
+            hint="sender address on every email"
+            small
+          />
+        </div>
+        <div className="mt-5 flex flex-wrap gap-2">
+          <Button variant="outline" className="rounded-full" disabled={testBlast.isPending} onClick={() => testBlast.mutate()}>
+            {testBlast.isPending ? "Sending test…" : "Send test email to me"}
+          </Button>
           <Button className="rounded-full" disabled={massBlast.isPending || !(exceptionAudience.data?.recipients)} onClick={confirmMassSend}>
-            {massBlast.isPending ? "Sending…" : "Send to all members"}
+            {massBlast.isPending ? "Sending…" : "Send emails to all RSVP attendees"}
           </Button>
         </div>
       </div>

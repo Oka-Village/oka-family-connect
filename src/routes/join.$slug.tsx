@@ -61,6 +61,7 @@ function JoinPage() {
   const [state, setState] = useState<State>("checking");
   const [busy, setBusy] = useState(false);
   const ran = useRef(false);
+  const [refCode, setRefCode] = useState<string | null>(null);
   const preview = useQuery({
     queryKey: ["public-event", slug],
     queryFn: async () => {
@@ -83,6 +84,24 @@ function JoinPage() {
   useEffect(() => {
     saveEventJoinSlug(slug);
   }, [slug]);
+
+  // The sharer's own affiliate code in ?ref= names them in the invitation line.
+  useEffect(() => {
+    const ref = new URLSearchParams(window.location.search).get("ref")?.trim();
+    if (ref) setRefCode(ref);
+  }, []);
+
+  const inviter = useQuery({
+    queryKey: ["event-inviter", refCode],
+    queryFn: async () => {
+      const { data } = await supabase.rpc("affiliate_invite_info", { _code: refCode ?? "" });
+      return data?.[0]?.inviter_name?.trim() || null;
+    },
+    enabled: !!refCode,
+    staleTime: 30 * 60_000,
+  });
+
+  const invitedBy = inviter.data ? `${inviter.data} invited you to this event` : "You're invited";
 
   useEffect(() => {
     if (ran.current) return;
@@ -124,8 +143,10 @@ function JoinPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="mx-auto flex max-w-5xl items-center px-6 py-8"><Wordmark /></header>
-      <main className="mx-auto max-w-2xl px-6 pb-24 pt-12 text-center">
+      <header className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-6 py-8">
+        <Wordmark />
+      </header>
+      <main className="mx-auto max-w-2xl px-6 pb-16 pt-12 text-center">
         {state === "not_found" ? (
           <>
             <p className="section-label">Gathering link</p>
@@ -138,39 +159,27 @@ function JoinPage() {
             <p className="flex items-center justify-center gap-2 text-muted-foreground"><Loader2 className="size-4 animate-spin text-primary" strokeWidth={1.5} /> Opening the event…</p>
           ) : preview.data ? (
             <div className="text-left">
-              <p className="section-label text-center">You're invited</p>
+              <p className="section-label text-center">{invitedBy}</p>
               <h1 className="mt-6 text-center text-5xl leading-tight text-foreground">{preview.data.title}</h1>
-              {cover.data && <img src={cover.data} alt="" className="mt-8 h-auto w-full rounded-3xl object-contain object-center shadow-soft" />}
               <div className="mt-8 grid gap-3 rounded-2xl border border-border bg-card p-6 text-foreground shadow-soft sm:grid-cols-2">
                 <span className="flex items-center gap-3"><CalendarDays className="size-5 text-primary" strokeWidth={1.5} />{formatEventDate(preview.data.starts_at, preview.data.timezone)}</span>
                 <span className="flex min-w-0 items-start gap-3"><Clock className="mt-0.5 size-5 shrink-0 text-primary" strokeWidth={1.5} /><EventTime start={preview.data.starts_at} end={preview.data.ends_at} timezone={preview.data.timezone} /></span>
                 {preview.data.host_name && <span className="flex items-center gap-3"><Users className="size-5 text-primary" strokeWidth={1.5} />Hosted by {preview.data.host_name}</span>}
                 <span className="flex items-center gap-3"><Video className="size-5 text-primary" strokeWidth={1.5} />{preview.data.format === "virtual" ? "Online" : "In person"} · {preview.data.going_count} going</span>
               </div>
+              {/* The action sits above the fold so a guest sees it without scrolling. */}
+              <div className="mt-8">
+                <RsvpCta busy={busy} liveLink={preview.data.live_link} isLive={preview.data.is_live} onSignIn={() => void signIn()} />
+              </div>
+              {cover.data && <img src={cover.data} alt="" className="mt-10 h-auto w-full rounded-3xl object-contain object-center shadow-soft" />}
               <p className="section-label mt-10">About</p>
               <p className="mt-3 whitespace-pre-line leading-relaxed text-foreground">{preview.data.description || "More details soon."}</p>
               <EventVideo url={preview.data.video_url} />
-              <div className="mt-10 flex flex-col items-center gap-3">
-                {preview.data.live_link ? (
-                  <>
-                    <Button asChild size="lg" className="rounded-full px-10"><a href={preview.data.live_link} target="_blank" rel="noreferrer">Join the call now</a></Button>
-                    <p className="text-sm text-muted-foreground">It's live — anyone can join.</p>
-                    <Button variant="ghost" className="rounded-full" disabled={busy} onClick={() => void signIn()}>Sign in or sign up to RSVP</Button>
-                  </>
-                ) : (
-                  <>
-                    <Button size="lg" className="rounded-full px-10" disabled={busy} onClick={() => void signIn()}>
-                      {busy && <Loader2 className="size-4 animate-spin" strokeWidth={1.5} />}Sign in or sign up to RSVP
-                    </Button>
-                    {preview.data.is_live && <p className="text-sm text-muted-foreground">It's live now — sign in to join the room.</p>}
-                  </>
-                )}
-              </div>
             </div>
           ) : (
             <>
               <Video className="mx-auto size-8 text-primary" strokeWidth={1.5} />
-              <p className="section-label mt-6">You're invited</p>
+              <p className="section-label mt-6">{invitedBy}</p>
               <h1 className="mt-6 text-5xl leading-tight text-foreground">Join the gathering</h1>
               <p className="mx-auto mt-6 max-w-md text-muted-foreground">Sign in with Google and we'll bring you to the gathering, where you can save your spot.</p>
               <Button size="lg" className="mt-10 rounded-full px-10" disabled={busy} onClick={() => void signIn()}>
@@ -184,6 +193,28 @@ function JoinPage() {
           </p>
         )}
       </main>
+    </div>
+  );
+}
+
+/** One RSVP action, rendered both above the fold and at the end of the page. */
+function RsvpCta({ busy, liveLink, isLive, onSignIn }: { busy: boolean; liveLink?: string | null; isLive?: boolean | null; onSignIn: () => void }) {
+  return (
+    <div className="flex flex-col items-center gap-3">
+      {liveLink ? (
+        <>
+          <Button asChild size="lg" className="rounded-full px-10"><a href={liveLink} target="_blank" rel="noreferrer">Join the call now</a></Button>
+          <p className="text-sm text-muted-foreground">It's live — anyone can join.</p>
+          <Button variant="ghost" className="rounded-full" disabled={busy} onClick={onSignIn}>Sign in or sign up to RSVP</Button>
+        </>
+      ) : (
+        <>
+          <Button size="lg" className="rounded-full px-10" disabled={busy} onClick={onSignIn}>
+            {busy && <Loader2 className="size-4 animate-spin" strokeWidth={1.5} />}Sign in or sign up to RSVP
+          </Button>
+          {isLive ? <p className="text-sm text-muted-foreground">It's live now — sign in to join the room.</p> : null}
+        </>
+      )}
     </div>
   );
 }

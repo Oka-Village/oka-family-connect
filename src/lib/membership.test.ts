@@ -42,13 +42,13 @@ describe("membership payment rules", () => {
     expect(isPaymentExempt({ member_status: "limited" }, true)).toBe(true);
     expect(isPaymentExempt(null)).toBe(false);
   });
-  it.each(["/home", "/directory", "/profile", "/events", "/skills", "/houses", "/welcome", "/collections", "/credits"])(
+  it.each(["/home", "/directory", "/profile", "/events/new", "/events/edit/abc", "/skills", "/houses", "/welcome", "/collections", "/credits"])(
     "does not expose signed-out member content at %s",
     (path) => {
       expect(isPublicEntryRoute(path)).toBe(false);
     },
   );
-  it.each(["/", "/membership", "/privacy", "/terms", "/invite/FRIEND", "/join/gathering", "/facilitators", "/open-accounting"])(
+  it.each(["/", "/membership", "/privacy", "/terms", "/invite/FRIEND", "/join/gathering", "/facilitators", "/open-accounting", "/events", "/events/abc", "/events/day/2026-11-23"])(
     "preserves public entry at %s",
     (path) => {
       expect(isPublicEntryRoute(path)).toBe(true);
@@ -95,10 +95,10 @@ describe("membership payment rules", () => {
     expect(paymentRedirect(path, false, false, "none")).toBeNull();
     expect(paymentRedirect(path, false, false, "expired")).toBeNull();
   });
-  it("opens the books for an active trial and blocks unpaid members without one", () => {
+  it("keeps the existing Open Accounting access available in every membership state", () => {
     expect(paymentRedirect("/open-accounting", false, false, "active")).toBeNull();
-    expect(paymentRedirect("/open-accounting", false, false, "none")).toBe("/home");
-    expect(paymentRedirect("/open-accounting", false, false, "expired")).toBe("/membership");
+    expect(paymentRedirect("/open-accounting", false, false, "none")).toBeNull();
+    expect(paymentRedirect("/open-accounting", false, false, "expired")).toBeNull();
     expect(paymentRedirect("/open-accounting", false, true, "none")).toBeNull();
   });
   it.each(["/skills/edit/own", "/houses/edit/own", "/skills/own", "/houses/own"])("leaves own listing pages at %s to the ownership gate", (path) => {

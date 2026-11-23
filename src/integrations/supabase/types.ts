@@ -1491,6 +1491,7 @@ export type Database = {
         Args: { _name: string; _owner: string }
         Returns: boolean
       }
+      can_read_public_event_image: { Args: { _name: string }; Returns: boolean }
       can_read_theme_image: {
         Args: { _name: string; _owner: string }
         Returns: boolean
@@ -1550,6 +1551,7 @@ export type Database = {
         Returns: boolean
       }
       promote_waitlist: { Args: { _event_id: string }; Returns: undefined }
+      public_event_catalog: { Args: never; Returns: Json }
       public_event_preview: {
         Args: { _slug: string }
         Returns: {

@@ -246,6 +246,13 @@
       "when": 1795408097873,
       "tag": "0034_open_accounting_events_completed_by_time",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1795423094688,
+      "tag": "0035_public_event_catalog",
+      "breakpoints": true
     }
   ]
 }
