@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { brokeredPreviewStorage } from "@/integrations/supabase/previewAuthStorage";
 import { isAuthFailure, recoverSession, restoreSession, sessionStorageKey } from "@/lib/session-restore";
+import { isPublicEventRoute } from "@/lib/public-events";
 
 /** Covers public routes and full-bleed onboarding too, before mounting their content. */
 export function MembershipBoundary({ children }: { children: ReactNode }) {
@@ -61,7 +62,8 @@ export function MembershipBoundary({ children }: { children: ReactNode }) {
   const loading = session.isPending || (session.isFetching && session.data === undefined) || profile.isPending || Boolean(session.data && (roles.isPending || (!exempt && profile.data && membership.isPending)));
   const failed = session.isError || profile.isError || Boolean(session.data && (roles.isError || (!exempt && membership.isError) || !profile.isPending && !profile.data));
   // Free profile creation is the sole exception; member content remains gated.
-  const destination = session.data
+  const publicEvent = isPublicEventRoute(location.pathname.replace(/\/+$/, ""));
+  const destination = publicEvent ? null : session.data
     ? location.pathname === "/onboarding" ? null
       : !profile.data?.onboarded_at && ["/", "/home"].includes(location.pathname) ? "/onboarding"
       : paymentRedirect(location.pathname, exempt, paid, trialState(profile.data?.trial_started_at, new Date(), profile.data?.trial_ends_at))
@@ -83,6 +85,8 @@ export function MembershipBoundary({ children }: { children: ReactNode }) {
     await qc.cancelQueries(); qc.clear(); await supabase.auth.signOut();
     void navigate({ to: "/", replace: true });
   }
+  // Only safe published event data can render before membership resolution.
+  if (publicEvent) return <>{children}</>;
   if (failed) return <main className="flex min-h-screen flex-col items-center justify-center gap-5 bg-background px-6"><p role="alert" className="text-muted-foreground">We couldn’t check your membership. Please try again.</p><Button onClick={() => { void session.refetch(); void profile.refetch(); void roles.refetch(); void membership.refetch(); }}>Try again</Button><Button variant="ghost" onClick={signOut}>Sign out</Button></main>;
   if (loading || destination) return <main className="flex min-h-screen items-center justify-center bg-background" role="status"><p className="font-serif text-2xl text-muted-foreground">A moment, please…</p></main>;
   return <>{children}</>;

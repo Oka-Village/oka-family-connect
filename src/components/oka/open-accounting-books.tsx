@@ -1,8 +1,8 @@
-import { useMemo, useState, type ReactNode } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { Bars, Donut, chartColors } from "@/components/oka/open-accounting-charts";
-import { fetchAccountingData, historyYears } from "@/data/open-accounting/live-ledger";
+import { fetchAccountingData, historyYears, refreshAccountingSources } from "@/data/open-accounting/live-ledger";
 import { buildAccounting, type AccountingView, type LedgerRow } from "@/data/open-accounting/views";
 import { DRAFT_POLICY, THRESHOLD_NOTE, growthPercent, type RangeKind } from "@/lib/open-accounting/allocate";
 import { formatCount, formatGrowth, formatIsoDate, formatShare, formatSigned, formatUsd } from "@/lib/open-accounting/format";
@@ -22,8 +22,13 @@ type GrowthId = (typeof growthMetrics)[number]["id"];
 
 export function OpenAccountingBooks() {
   const data = useQuery({ queryKey: ["open-accounting", "data"], queryFn: fetchAccountingData, staleTime: 60_000 });
+  const queryClient = useQueryClient();
+  const refresh = useQuery({ queryKey: ["open-accounting", "refresh"], queryFn: refreshAccountingSources, staleTime: 5 * 60_000, retry: false });
+  useEffect(() => {
+    if (refresh.dataUpdatedAt) void queryClient.invalidateQueries({ queryKey: ["open-accounting", "data"] });
+  }, [refresh.dataUpdatedAt, queryClient]);
   const stale = false;
-  const [kind, setKind] = useState<RangeKind>("month");
+  const [kind, setKind] = useState<RangeKind>("quarter");
   const [year, setYear] = useState<number | undefined>(undefined);
   const [metric, setMetric] = useState<GrowthId>("members");
   const [ledgerType, setLedgerType] = useState("All");
@@ -78,10 +83,7 @@ export function OpenAccountingBooks() {
               {view.range.label}
               {stale ? " · Stale snapshot" : ""}
             </p>
-            <StripeCheckNote check={data.data?.stripeCheck} />
-            <a href="#details" className="text-primary underline decoration-primary/40 underline-offset-4">
-              Details
-            </a>
+            <StripeCheckNote check={refresh.data} />
           </div>
         </div>
 

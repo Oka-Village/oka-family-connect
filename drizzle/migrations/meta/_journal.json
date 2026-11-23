@@ -225,6 +225,34 @@
       "when": 1795059784021,
       "tag": "0031_stripe_reconciliation_runs",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1795326268899,
+      "tag": "0032_events_notifications_and_reschedule",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1795329600337,
+      "tag": "0033_approved_event_unpublishing",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1795408097873,
+      "tag": "0034_open_accounting_events_completed_by_time",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1795423094688,
+      "tag": "0035_public_event_catalog",
+      "breakpoints": true
     }
   ]
 }

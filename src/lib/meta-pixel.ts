@@ -64,7 +64,7 @@ export function trackViewContent(params: {
   content_ids: string[];
   content_name: string;
   content_type?: string;
-  facilitator_slug?: string;
+  facilitator_slug?: string | undefined;
 }) {
   fbq("track", "ViewContent", {
     content_category: params.content_category,
@@ -80,7 +80,7 @@ export function trackCompleteRegistration(params: {
   content_ids: string[];
   content_name: string;
   status: string;
-  facilitator_slug?: string;
+  facilitator_slug?: string | undefined;
 }) {
   fbq("track", "CompleteRegistration", {
     content_category: params.content_category,
@@ -141,7 +141,7 @@ export function trackEventView(event: {
   join_slug: string;
   id: string;
   title: string;
-  hostDisplayName?: string | null;
+  hostDisplayName?: string | null | undefined;
 }) {
   if (!event.id || viewedEvents.has(event.id)) return;
   viewedEvents.add(event.id);
@@ -159,7 +159,7 @@ export function trackEventRegistration(event: {
   join_slug: string;
   id: string;
   title: string;
-  hostDisplayName?: string | null;
+  hostDisplayName?: string | null | undefined;
 }) {
   const facilitator = facilitatorSlugFromName(event.hostDisplayName);
   trackCompleteRegistration({

@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatCents } from "@/lib/affiliates";
 import { inviteUrl } from "@/lib/affiliate-share";
 import { signPaths } from "@/lib/skills";
+import { GiftQrDialog } from "@/components/oka/gift-qr-dialog";
 
 type Stat = {
   referred_user_id: string;
@@ -24,6 +25,7 @@ type Stat = {
 
 export function InviteEarnSection() {
   const { data: uid } = useCurrentUserId();
+  const roles = useRoles();
   const qc = useQueryClient();
   const [copied, setCopied] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -120,6 +122,15 @@ export function InviteEarnSection() {
               </Button>
             </div>
           </div>
+          {aff.data.status === "active" && (
+            <div className="surface-card mt-4 flex flex-wrap items-center justify-between gap-4 p-6">
+              <div>
+                <p className="section-label">Gift two months</p>
+                <p className="mt-2 text-sm text-muted-foreground">Show a QR code that opens two free months for someone new.</p>
+              </div>
+              <GiftQrDialog code={aff.data.invite_code} />
+            </div>
+          )}
           <div className="mt-6 grid gap-4 sm:grid-cols-3">
             <StatCard label="Invited" value={String(rows.length)} />
             <StatCard label="Your share" value={sharePct != null ? `${sharePct}%` : "—"} />
@@ -167,7 +178,7 @@ export function InviteEarnSection() {
                           : "rounded-full bg-muted px-3 py-1 text-xs uppercase tracking-widest text-muted-foreground"
                       }
                     >
-                      {r.paid_cents > 0 || r.membership_tier === "full" ? "Full member" : "Free"}
+                      {r.paid_cents > 0 || r.membership_tier === "full" ? "Paid" : "Free"}
                     </span>
                     {r.paid_cents > 0 && (
                       <span className="font-serif text-xl text-foreground">
