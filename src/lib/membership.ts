@@ -1,5 +1,6 @@
 import { isEventProposalRoute, ownEditTarget, ownListingViewTarget } from "./member-access";
 import { trialState, type TrialState } from "./trial-access";
+import { isPublicEventRoute } from "./public-events";
 
 export { trialState } from "./trial-access";
 export type { TrialState } from "./trial-access";
@@ -16,6 +17,7 @@ export function isPaymentExempt(profile: { member_status: string; complimentary_
 export function isPublicEntryRoute(pathname: string): boolean {
   const path = pathname.replace(/\/+$/, "") || "/";
   return (
+    isPublicEventRoute(path) ||
     ["/", "/membership", "/founding", "/privacy", "/terms", "/facilitators", "/onboarding-chat", "/open-accounting"].includes(path) ||
     /^\/(invite|join|gift)\/[^/]+$/.test(path)
   );

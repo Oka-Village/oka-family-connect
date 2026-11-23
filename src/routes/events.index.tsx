@@ -17,6 +17,10 @@ import { useState } from "react";
 import { z } from "zod";
 
 import { ComingSoonCard, EventListRow, FeaturedEvent, PastEventRow } from "@/components/oka/event-card";
+import { EventPageShell } from "@/components/oka/event-page-shell";
+import { useCurrentUserId } from "@/hooks/use-is-admin";
+import { publicEventsOptions, fetchPublicEvents as fetchEvents } from "@/lib/public-events.functions";
+import { filterPublicEvents } from "@/lib/public-events";
 import { MyEvents } from "@/components/oka/my-events";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,7 +28,6 @@ import {
   EVENT_TYPES,
   FORMAT_LABELS,
   TYPE_LABELS,
-  fetchEvents,
   fetchMyRsvps,
   type EventRow,
 } from "@/lib/events";
@@ -42,8 +45,9 @@ const searchSchema = z.object({
 });
 type Search = z.infer<typeof searchSchema>;
 
-export const Route = createFileRoute("/_authenticated/events/")({
+export const Route = createFileRoute("/events/")({
   validateSearch: searchSchema,
+  loader: ({ context }) => context.queryClient.ensureQueryData(publicEventsOptions),
   head: () => ({
     meta: [
       { title: "Events — Oka" },
@@ -54,7 +58,7 @@ export const Route = createFileRoute("/_authenticated/events/")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: EventsPage,
+  component: () => <EventPageShell><EventsPage /></EventPageShell>,
 });
 
 const selectCls =
@@ -62,6 +66,7 @@ const selectCls =
 
 function EventsPage() {
   const search = Route.useSearch();
+  const uid = useCurrentUserId();
   const navigate = useNavigate({ from: "/events/" });
   const view = search.view ?? "list";
   const set = (patch: Partial<Search>) =>
@@ -116,11 +121,15 @@ function EventsPage() {
             </button>
           )}
         </div>
-        <Button asChild className="min-h-10 w-full rounded-full sm:ml-auto sm:w-auto">
+        {uid.data && <Button asChild className="min-h-10 w-full rounded-full sm:ml-auto sm:w-auto">
           <Link to="/events/new"><Plus strokeWidth={1.5} /> Propose an event</Link>
-        </Button>
+        </Button>}
       </div>
 
+      <div className="mt-6 flex gap-2">
+        <Button variant={view === "list" ? "default" : "outline"} className="rounded-full" onClick={() => set({ view: "list" })}>List</Button>
+        <Button variant={view === "calendar" ? "default" : "outline"} className="rounded-full" onClick={() => set({ view: "calendar" })}>Calendar</Button>
+      </div>
       {view === "calendar" ? (
         <CalendarView search={search} onMonth={(m) => set({ month: m })} />
       ) : (
@@ -131,11 +140,12 @@ function EventsPage() {
 }
 
 function useRsvpMap(events: EventRow[] | undefined) {
+  const uid = useCurrentUserId();
   const ids = (events ?? []).map((e) => e.id);
   return useQuery({
-    queryKey: ["my-rsvps", ids],
+    queryKey: ["my-rsvps", uid.data, ids],
     queryFn: () => fetchMyRsvps(ids),
-    enabled: ids.length > 0,
+    enabled: Boolean(uid.data) && ids.length > 0,
   });
 }
 
@@ -163,8 +173,10 @@ function SectionHeading({ label, hint }: { label: string; hint?: string }) {
 
 function ListView({ search }: { search: Search }) {
   const filters = { type: search.type, format: search.format, from: search.from, to: search.to };
+  const uid = useCurrentUserId();
+  const catalog = Route.useLoaderData();
   const [showPast, setShowPast] = useState(false);
-  const upcoming = useQuery({ queryKey: ["events", "upcoming", filters], queryFn: () => fetchEvents(filters, { limit: 400 }) });
+  const upcoming = useQuery({ queryKey: ["events", "upcoming", filters], initialData: () => filterPublicEvents(catalog, filters, { limit: 400 }), queryFn: () => fetchEvents(filters, { limit: 400 }) });
   const past = useQuery({
     queryKey: ["events", "past", filters],
     queryFn: () => fetchEvents(filters, { past: true, limit: 400 }),
@@ -199,7 +211,7 @@ function ListView({ search }: { search: Search }) {
 
   return (
     <div className="mt-8 space-y-12 sm:mt-10 sm:space-y-14">
-      {upcoming.data!.length === 0 ? (
+      {(upcoming.data ?? []).length === 0 ? (
         <QuietCalendar />
       ) : (
         <>
@@ -257,7 +269,7 @@ function ListView({ search }: { search: Search }) {
         </>
       )}
 
-      <MyEvents />
+      {uid.data && <MyEvents />}
 
       <section>
         <button
