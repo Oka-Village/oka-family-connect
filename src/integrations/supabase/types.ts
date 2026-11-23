@@ -501,6 +501,7 @@ export type Database = {
           event_id: string
           id: string
           status: string
+          status_changed_at: string
           user_id: string
         }
         Insert: {
@@ -509,6 +510,7 @@ export type Database = {
           event_id: string
           id?: string
           status?: string
+          status_changed_at?: string
           user_id: string
         }
         Update: {
@@ -517,6 +519,7 @@ export type Database = {
           event_id?: string
           id?: string
           status?: string
+          status_changed_at?: string
           user_id?: string
         }
         Relationships: [
@@ -555,6 +558,7 @@ export type Database = {
           status: string
           timezone: string | null
           title: string
+          unpublished_schedule: Json | null
           updated_at: string
           video_url: string | null
           waitlist_count: number
@@ -577,6 +581,7 @@ export type Database = {
           status?: string
           timezone?: string | null
           title: string
+          unpublished_schedule?: Json | null
           updated_at?: string
           video_url?: string | null
           waitlist_count?: number
@@ -599,6 +604,7 @@ export type Database = {
           status?: string
           timezone?: string | null
           title?: string
+          unpublished_schedule?: Json | null
           updated_at?: string
           video_url?: string | null
           waitlist_count?: number
@@ -934,6 +940,151 @@ export type Database = {
             foreignKeyName: "memberships_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_deliveries: {
+        Row: {
+          attempt_count: number
+          channel: string
+          created_at: string
+          error: string | null
+          event_id: string
+          id: string
+          payload: Json | null
+          recipient_address: string | null
+          recipient_key: string
+          recipient_user_id: string | null
+          schedule_key: string
+          scheduled_for: string | null
+          sent_at: string | null
+          status: string
+          template_key: string
+          template_version: number
+          timezone: string | null
+        }
+        Insert: {
+          attempt_count?: number
+          channel: string
+          created_at?: string
+          error?: string | null
+          event_id: string
+          id?: string
+          payload?: Json | null
+          recipient_address?: string | null
+          recipient_key: string
+          recipient_user_id?: string | null
+          schedule_key: string
+          scheduled_for?: string | null
+          sent_at?: string | null
+          status?: string
+          template_key: string
+          template_version?: number
+          timezone?: string | null
+        }
+        Update: {
+          attempt_count?: number
+          channel?: string
+          created_at?: string
+          error?: string | null
+          event_id?: string
+          id?: string
+          payload?: Json | null
+          recipient_address?: string | null
+          recipient_key?: string
+          recipient_user_id?: string | null
+          schedule_key?: string
+          scheduled_for?: string | null
+          sent_at?: string | null
+          status?: string
+          template_key?: string
+          template_version?: number
+          timezone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_deliveries_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_deliveries_recipient_user_id_fkey"
+            columns: ["recipient_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_preferences: {
+        Row: {
+          email: boolean
+          in_app: boolean
+          type: string
+          user_id: string
+        }
+        Insert: {
+          email?: boolean
+          in_app?: boolean
+          type: string
+          user_id: string
+        }
+        Update: {
+          email?: boolean
+          in_app?: boolean
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          link: string | null
+          read_at: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -1365,6 +1516,10 @@ export type Database = {
       is_event_manager: { Args: { _event_id: string }; Returns: boolean }
       is_full_member: { Args: never; Returns: boolean }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      mark_event_rsvps_awaiting_reconfirmation: {
+        Args: { _event_id: string }
+        Returns: number
+      }
       mark_letter_read: {
         Args: { _letter_id: string; _recipient_id: string }
         Returns: string

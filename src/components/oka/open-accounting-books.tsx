@@ -23,7 +23,7 @@ type GrowthId = (typeof growthMetrics)[number]["id"];
 export function OpenAccountingBooks() {
   const data = useQuery({ queryKey: ["open-accounting", "data"], queryFn: fetchAccountingData, staleTime: 60_000 });
   const stale = false;
-  const [kind, setKind] = useState<RangeKind>("month");
+  const [kind, setKind] = useState<RangeKind>("quarter");
   const [year, setYear] = useState<number | undefined>(undefined);
   const [metric, setMetric] = useState<GrowthId>("members");
   const [ledgerType, setLedgerType] = useState("All");
@@ -79,9 +79,6 @@ export function OpenAccountingBooks() {
               {stale ? " · Stale snapshot" : ""}
             </p>
             <StripeCheckNote check={data.data?.stripeCheck} />
-            <a href="#details" className="text-primary underline decoration-primary/40 underline-offset-4">
-              Details
-            </a>
           </div>
         </div>
 

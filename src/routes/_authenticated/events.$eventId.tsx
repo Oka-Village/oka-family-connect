@@ -138,7 +138,7 @@ function EventDetail() {
   });
 
   const admin = useMutation({
-    mutationFn: (status: "published" | "rejected" | "cancelled") => changeStatus({ data: { eventId, status } }),
+    mutationFn: (status: "published" | "unpublished" | "rejected" | "cancelled") => changeStatus({ data: { eventId, status } }),
     onSuccess: () => { toast.success("Event updated"); qc.invalidateQueries(); },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -181,11 +181,11 @@ function EventDetail() {
 
       {ev.status !== "published" && (
         <div className={cn("mt-6 rounded-2xl px-5 py-3 text-sm", ev.status === "cancelled" ? "bg-destructive/10 text-destructive" : "bg-golden/25 text-foreground")}>
-          {ev.status === "cancelled" ? "This event has been cancelled." : ev.status === "pending_approval" ? "Awaiting admin review — not yet on the public schedule." : ev.status === "rejected" ? "This proposal was not approved." : `Status: ${ev.status}`}
+          {ev.status === "cancelled" ? "This event has been cancelled." : ev.status === "unpublished" ? "Approved but unpublished — off the schedule until you publish again." : ev.status === "pending_approval" ? "Awaiting admin review — not yet on the public schedule." : ev.status === "rejected" ? "This proposal was not approved." : `Status: ${ev.status}`}
         </div>
       )}
 
-      {status === "awaiting_reconfirmation" && (
+      {status === "awaiting_reconfirmation" && ev.status === "published" && (
         <div className="mt-6 rounded-2xl bg-golden/25 px-5 py-4 text-sm text-foreground">
           <p>The time for this gathering has changed. Please confirm whether you can still join.</p>
           <div className="mt-3 flex flex-wrap gap-2">
@@ -358,13 +358,19 @@ function EventDetail() {
               <Button asChild variant="outline" className="rounded-full">
                 <Link to="/events/edit/$eventId" params={{ eventId }}><Pencil className="size-4" strokeWidth={1.5} /> Edit</Link>
               </Button>
-              {isAdmin && ev.status !== "published" && ev.status !== "cancelled" && (
-                <Button className="rounded-full" onClick={() => admin.mutate("published")}>Approve & publish</Button>
+              {ev.status === "unpublished" && (
+                <Button className="rounded-full" disabled={admin.isPending} onClick={() => admin.mutate("published")}>Publish</Button>
+              )}
+              {isAdmin && !["published", "cancelled", "unpublished"].includes(ev.status) && (
+                <Button className="rounded-full" disabled={admin.isPending} onClick={() => admin.mutate("published")}>Approve & publish</Button>
               )}
               {isAdmin && ev.status === "pending_approval" && (
                 <Button variant="outline" className="rounded-full" onClick={() => admin.mutate("rejected")}>Reject</Button>
               )}
               {isAdmin && ev.status === "published" && (
+                <Button variant="outline" className="rounded-full" disabled={admin.isPending} onClick={() => confirm("Unpublish this event? Its approval and RSVPs stay saved; the host can edit and publish again.") && admin.mutate("unpublished")}>Unpublish</Button>
+              )}
+              {isAdmin && ["published", "unpublished"].includes(ev.status) && (
                 <Button variant="outline" className="rounded-full text-destructive" onClick={() => confirm("Cancel this event for everyone?") && admin.mutate("cancelled")}>
                   Cancel event
                 </Button>

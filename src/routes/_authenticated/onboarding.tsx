@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { useMembership } from "@/hooks/use-membership";
 import { hasPaidMembership, isPaymentExempt } from "@/lib/membership";
 import { useRoles } from "@/hooks/use-is-admin";
+import { trialState } from "@/lib/trial-access";
 import { needsOnboardingPhoto, showSupportOffer } from "@/lib/onboarding-rules";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
@@ -190,7 +191,8 @@ function Onboarding() {
     }
     await queryClient.invalidateQueries({ queryKey: ["profile"] });
     await queryClient.invalidateQueries({ queryKey: ["profile-photo"] });
-    const offer = showSupportOffer(hasPaidMembership(membership.data), isPaymentExempt(profile, roles.data?.isStaff === true), profile?.trial_started_at);
+    const offer = showSupportOffer(hasPaidMembership(membership.data), isPaymentExempt(profile, roles.data?.isStaff === true), profile?.trial_started_at)
+      && trialState(profile?.trial_started_at, new Date(), profile?.trial_ends_at) !== "active";
     if (offer) void navigate({ to: "/membership", replace: true, search: { session_id: undefined, kind: undefined } });
     else void navigate({ to: "/home", replace: true });
   }

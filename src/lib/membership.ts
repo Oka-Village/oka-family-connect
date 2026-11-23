@@ -16,8 +16,8 @@ export function isPaymentExempt(profile: { member_status: string; complimentary_
 export function isPublicEntryRoute(pathname: string): boolean {
   const path = pathname.replace(/\/+$/, "") || "/";
   return (
-    ["/", "/membership", "/founding", "/privacy", "/terms", "/facilitators", "/onboarding-chat"].includes(path) ||
-    /^\/(invite|join)\/[^/]+$/.test(path)
+    ["/", "/membership", "/founding", "/privacy", "/terms", "/facilitators", "/onboarding-chat", "/open-accounting"].includes(path) ||
+    /^\/(invite|join|gift)\/[^/]+$/.test(path)
   );
 }
 
@@ -38,11 +38,13 @@ const PROFILE_ONLY_ROUTES = new Set(["/onboarding", "/profile", "/home", "/welco
 /** An active trial adds skill and house creation on top of profile-only routes. Event proposals stay open for every member. */
 const CONTENT_ADDING_ROUTES = new Set(["/skills/new", "/houses/new", "/skills", "/houses", "/open-accounting"]);
 /** The invite space is open in every state, including before a member has chosen to pay or trial. */
-const ALWAYS_ALLOWED_ROUTES = new Set(["/membership", "/privacy", "/terms", "/founding", "/affiliate", "/earnings", "/events", "/skills/new", "/houses/new", "/skills", "/houses"]);
+const ALWAYS_ALLOWED_ROUTES = new Set(["/membership", "/privacy", "/terms", "/founding", "/affiliate", "/earnings", "/events", "/skills/new", "/houses/new", "/skills", "/houses", "/open-accounting"]);
 
 export function paymentRedirect(pathname: string, fullAccess: boolean, paid: boolean, trial: TrialState): "/membership" | "/home" | null {
   const path = pathname.replace(/\/+$/, "") || "/";
   if (fullAccess) return path === "/membership" ? "/home" : null;
+  // Gift links stay open after sign-in so the recipient can claim their months.
+  if (/^\/gift\/[^/]+$/.test(path)) return null;
   if (paid || trial === "active") return null;
   if (ALWAYS_ALLOWED_ROUTES.has(path) || isEventProposalRoute(path)) return null;
   // Own skill/home pages and edits: the member-access gate verifies ownership before rendering.
