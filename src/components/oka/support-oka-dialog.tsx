@@ -11,6 +11,7 @@ import { startTrial } from "@/lib/trial.functions";
 import { type MembershipKind } from "@/lib/membership";
 import { TRIAL_DAYS } from "@/lib/onboarding-rules";
 import { type OkaProfile } from "@/lib/profile";
+import { trackInitiateCheckout } from "@/lib/meta-pixel";
 
 export function SupportOkaDialog({ open, onProceed, trialStartedAt }: {
   open: boolean;
@@ -29,6 +30,7 @@ export function SupportOkaDialog({ open, onProceed, trialStartedAt }: {
     if (!agreed || busy) return;
     setBusy(kind); setError(null);
     try {
+      trackInitiateCheckout(kind);
       const result = await (kind === "founding" ? founding : monthly)({ data: { acceptedTerms: true, origin: window.location.origin } });
       if (result.status === "already") onProceed();
       else window.location.assign(result.url);

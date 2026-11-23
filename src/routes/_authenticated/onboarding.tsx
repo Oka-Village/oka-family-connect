@@ -21,6 +21,7 @@ import { hasPaidMembership, isPaymentExempt } from "@/lib/membership";
 import { useRoles } from "@/hooks/use-is-admin";
 import { trialState } from "@/lib/trial-access";
 import { needsOnboardingPhoto, showSupportOffer } from "@/lib/onboarding-rules";
+import { trackPlatformRegistration } from "@/lib/meta-pixel";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
   head: () => ({
@@ -189,6 +190,7 @@ function Onboarding() {
       toast.error("We couldn't save that just now. Please try again.");
       return;
     }
+    trackPlatformRegistration();
     await queryClient.invalidateQueries({ queryKey: ["profile"] });
     await queryClient.invalidateQueries({ queryKey: ["profile-photo"] });
     const offer = showSupportOffer(hasPaidMembership(membership.data), isPaymentExempt(profile, roles.data?.isStaff === true), profile?.trial_started_at)
