@@ -341,7 +341,7 @@ function EventDetail() {
 
             {canRsvp && (
               !uid ? (
-                <div className="mt-6"><EventSignIn label="Sign in to RSVP" /></div>
+                <div className="mt-6"><EventSignIn label="Sign in / Sign up to RSVP" /></div>
               ) : status === "going" ? (
                 <div className="mt-6 grid justify-items-center gap-4">
                   <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground" role="status">

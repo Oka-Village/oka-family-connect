@@ -9,7 +9,7 @@ import { beginSignupFlow } from "@/lib/signup-flow.functions";
 import { saveReturnTo } from "@/lib/join-link";
 import { useCurrentUserId } from "@/hooks/use-is-admin";
 
-export function EventSignIn({ label = "Sign in" }: { label?: string }) {
+export function EventSignIn({ label = "Sign in / Sign up" }: { label?: string }) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const uid = useCurrentUserId();
