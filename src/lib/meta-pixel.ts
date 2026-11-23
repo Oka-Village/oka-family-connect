@@ -1,6 +1,6 @@
 /** Browser-only Meta Pixel helpers. No-ops when `fbq` is unavailable. */
 
-export const META_PIXEL_ID = "417568136356001";
+export const META_PIXEL_ID = "1124932263242636";
 
 export type MembershipPixelKind = "monthly" | "founding";
 
