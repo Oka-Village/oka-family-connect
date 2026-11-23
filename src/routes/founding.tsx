@@ -16,6 +16,7 @@ import { isFullMember } from "@/lib/member-access";
 import { afterMembershipPayment, hasPaidMembership } from "@/lib/membership";
 import { useMembership } from "@/hooks/use-membership";
 import { beginSignupFlow } from "@/lib/signup-flow.functions";
+import { trackInitiateCheckout, trackPurchase } from "@/lib/meta-pixel";
 
 export const Route = createFileRoute("/founding")({
   validateSearch: (s: Record<string, unknown>) => ({
@@ -77,6 +78,7 @@ function FoundingPage() {
       .then(async (r) => {
         setDone(r.paid ? "paid" : "pending");
         if (r.paid) {
+          trackPurchase("founding", session_id);
           await qc.invalidateQueries({ queryKey: ["membership"] });
           if (!full) void navigate({ to: "/onboarding", replace: true });
         }
@@ -98,6 +100,7 @@ function FoundingPage() {
     setError(null);
     setBusy(true);
     try {
+      trackInitiateCheckout("founding");
       const r = await startCheckout({ data: { acceptedTerms: true, origin: window.location.origin } });
       if (r.status === "already") setDone("paid");
       else window.location.href = r.url;

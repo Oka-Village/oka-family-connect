@@ -2,7 +2,8 @@ import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-r
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, CalendarDays, Check, Clock, Hourglass, Lock, MapPin, Pencil, Users, Video } from "lucide-react";
 import { toast } from "sonner";
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
+import { trackEventRegistration, trackEventView } from "@/lib/meta-pixel";
 
 import { RsvpBadge, useEventPhoto } from "@/components/oka/event-card";
 import { EventTime, ViewerTimezone } from "@/components/oka/event-time";
@@ -123,6 +124,17 @@ function EventDetail() {
     },
     onSuccess: (status) => {
       toast.success(status === "going" ? "You're going — see you there" : status === "waitlist" ? "It's full, so you're on the waitlist" : "Your RSVP is cancelled");
+      if (status === "going" || status === "waitlist") {
+        const evRow = q.data?.event;
+        if (evRow) {
+          trackEventRegistration({
+            id: evRow.id,
+            join_slug: evRow.join_slug,
+            title: evRow.title,
+            hostDisplayName: evRow.host?.display_name,
+          });
+        }
+      }
       const applyStatus = (current: { rsvp?: string } | undefined) => (current ? { ...current, rsvp: status } : current);
       qc.setQueryData(["event", eventId], applyStatus);
       void qc.invalidateQueries({ queryKey: ["event", eventId] }).then(() => {
@@ -133,6 +145,17 @@ function EventDetail() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  useEffect(() => {
+    const evRow = q.data?.event;
+    if (!evRow) return;
+    trackEventView({
+      id: evRow.id,
+      join_slug: evRow.join_slug,
+      title: evRow.title,
+      hostDisplayName: evRow.host?.display_name,
+    });
+  }, [q.data?.event?.id]);
 
   const admin = useMutation({
     mutationFn: (status: "published" | "rejected" | "cancelled") => setEventStatus(eventId, status),

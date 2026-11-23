@@ -108,7 +108,7 @@ const SECTIONS: LegalSection[] = [
     blocks: [
       {
         kind: "p",
-        text: "We do not sell your personal data, we do not run advertising trackers in the app, and we do not hand your data over to third parties except the providers that keep Oka running (hosting, video, payments, email) or where the law genuinely requires it.",
+        text: "We do not sell your personal data, and we do not hand your data over to third parties except the providers that keep Oka running (hosting, video, payments, email), Meta Pixel for ads and conversion measurement, or where the law genuinely requires it.",
       },
     ],
   },
