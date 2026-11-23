@@ -178,7 +178,7 @@ export function InviteEarnSection() {
                           : "rounded-full bg-muted px-3 py-1 text-xs uppercase tracking-widest text-muted-foreground"
                       }
                     >
-                      {r.paid_cents > 0 || r.membership_tier === "full" ? "Full member" : "Free"}
+                      {r.paid_cents > 0 || r.membership_tier === "full" ? "Paid" : "Free"}
                     </span>
                     {r.paid_cents > 0 && (
                       <span className="font-serif text-xl text-foreground">
