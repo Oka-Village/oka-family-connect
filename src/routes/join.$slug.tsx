@@ -124,8 +124,13 @@ function JoinPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="mx-auto flex max-w-5xl items-center px-6 py-8"><Wordmark /></header>
-      <main className="mx-auto max-w-2xl px-6 pb-24 pt-12 text-center">
+      <header className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-6 py-8">
+        <Wordmark />
+        {state === "signed_out" && (
+          <Button variant="outline" size="sm" className="rounded-full" disabled={busy} onClick={() => void signIn()}>Sign in / Sign up</Button>
+        )}
+      </header>
+      <main className="mx-auto max-w-2xl px-6 pb-36 pt-12 text-center">
         {state === "not_found" ? (
           <>
             <p className="section-label">Gathering link</p>
@@ -184,6 +189,21 @@ function JoinPage() {
           </p>
         )}
       </main>
+      {state === "signed_out" && preview.data && (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 shadow-soft backdrop-blur">
+          <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 px-4 py-3">
+            <div className="min-w-0 text-left">
+              <p className="truncate font-serif text-lg leading-tight text-foreground">{preview.data.title}</p>
+              <p className="truncate text-sm text-muted-foreground">{formatEventDate(preview.data.starts_at, preview.data.timezone)}</p>
+            </div>
+            <Button className="shrink-0 rounded-full px-5" disabled={busy} onClick={() => void signIn()}>
+              {busy && <Loader2 className="size-4 animate-spin" strokeWidth={1.5} />}
+              <span className="sm:hidden">Sign in / Sign up</span>
+              <span className="hidden sm:inline">Sign in or sign up to RSVP</span>
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
