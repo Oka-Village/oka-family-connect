@@ -61,6 +61,7 @@ function JoinPage() {
   const [state, setState] = useState<State>("checking");
   const [busy, setBusy] = useState(false);
   const ran = useRef(false);
+  const [refCode, setRefCode] = useState<string | null>(null);
   const preview = useQuery({
     queryKey: ["public-event", slug],
     queryFn: async () => {
@@ -83,6 +84,24 @@ function JoinPage() {
   useEffect(() => {
     saveEventJoinSlug(slug);
   }, [slug]);
+
+  // The sharer's own affiliate code in ?ref= names them in the invitation line.
+  useEffect(() => {
+    const ref = new URLSearchParams(window.location.search).get("ref")?.trim();
+    if (ref) setRefCode(ref);
+  }, []);
+
+  const inviter = useQuery({
+    queryKey: ["event-inviter", refCode],
+    queryFn: async () => {
+      const { data } = await supabase.rpc("affiliate_invite_info", { _code: refCode ?? "" });
+      return data?.[0]?.inviter_name?.trim() || null;
+    },
+    enabled: !!refCode,
+    staleTime: 30 * 60_000,
+  });
+
+  const invitedBy = inviter.data ? `${inviter.data} invited you to this event` : "You're invited";
 
   useEffect(() => {
     if (ran.current) return;
@@ -140,7 +159,7 @@ function JoinPage() {
             <p className="flex items-center justify-center gap-2 text-muted-foreground"><Loader2 className="size-4 animate-spin text-primary" strokeWidth={1.5} /> Opening the event…</p>
           ) : preview.data ? (
             <div className="text-left">
-              <p className="section-label text-center">You're invited</p>
+              <p className="section-label text-center">{invitedBy}</p>
               <h1 className="mt-6 text-center text-5xl leading-tight text-foreground">{preview.data.title}</h1>
               <div className="mt-8 grid gap-3 rounded-2xl border border-border bg-card p-6 text-foreground shadow-soft sm:grid-cols-2">
                 <span className="flex items-center gap-3"><CalendarDays className="size-5 text-primary" strokeWidth={1.5} />{formatEventDate(preview.data.starts_at, preview.data.timezone)}</span>
@@ -160,7 +179,7 @@ function JoinPage() {
           ) : (
             <>
               <Video className="mx-auto size-8 text-primary" strokeWidth={1.5} />
-              <p className="section-label mt-6">You're invited</p>
+              <p className="section-label mt-6">{invitedBy}</p>
               <h1 className="mt-6 text-5xl leading-tight text-foreground">Join the gathering</h1>
               <p className="mx-auto mt-6 max-w-md text-muted-foreground">Sign in with Google and we'll bring you to the gathering, where you can save your spot.</p>
               <Button size="lg" className="mt-10 rounded-full px-10" disabled={busy} onClick={() => void signIn()}>
