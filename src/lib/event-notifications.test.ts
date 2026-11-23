@@ -6,8 +6,13 @@ import {
   approvedNotice,
   cancelTransition,
   dayReminderNotice,
+  daysUntilEvent,
   deliveryKey,
   dueReminder,
+  exceptionReminderNotice,
+  exceptionTimezoneLines,
+  exceptionWeekdayDate,
+  firstNameFromDisplayName,
   hostRsvpNotice,
   noticeText,
   reconfirmTransition,
@@ -71,6 +76,67 @@ describe("event notification copy", () => {
     expect(html).toContain(KUMOJI_JOY);
     expect(html).toContain(KUMOJI);
     expect(html).toContain("Made with care for our family");
+  });
+});
+
+describe("exception reminder copy", () => {
+  it("uses Liran's one-time wording with first name, countdown, and Cynara", () => {
+    const notice = exceptionReminderNotice({
+      firstName: "Elena",
+      title: "Awakening Presence",
+      eventUrl: "https://www.oneworldfamily.app/events/abc",
+      daysLeft: 5,
+      weekdayDate: "Sunday, Nov 29",
+      timezoneLines: [
+        "• Host time: 6:00 PM GMT+1",
+        "• North America: 12:00 PM EST / 9:00 AM PST",
+        "• Europe: 6:00 PM GMT+1 / 5:00 PM GMT",
+        "• Asia: 10:30 PM GMT+5:30 / 12:00 AM GMT+6 (+1 day)",
+      ],
+    });
+    expect(notice.subject).toBe("Reminder: Awakening Presence is coming up in 5 days");
+    expect(notice.paragraphs[0]).toBe("Hi Elena,");
+    expect(notice.paragraphs[1]).toContain("You've RSVP'd to the event: Awakening Presence");
+    expect(notice.paragraphs[2]).toContain("coming up in 5 days");
+    expect(notice.paragraphs[2]).toContain("At Sunday, Nov 29");
+    expect(notice.paragraphs[3]).toContain("Time Zones:");
+    expect(notice.paragraphs[4]).toContain("Cynara@okavillage.com");
+    expect(notice.paragraphs[5]).toBe("Liran — One World Family");
+    expect(notice.mood).toBe("warm");
+    expect(noticeText(notice)).toContain(KUMOJI);
+    expect(noticeText(notice)).not.toContain(KUMOJI_JOY);
+    expect(notice.links[0]?.href).toBe("https://www.oneworldfamily.app/events/abc");
+  });
+
+  it("uses the singular day subject", () => {
+    const notice = exceptionReminderNotice({
+      firstName: "Ada",
+      title: "Morning sit",
+      eventUrl: "https://www.oneworldfamily.app/events/1",
+      daysLeft: 1,
+      weekdayDate: "Saturday, Dec 20",
+      timezoneLines: ["• Host time: 9:00 AM UTC"],
+    });
+    expect(notice.subject).toBe("Reminder: Morning sit is coming up in 1 day");
+  });
+
+  it("parses the first name and counts whole days remaining", () => {
+    expect(firstNameFromDisplayName("Elena Rivers")).toBe("Elena");
+    expect(firstNameFromDisplayName("  ")).toBe("there");
+    expect(firstNameFromDisplayName(null)).toBe("there");
+    expect(daysUntilEvent("2026-12-20T09:00:00.000Z", new Date("2026-12-15T09:00:00.000Z"))).toBe(5);
+    expect(daysUntilEvent("2026-12-20T09:00:00.000Z", new Date("2026-12-20T10:00:00.000Z"))).toBe(0);
+  });
+
+  it("formats weekday date and marks Asia when the calendar day advances", () => {
+    // 20:00 UTC = 9:00 PM Paris; Kolkata/Dhaka are already on the next calendar day.
+    expect(exceptionWeekdayDate("2026-11-29T20:00:00.000Z", "Europe/Paris")).toMatch(/Sunday/);
+    const lines = exceptionTimezoneLines("2026-11-29T20:00:00.000Z", "Europe/Paris");
+    expect(lines[0]).toMatch(/^• Host time:/);
+    expect(lines[1]).toMatch(/^• North America:/);
+    expect(lines[2]).toMatch(/^• Europe:/);
+    expect(lines[3]).toMatch(/^• Asia:/);
+    expect(lines[3]).toContain("(+1 day)");
   });
 });
 
