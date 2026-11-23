@@ -3,11 +3,14 @@ import { useQuery } from "@tanstack/react-query";
 import { addDays, format as fmt, isValid, parse } from "date-fns";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
+import { EventPageShell } from "@/components/oka/event-page-shell";
+import { useCurrentUserId } from "@/hooks/use-is-admin";
+import { publicEventsOptions, fetchPublicEvents as fetchEvents } from "@/lib/public-events.functions";
 import { EventCard } from "@/components/oka/event-card";
 import { Button } from "@/components/ui/button";
-import { fetchEvents, fetchMyRsvps } from "@/lib/events";
+import { fetchMyRsvps } from "@/lib/events";
 
-export const Route = createFileRoute("/_authenticated/events/day/$date")({
+export const Route = createFileRoute("/events/day/$date")({
   head: ({ params }) => ({
     meta: [
       { title: `Events on ${params.date} — Oka` },
@@ -18,11 +21,13 @@ export const Route = createFileRoute("/_authenticated/events/day/$date")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: DayPage,
+  loader: ({ context }) => context.queryClient.ensureQueryData(publicEventsOptions),
+  component: () => <EventPageShell><DayPage /></EventPageShell>,
 });
 
 function DayPage() {
   const { date } = Route.useParams();
+  const uid = useCurrentUserId();
   const day = parse(date, "yyyy-MM-dd", new Date());
   const valid = isValid(day);
   const q = useQuery({
@@ -33,12 +38,12 @@ function DayPage() {
   });
   const ids = (q.data ?? []).map((e) => e.id);
   const rsvps = useQuery({
-    queryKey: ["rsvps", "day", ids],
-    enabled: ids.length > 0,
+    queryKey: ["rsvps", "day", uid.data, ids],
+    enabled: Boolean(uid.data) && ids.length > 0,
     queryFn: () => fetchMyRsvps(ids),
   });
-  const prev = fmt(addDays(day, -1), "yyyy-MM-dd");
-  const next = fmt(addDays(day, 1), "yyyy-MM-dd");
+  const prev = valid ? fmt(addDays(day, -1), "yyyy-MM-dd") : date;
+  const next = valid ? fmt(addDays(day, 1), "yyyy-MM-dd") : date;
 
   return (
     <div className="mx-auto max-w-3xl px-5 py-12">

@@ -55,12 +55,10 @@ async function earliestMonthId(): Promise<string> {
   return `${createdAt.getUTCFullYear()}-${String(createdAt.getUTCMonth() + 1).padStart(2, "0")}`;
 }
 
-/** Fetches every real number the Open Accounting Books tab needs, straight
- * from Supabase. Runs the sync functions first so referral/contribution
- * earnings and financial snapshots reflect the latest recorded payments
- * before reading. Cash figures come from payments.amount_cents. */
-export async function fetchAccountingData(): Promise<AccountingData> {
-  // Stripe first: fix missing/changed payments before totals are computed.
+/** Brings recorded figures up to date: checks Stripe (throttled server-side)
+ * and re-runs the database syncs. Runs in the background so the Books render
+ * from the latest saved figures immediately; callers refetch afterwards. */
+export async function refreshAccountingSources(): Promise<StripeCheck> {
   let stripeCheck: StripeCheck = { checkedAt: null, unmatched: 0, ok: false };
   try {
     stripeCheck = await reconcileOpenAccounting();
@@ -68,6 +66,12 @@ export async function fetchAccountingData(): Promise<AccountingData> {
     // Show recorded figures if the Stripe check is unavailable.
   }
   await supabase.rpc("sync_open_accounting");
+  return stripeCheck;
+}
+
+/** Reads every real number the Open Accounting Books tab needs from the
+ * saved figures. Cash figures come from payments.amount_cents. */
+export async function fetchAccountingData(): Promise<AccountingData> {
   const startMonth = await earliestMonthId();
   const { data, error } = await supabase.rpc("open_accounting_raw", { p_start_month: startMonth });
   if (error) throw error;
@@ -97,7 +101,6 @@ export async function fetchAccountingData(): Promise<AccountingData> {
     homes: raw.homes ?? [],
     skills: raw.skills ?? [],
     creditReasons: raw.creditReasons ?? [],
-    stripeCheck,
   };
 }
 

@@ -5,6 +5,9 @@ import { toast } from "sonner";
 import { useEffect, type ReactNode } from "react";
 import { trackEventRegistration, trackEventView } from "@/lib/meta-pixel";
 
+import { EventPageShell } from "@/components/oka/event-page-shell";
+import { EventSignIn } from "@/components/oka/event-sign-in";
+import { publicEventsOptions } from "@/lib/public-events.functions";
 import { RsvpBadge, useEventPhoto } from "@/components/oka/event-card";
 import { EventTime, ViewerTimezone } from "@/components/oka/event-time";
 import { AddToCalendarDropdown } from "@/components/oka/add-to-calendar-dropdown";
@@ -38,19 +41,21 @@ import {
 } from "@/lib/events";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/_authenticated/events/$eventId")({
-  head: () => ({
-    meta: [
-      { title: "Event — Oka" },
-      { name: "description", content: "Details, host and RSVP for an Oka family event." },
-      { property: "og:title", content: "Event — Oka" },
-      { property: "og:description", content: "Details, host and RSVP for an Oka family event." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
+export const Route = createFileRoute("/events/$eventId")({
+  loader: async ({ context, params }) => (await context.queryClient.ensureQueryData(publicEventsOptions)).find((event) => event.id === params.eventId) ?? null,
+  head: ({ loaderData }) => {
+    const title = loaderData ? `${loaderData.title} — Oka Events` : "Event — Oka";
+    const description = loaderData?.description?.slice(0, 180) || "Details, host and RSVP for an Oka family event.";
+    const image = loaderData?.photo_url?.startsWith("https://") ? loaderData.photo_url : null;
+    return { meta: [
+      { title }, { name: "description", content: description },
+      { property: "og:title", content: title }, { property: "og:description", content: description },
+      { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" },
+      ...(image ? [{ property: "og:image", content: image }, { name: "twitter:image", content: image }] : []),
+    ] };
+  },
   validateSearch: (s: Record<string, unknown>) => z.object({ via: z.enum(["link"]).optional() }).parse({ via: s["via"] === "link" ? "link" : undefined }),
-  component: EventDetail,
+  component: () => <EventPageShell><EventDetail /></EventPageShell>,
 });
 
 /** Prefer history.back so Events filters + scroll restore; fall back to /events for cold entry. */
@@ -74,21 +79,23 @@ function BackToEvents({ className, children }: { className?: string; children: R
 function EventDetail() {
   const { eventId } = Route.useParams();
   const { via } = Route.useSearch();
+  const publicEvent = Route.useLoaderData();
   const qc = useQueryClient();
-  const { data: uid } = useCurrentUserId();
+  const { data: uid, isPending: userPending } = useCurrentUserId();
+  const eventKey = ["event", eventId, uid ?? null];
   const { data: isAdmin } = useIsStaff();
   const fetchVideoCfg = useServerFn(getVideoConfigured);
   const confirmRsvp = useServerFn(notifyRsvpConfirmed);
   const changeStatus = useServerFn(notifyEventStatus);
-  const videoCfg = useQuery({ queryKey: ["video-configured"], queryFn: () => fetchVideoCfg(), staleTime: 5 * 60_000 });
+  const videoCfg = useQuery({ queryKey: ["video-configured"], queryFn: () => fetchVideoCfg(), staleTime: 5 * 60_000, enabled: Boolean(uid) });
 
   const q = useQuery({
-    queryKey: ["event", eventId],
+    queryKey: eventKey,
     queryFn: async () => {
       const { data: auth, error: authError } = await supabase.auth.getUser();
-      if (authError) throw authError;
+      if (authError && authError.name !== "AuthSessionMissingError") throw authError;
       const callerId = auth.user?.id;
-      if (!callerId) throw new Error("Sign in to see this event.");
+      if (!callerId) return { event: publicEvent, location: null, rsvp: undefined as string | undefined };
       const [ev, loc, mine] = await Promise.all([
         supabase.from("events").select(EVENT_SELECT).eq("id", eventId).maybeSingle(),
         // RLS returns nothing unless you're confirmed, the host, or an admin.
@@ -97,9 +104,12 @@ function EventDetail() {
       ]);
       if (ev.error) throw ev.error;
       if (mine.error) throw mine.error;
-      return { event: ev.data as unknown as EventRow | null, location: loc.data, rsvp: mine.data?.status };
+      const memberEvent = ev.data as unknown as EventRow | null;
+      const event = memberEvent ? { ...memberEvent, host: memberEvent.host ?? publicEvent?.host ?? null } : publicEvent;
+      return { event, location: loc.data, rsvp: mine.data?.status };
     },
-    enabled: !!uid,
+    enabled: !userPending,
+    initialData: !uid && publicEvent ? { event: publicEvent, location: null, rsvp: undefined as string | undefined } : undefined,
   });
 
   const photo = useQuery({
@@ -139,9 +149,9 @@ function EventDetail() {
         }
       }
       const applyStatus = (current: { rsvp?: string } | undefined) => (current ? { ...current, rsvp: status } : current);
-      qc.setQueryData(["event", eventId], applyStatus);
+      qc.setQueryData(eventKey, applyStatus);
       void qc.invalidateQueries({ queryKey: ["event", eventId] }).then(() => {
-        qc.setQueryData(["event", eventId], applyStatus);
+        qc.setQueryData(eventKey, applyStatus);
       });
       qc.invalidateQueries({ queryKey: ["events"] });
       qc.invalidateQueries({ queryKey: ["my-rsvps"] });
@@ -166,7 +176,7 @@ function EventDetail() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  if (q.isLoading || !uid) return <p className="px-6 py-16 text-muted-foreground">Loading…</p>;
+  if (q.isLoading) return <p className="px-6 py-16 text-muted-foreground">Loading…</p>;
   const ev = q.data?.event;
   if (!ev) {
     return (
@@ -330,7 +340,9 @@ function EventDetail() {
             )}
 
             {canRsvp && (
-              status === "going" ? (
+              !uid ? (
+                <div className="mt-6"><EventSignIn label="Sign in / Sign up to RSVP" /></div>
+              ) : status === "going" ? (
                 <div className="mt-6 grid justify-items-center gap-4">
                   <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground" role="status">
                     <Check className="size-4 text-primary" strokeWidth={1.5} /> You're going
@@ -361,7 +373,7 @@ function EventDetail() {
 
           <div className="rounded-2xl border border-border bg-card p-6 shadow-soft">
             <p className="section-label">Host</p>
-            <Link to={ev.host_id ? "/members/$memberId" : "/directory"} params={{ memberId: ev.host_id ?? "" }} className="mt-4 flex items-center gap-3">
+            {uid ? <Link to={ev.host_id ? "/members/$memberId" : "/directory"} params={{ memberId: ev.host_id ?? "" }} className="mt-4 flex items-center gap-3">
               <Avatar className="size-12">
                 {photo.data && <AvatarImage src={photo.data} alt="" />}
                 <AvatarFallback className="bg-secondary text-foreground">
@@ -372,7 +384,13 @@ function EventDetail() {
                 <span className="block font-medium text-foreground">{hostName(ev.host)}</span>
                 <span className="text-sm text-muted-foreground">View profile</span>
               </span>
-            </Link>
+            </Link> : <div className="mt-4 flex items-center gap-3">
+              <Avatar className="size-12">
+                {photo.data && <AvatarImage src={photo.data} alt="" />}
+                <AvatarFallback className="bg-secondary text-foreground">{hostName(ev.host).slice(0, 1)}</AvatarFallback>
+              </Avatar>
+              <span className="font-medium text-foreground">{hostName(ev.host)}</span>
+            </div>}
           </div>
 
           {canEditEvent(ev, uid, Boolean(isAdmin)) && (

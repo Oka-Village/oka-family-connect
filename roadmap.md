@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Make event list, calendar days and published details public through a published-only safe catalog; guest image access limited to published covers/host photos, with no anonymous profile/table grants and unchanged RSVP/location authorization.
+- [x] Verify guest list/detail/day browsing and sign-in prompt at desktop/390px; 93 focused tests pass, anonymous profile/location reads empty and RSVP rejected. Fabia's real RSVP, refresh and cancellation verified with a removed temporary event; build OK, no publishing. New Google/email signup not exercised.
+
 - [x] Add approved-unpublished events, owner republishing and admin member/all-status filtering; migration 0033 applied. 22 tests passed; Fabia's real admin member filter, unpublish, date edit, republish and refresh verified with a removed temporary event; 390px loaded filters/cards have no overflow. Non-staff owner permissions covered by focused tests, not a separate signed-in account. No publishing or real event changes.
 
 - [x] Separate public YouTube videos from private event joining details; additive migration and published-only preview RPC applied, legacy YouTube backfill included, and shared player placed below About on details and invitation pages. Private meeting permissions unchanged.
