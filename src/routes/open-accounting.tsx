@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
 const TABS = ["books", "expenses"] as const;
 type Tab = (typeof TABS)[number];
 
-const OG_IMAGE = `${PRODUCTION_ORIGIN}/og/open-accounting.png`;
+const OG_IMAGE = `${PRODUCTION_ORIGIN}/og/open-accounting-sage.jpg`;
 const OG_URL = `${PRODUCTION_ORIGIN}/open-accounting`;
 const OG_DESCRIPTION = "See how Oka grows, creates value, and shares its prosperity.";
 
@@ -35,6 +35,9 @@ export const Route = createFileRoute("/open-accounting")({
       { property: "og:type", content: "website" },
       { property: "og:url", content: OG_URL },
       { property: "og:image", content: OG_IMAGE },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      { property: "og:image:type", content: "image/jpeg" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Open Accounting — Oka" },
       { name: "twitter:description", content: OG_DESCRIPTION },

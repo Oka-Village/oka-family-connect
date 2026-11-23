@@ -17,7 +17,7 @@ export function isPublicEntryRoute(pathname: string): boolean {
   const path = pathname.replace(/\/+$/, "") || "/";
   return (
     ["/", "/membership", "/founding", "/privacy", "/terms", "/facilitators", "/onboarding-chat", "/open-accounting"].includes(path) ||
-    /^\/(invite|join)\/[^/]+$/.test(path)
+    /^\/(invite|join|gift)\/[^/]+$/.test(path)
   );
 }
 
@@ -43,6 +43,8 @@ const ALWAYS_ALLOWED_ROUTES = new Set(["/membership", "/privacy", "/terms", "/fo
 export function paymentRedirect(pathname: string, fullAccess: boolean, paid: boolean, trial: TrialState): "/membership" | "/home" | null {
   const path = pathname.replace(/\/+$/, "") || "/";
   if (fullAccess) return path === "/membership" ? "/home" : null;
+  // Gift links stay open after sign-in so the recipient can claim their months.
+  if (/^\/gift\/[^/]+$/.test(path)) return null;
   if (paid || trial === "active") return null;
   if (ALWAYS_ALLOWED_ROUTES.has(path) || isEventProposalRoute(path)) return null;
   // Own skill/home pages and edits: the member-access gate verifies ownership before rendering.

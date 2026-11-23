@@ -27,6 +27,10 @@ export const Route = createFileRoute("/join/$slug")({
       ? [share.host ? `Hosted by ${share.host}` : null, share.when, "A gathering on Oka"].filter(Boolean).join(" · ")
       : "You've been invited to an Oka gathering. Sign in to save your spot.";
     const url = `https://www.oneworldfamily.app/join/${params.slug}`;
+    // Stable, token-free image URL so chat apps never fall back to the site icon.
+    const image = share?.image
+      ? `https://www.oneworldfamily.app/og/event/${encodeURIComponent(params.slug)}`
+      : "https://www.oneworldfamily.app/og/default-gathering.jpg";
     return {
       meta: [
         { title },
@@ -35,10 +39,13 @@ export const Route = createFileRoute("/join/$slug")({
         { property: "og:description", content: desc },
         { property: "og:type", content: "article" },
         { property: "og:url", content: url },
-        { name: "twitter:card", content: share?.image ? "summary_large_image" : "summary" },
+        { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: desc },
-        ...(share?.image ? [{ property: "og:image", content: share.image }, { name: "twitter:image", content: share.image }] : []),
+        { property: "og:image", content: image },
+        { property: "og:image:alt", content: title },
+        ...(share?.image ? [] : [{ property: "og:image:width", content: "1200" }, { property: "og:image:height", content: "630" }]),
+        { name: "twitter:image", content: image },
       ],
     };
   },

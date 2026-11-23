@@ -5,6 +5,10 @@ export function createdEventStatusLabel(status: string): string {
       return "Awaiting review";
     case "published":
       return "Approved";
+    case "unpublished":
+      return "Unpublished";
+    case "draft":
+      return "Draft";
     case "rejected":
       return "Not approved";
     case "cancelled":

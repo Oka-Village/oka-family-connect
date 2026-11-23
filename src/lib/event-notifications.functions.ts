@@ -6,6 +6,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
 import { canEditEvent, eventDetailsUpdate } from "@/lib/event-edit";
 import { EVENT_FORMATS, EVENT_TYPES } from "@/lib/events";
+import { canChangeEventStatus } from "@/lib/event-publication";
 
 async function callerIsStaff(supabase: SupabaseClient<Database>, userId: string) {
   const [admin, moderator] = await Promise.all([
@@ -29,12 +30,29 @@ export const notifyEventStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({
     eventId: z.string().uuid(),
-    status: z.enum(["published", "rejected", "cancelled"]),
+    status: z.enum(["published", "unpublished", "rejected", "cancelled"]),
   }).parse(input))
   .handler(async ({ data, context }) => {
-    if (!(await callerIsStaff(context.supabase, context.userId))) throw new Error("Staff access required");
-    const { data: updated, error } = await context.supabase.from("events").update({ status: data.status }).eq("id", data.eventId).select("id").maybeSingle();
+    const { data: current, error: readError } = await context.supabase.from("events")
+      .select("status,host_id,created_by,unpublished_schedule").eq("id", data.eventId).maybeSingle();
+    if (readError || !current) throw new Error(readError?.message ?? "This event isn't available.");
+    const staff = await callerIsStaff(context.supabase, context.userId);
+    if (!canChangeEventStatus(current, context.userId, staff, data.status)) throw new Error("You can't make this publication change.");
+    const { data: updated, error } = await context.supabase.from("events").update({ status: data.status }).eq("id", data.eventId).eq("status", current.status).select("id,title,event_type,status,starts_at,ends_at,timezone,host_id,created_by,join_slug,description,format").maybeSingle();
     if (error || !updated) throw new Error(error?.message ?? "Couldn't update this event.");
+    if (data.status === "unpublished") return { ok: true, skipped: true };
+    if (current.status === "unpublished" && data.status === "published") {
+      const previous = current.unpublished_schedule;
+      if (previous && typeof previous === "object" && !Array.isArray(previous)
+        && typeof previous["starts_at"] === "string" && typeof previous["timezone"] === "string") {
+        const { dispatchScheduleChange } = await import("@/server/event-mail.server");
+        await dispatchScheduleChange({
+          event: { ...updated, timezone: updated.timezone ?? "UTC" },
+          previous: { starts_at: previous["starts_at"], ends_at: typeof previous["ends_at"] === "string" ? previous["ends_at"] : null, timezone: previous["timezone"] },
+        });
+      }
+      return { ok: true, skipped: true };
+    }
     const { dispatchEventStatus } = await import("@/server/event-mail.server");
     return dispatchEventStatus({ eventId: data.eventId, status: data.status });
   });

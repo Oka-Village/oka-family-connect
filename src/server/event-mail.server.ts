@@ -474,6 +474,10 @@ export async function retryDelivery(id: string) {
     .eq("id", id).maybeSingle();
   const row = data as DeliveryRow | null;
   if (!row || !row.payload?.text) return { ok: false as const, skipped: true as const };
+  if (["reminder_7d", "reminder_24h"].includes(row.template_key)) {
+    const event = await loadEvent(row.event_id);
+    if (!event || event.status !== "published") return { ok: true as const, skipped: true as const };
+  }
   const notice: EventNotice = {
     subject: row.payload.subject,
     paragraphs: row.payload.text.split("\n\n").filter((line) => !line.startsWith("http") && line !== KUMOJI && line !== KUMOJI_JOY),
