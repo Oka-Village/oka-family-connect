@@ -1,6 +1,6 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Activity, CalendarDays, Palette, Gift, Home, Plus, Search, ShieldCheck, Sparkles, Star, Trash2, Users } from "lucide-react";
+import { Activity, CalendarDays, Mail, Palette, Gift, Home, Plus, Search, ShieldCheck, Sparkles, Star, Trash2, Users } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -14,7 +14,12 @@ import { useCurrentUserId, useRoles } from "@/hooks/use-is-admin";
 import { supabase } from "@/integrations/supabase/client";
 import { getAdminMemberStatuses, searchAdminMembers } from "@/lib/admin-members.functions";
 import { deleteEvent } from "@/lib/event-admin";
-import { notifyEventStatus } from "@/lib/event-notifications.functions";
+import {
+  countExceptionReminders,
+  notifyEventStatus,
+  sendExceptionReminders,
+  testSendExceptionReminder,
+} from "@/lib/event-notifications.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { groupEventSeries, type GroupedEvent } from "@/lib/event-series";
 import { EVENT_SELECT, TYPE_LABELS, formatEventDate, formatEventTime, hostName, type EventRow } from "@/lib/events";
@@ -123,12 +128,25 @@ async function loadAllAdminEvents() {
   }
 }
 
+function ReminderStat({ label, value, hint, small }: { label: string; value: string; hint: string; small?: boolean }) {
+  return (
+    <div className="rounded-xl border border-border bg-cream-deep p-4">
+      <p className="text-xs uppercase tracking-widest text-muted-foreground">{label}</p>
+      <p className={cn("mt-1 leading-tight text-foreground", small ? "break-words font-sans text-sm" : "font-number text-xl")}>{value}</p>
+      <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
+    </div>
+  );
+}
+
 function EventsSection() {
   const qc = useQueryClient();
   const [member, setMember] = useState("all");
   const [state, setState] = useState("all");
   const [memberSearch, setMemberSearch] = useState("");
   const changeStatus = useServerFn(notifyEventStatus);
+  const countException = useServerFn(countExceptionReminders);
+  const sendException = useServerFn(sendExceptionReminders);
+  const testException = useServerFn(testSendExceptionReminder);
   const events = useQuery({ queryKey: ["admin", "all-events"], queryFn: loadAllAdminEvents });
   const members = useQuery({
     queryKey: ["admin", "event-members"],
@@ -142,6 +160,10 @@ function EventsSection() {
       }
     },
   });
+  const exceptionAudience = useQuery({
+    queryKey: ["admin", "exception-reminder-audience"],
+    queryFn: () => countException(),
+  });
   const act = useMutation({
     mutationFn: async ({ ids, status }: { ids: string[]; status: "published" | "unpublished" | "rejected" | "cancelled" }) => {
       for (const id of ids) await changeStatus({ data: { eventId: id, status } });
@@ -154,16 +176,71 @@ function EventsSection() {
     onSuccess: () => { toast.success("Event deleted"); void qc.invalidateQueries(); },
     onError: (e: Error) => { toast.error(e.message); void qc.invalidateQueries(); },
   });
-  const filtered = (events.data ?? []).filter((e) => eventBelongsToMember(e, member === "all" ? "" : member) && (state === "all" || e.status === state));
+  const massBlast = useMutation({
+    mutationFn: () => sendException({ data: { confirm: true } }),
+    onSuccess: (result) => {
+      toast.success(`Sent ${result.sent} of ${result.recipients} reminders`);
+      void qc.invalidateQueries({ queryKey: ["admin", "exception-reminder-audience"] });
+    },
+    onError: (e: Error) => { toast.error(e.message); },
+  });
+  const testBlast = useMutation({
+    mutationFn: () => testException(),
+    onSuccess: (result) => {
+      toast.success(result.skipped ? "Test reminder was already in your inbox — check for an earlier copy." : "Test reminder sent to your own inbox.");
+    },
+    onError: (e: Error) => { toast.error(e.message); },
+  });
   const busy = act.isPending || del.isPending;
+  const filtered = (events.data ?? []).filter((e) => eventBelongsToMember(e, member === "all" ? "" : member) && (state === "all" || e.status === state));
   function update(item: GroupedEvent<EventRow>, status: "published" | "unpublished" | "rejected" | "cancelled") {
     const action = status === "published" ? "Publish" : status === "unpublished" ? "Unpublish" : status === "rejected" ? "Reject" : "Cancel";
     const extra = status === "unpublished" ? " Approval and RSVPs stay saved; the host can edit and publish again." : "";
     if (confirm(`${action} ${item.count > 1 ? `all ${item.count} dates of ` : ""}"${item.event.title}"?${extra}`)) act.mutate({ ids: item.ids, status });
   }
+  function confirmMassSend() {
+    const recipients = exceptionAudience.data?.recipients ?? 0;
+    if (!confirm(`Send Liran's one-time RSVP reminder to ${recipients} going member${recipients === 1 ? "" : "s"} across ${exceptionAudience.data?.events ?? 0} upcoming event${(exceptionAudience.data?.events ?? 0) === 1 ? "" : "s"}? Already-sent people are skipped.`)) return;
+    massBlast.mutate();
+  }
   return (
     <section className="mt-10">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      <div className="rounded-2xl border border-border bg-card p-5 shadow-soft">
+        <p className="section-label flex items-center gap-2"><Mail className="size-4 text-primary" strokeWidth={1.5} /> Email campaign · One-time RSVP reminder</p>
+        <h3 className="mt-3 font-serif text-2xl text-foreground">Send RSVP reminder emails to event attendees</h3>
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          Sends Liran's personalized reminder to every member who RSVP'd "Going" for an upcoming gathering. Each email
+          carries the event title, the host's name, a direct link, and the start time in three major timezones.
+        </p>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <ReminderStat
+            label="Audience"
+            value={exceptionAudience.isPending ? "Counting…" : exceptionAudience.isError ? "Unavailable" : `${exceptionAudience.data.recipients}`}
+            hint="going RSVPs in the send list"
+          />
+          <ReminderStat
+            label="Coverage"
+            value={exceptionAudience.isPending ? "Counting…" : exceptionAudience.isError ? "Unavailable" : `${exceptionAudience.data.events}`}
+            hint="upcoming events covered"
+          />
+          <ReminderStat label="Safety" value="No duplicates" hint="members already sent are skipped" />
+          <ReminderStat
+            label="From"
+            value={exceptionAudience.data?.from ? exceptionAudience.data.from.replace(/^.*<|>$/g, "") : "Not configured"}
+            hint="sender address on every email"
+            small
+          />
+        </div>
+        <div className="mt-5 flex flex-wrap gap-2">
+          <Button variant="outline" className="rounded-full" disabled={testBlast.isPending} onClick={() => testBlast.mutate()}>
+            {testBlast.isPending ? "Sending test…" : "Send test email to me"}
+          </Button>
+          <Button className="rounded-full" disabled={massBlast.isPending || !(exceptionAudience.data?.recipients)} onClick={confirmMassSend}>
+            {massBlast.isPending ? "Sending…" : "Send emails to all RSVP attendees"}
+          </Button>
+        </div>
+      </div>
+      <div className="mt-10 flex flex-wrap items-end justify-between gap-4">
         <div className="grid w-full gap-3 sm:w-auto sm:grid-cols-2">
           <div className="min-w-0 sm:w-64">
             <label className="mb-2 block text-sm text-muted-foreground">Member</label>

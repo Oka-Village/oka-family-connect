@@ -1,0 +1,14 @@
+// Vitest runs plain unit tests: no TanStack Start plugin, so server functions
+// stay the runtime objects the tests mock. The app build still uses vite.config.ts.
+import { fileURLToPath } from "node:url";
+import { defineConfig } from "vitest/config";
+
+export default defineConfig({
+  resolve: {
+    alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
+  },
+  test: {
+    environment: "node",
+    include: ["src/**/*.test.{ts,tsx}"],
+  },
+});

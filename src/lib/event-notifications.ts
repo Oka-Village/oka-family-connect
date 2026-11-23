@@ -3,6 +3,8 @@ import { formatEventTimeDual } from "./event-time";
 export const KUMOJI = "╰(´︶`)╯♡";
 export const KUMOJI_JOY = "(๑˃̵ᴗ˂̵)";
 export const TEMPLATE_VERSION = 2;
+export const EXCEPTION_SCHEDULE_KEY = "exception:once";
+export const REMINDER_EXCEPTION_TEMPLATE = "reminder_exception";
 
 export const EVENT_CATEGORY_LABELS = {
   gathering: "Gathering",
@@ -182,6 +184,109 @@ export function cancelledNotice(input: { title: string; category: string; forCre
       `Activity: ${input.category}.`,
     ],
     links: [],
+    kumoji: true,
+    mood: "warm",
+  };
+}
+
+export function firstNameFromDisplayName(displayName: string | null | undefined) {
+  const token = displayName?.trim().split(/\s+/)[0];
+  return token || "there";
+}
+
+/** Whole days remaining until start (ceil); never negative while the event is still upcoming. */
+export function daysUntilEvent(startsAt: string, now: Date = new Date()) {
+  const start = new Date(startsAt).getTime();
+  const current = now.getTime();
+  if (!Number.isFinite(start) || !Number.isFinite(current)) return 0;
+  if (start <= current) return 0;
+  return Math.max(0, Math.ceil((start - current) / DAY));
+}
+
+export function exceptionWeekdayDate(startsAt: string, hostTimezone: string | null | undefined) {
+  const zone = hostTimezone || "UTC";
+  try {
+    return new Intl.DateTimeFormat("en-US", {
+      timeZone: zone,
+      weekday: "long",
+      month: "short",
+      day: "numeric",
+    }).format(new Date(startsAt));
+  } catch {
+    return new Intl.DateTimeFormat("en-US", {
+      timeZone: "UTC",
+      weekday: "long",
+      month: "short",
+      day: "numeric",
+    }).format(new Date(startsAt));
+  }
+}
+
+function zoneDateKey(iso: string, zone: string) {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: zone, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(iso));
+}
+
+function zoneTimeShort(iso: string, zone: string) {
+  try {
+    return new Intl.DateTimeFormat("en-US", {
+      timeZone: zone,
+      hour: "numeric",
+      minute: "2-digit",
+      timeZoneName: "short",
+    }).format(new Date(iso));
+  } catch {
+    return new Intl.DateTimeFormat("en-US", {
+      timeZone: "UTC",
+      hour: "numeric",
+      minute: "2-digit",
+      timeZoneName: "short",
+    }).format(new Date(iso));
+  }
+}
+
+function zoneLine(iso: string, zone: string, hostZone: string) {
+  const time = zoneTimeShort(iso, zone);
+  const hostKey = zoneDateKey(iso, hostZone);
+  const zoneKey = zoneDateKey(iso, zone);
+  return zoneKey > hostKey ? `${time} (+1 day)` : time;
+}
+
+/** Host + fixed North America / Europe / Asia lines for the one-time exception reminder. */
+export function exceptionTimezoneLines(startsAt: string, hostTimezone: string | null | undefined) {
+  let hostZone = "UTC";
+  try {
+    hostZone = new Intl.DateTimeFormat("en-US", { timeZone: hostTimezone || "UTC" }).resolvedOptions().timeZone;
+  } catch {
+    hostZone = "UTC";
+  }
+  return [
+    `• Host time: ${zoneTimeShort(startsAt, hostZone)}`,
+    `• North America: ${zoneLine(startsAt, "America/New_York", hostZone)} / ${zoneLine(startsAt, "America/Los_Angeles", hostZone)}`,
+    `• Europe: ${zoneLine(startsAt, "Europe/Paris", hostZone)} / ${zoneLine(startsAt, "Europe/London", hostZone)}`,
+    `• Asia: ${zoneLine(startsAt, "Asia/Kolkata", hostZone)} / ${zoneLine(startsAt, "Asia/Dhaka", hostZone)}`,
+  ];
+}
+
+export function exceptionReminderNotice(input: {
+  firstName: string;
+  title: string;
+  eventUrl: string;
+  daysLeft: number;
+  weekdayDate: string;
+  timezoneLines: string[];
+}): EventNotice {
+  const daysPhrase = input.daysLeft === 1 ? "1 day" : `${input.daysLeft} days`;
+  return {
+    subject: `Reminder: ${input.title} is coming up in ${daysPhrase}`,
+    paragraphs: [
+      `Hi ${input.firstName},`,
+      `You've RSVP'd to the event: ${input.title}`,
+      `I'd like to remind you that it's coming up in ${daysPhrase}.\nAt ${input.weekdayDate}`,
+      `Time Zones:\n${input.timezoneLines.join("\n")}`,
+      "Click again on the link and log into your profile to share it with others you may like to join. If you have any questions please write to Cynara at Cynara@okavillage.com.\nLet us know if you have any questions.",
+      "Liran — One World Family",
+    ],
+    links: [{ label: "Open the event", href: input.eventUrl }],
     kumoji: true,
     mood: "warm",
   };

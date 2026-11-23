@@ -162,6 +162,45 @@ export const testSendEventDelivery = createServerFn({ method: "POST" })
     return sendDeliveryPreviewTo({ deliveryId: data.deliveryId, to: email, recipientKey: context.userId });
   });
 
+export const countExceptionReminders = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    if (!(await callerIsStaff(context.supabase, context.userId))) return { events: 0, recipients: 0, from: null as string | null };
+    const { countExceptionReminderAudience } = await import("@/server/event-mail.server");
+    const { senderAddress } = await import("@/server/email.server");
+    const audience = await countExceptionReminderAudience();
+    return { ...audience, from: senderAddress() };
+  });
+
+export const testSendExceptionReminder = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    if (!(await callerIsStaff(context.supabase, context.userId))) throw new Error("Staff access required");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: user, error } = await supabaseAdmin.auth.admin.getUserById(context.userId);
+    const email = user.user?.email;
+    if (error || !email) throw new Error("Your account has no email address for a test send.");
+    const { data: profile } = await context.supabase.from("profiles").select("display_name").eq("id", context.userId).maybeSingle();
+    const { sendExceptionReminderTestTo } = await import("@/server/event-mail.server");
+    const result = await sendExceptionReminderTestTo({
+      to: email,
+      recipientKey: context.userId,
+      displayName: profile?.display_name ?? null,
+    });
+    if (!result.ok && "error" in result && result.error) throw new Error(result.error);
+    if (!result.ok) throw new Error("Couldn't send the test reminder.");
+    return { ok: true as const, skipped: result.skipped };
+  });
+
+export const sendExceptionReminders = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ confirm: z.literal(true) }).parse(input))
+  .handler(async ({ context }) => {
+    if (!(await callerIsStaff(context.supabase, context.userId))) throw new Error("Staff access required");
+    const { dispatchExceptionReminders } = await import("@/server/event-mail.server");
+    return dispatchExceptionReminders();
+  });
+
 export type DeliveryList = {
   id: string;
   template_key: string;
