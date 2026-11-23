@@ -156,9 +156,6 @@ function JoinPage() {
               <p className="section-label mt-10">About</p>
               <p className="mt-3 whitespace-pre-line leading-relaxed text-foreground">{preview.data.description || "More details soon."}</p>
               <EventVideo url={preview.data.video_url} />
-              <div className="mt-10">
-                <RsvpCta busy={busy} liveLink={preview.data.live_link} isLive={preview.data.is_live} onSignIn={() => void signIn()} />
-              </div>
             </div>
           ) : (
             <>
