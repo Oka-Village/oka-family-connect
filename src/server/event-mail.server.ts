@@ -5,14 +5,21 @@ import { PRODUCTION_ORIGIN } from "@/lib/affiliate-share";
 import { calendarInviteIcs, type CalendarEvent } from "@/lib/calendar";
 import { scheduleChanged } from "@/lib/event-edit";
 import {
+  EXCEPTION_SCHEDULE_KEY,
   KUMOJI,
   KUMOJI_JOY,
+  REMINDER_EXCEPTION_TEMPLATE,
   TEMPLATE_VERSION,
   approvedNotice,
   cancelledNotice,
   categoryLabel,
   dayReminderNotice,
+  daysUntilEvent,
   dueReminder,
+  exceptionReminderNotice,
+  exceptionTimezoneLines,
+  exceptionWeekdayDate,
+  firstNameFromDisplayName,
   formatEventWhen,
   hostRsvpNotice,
   missedConfirmation,
@@ -533,5 +540,104 @@ export async function sendDeliveryPreviewTo(input: { deliveryId: string; to: str
     notice,
     attachment: row.payload.attachment,
   });
+}
+
+async function loadExceptionAudienceEvents(now = new Date()) {
+  const { data, error } = await db().from("events")
+    .select("id,title,event_type,status,starts_at,ends_at,timezone,host_id,created_by,join_slug,description,format")
+    .eq("status", "published")
+    .neq("event_type", "pod_session")
+    .gt("starts_at", now.toISOString())
+    .order("starts_at", { ascending: true })
+    .limit(200);
+  if (missing(error)) return [] as EventRecord[];
+  if (error) return [] as EventRecord[];
+  return (data ?? []) as EventRecord[];
+}
+
+function buildExceptionNotice(event: EventRecord, firstName: string, now = new Date()) {
+  return exceptionReminderNotice({
+    firstName,
+    title: event.title,
+    eventUrl: eventUrl(event.id),
+    daysLeft: daysUntilEvent(event.starts_at, now),
+    weekdayDate: exceptionWeekdayDate(event.starts_at, event.timezone),
+    timezoneLines: exceptionTimezoneLines(event.starts_at, event.timezone),
+  });
+}
+
+export async function countExceptionReminderAudience(now = new Date()) {
+  const events = await loadExceptionAudienceEvents(now);
+  let recipients = 0;
+  for (const event of events) {
+    const { count } = await db().from("event_rsvps").select("id", { count: "exact", head: true })
+      .eq("event_id", event.id).eq("status", "going");
+    recipients += count ?? 0;
+  }
+  return { events: events.length, recipients };
+}
+
+export async function sendExceptionReminderTestTo(input: { to: string; recipientKey: string; displayName?: string | null }, now = new Date()) {
+  const events = await loadExceptionAudienceEvents(now);
+  const sample = events[0];
+  if (!sample) {
+    return { ok: false as const, skipped: true as const, error: "No upcoming published events to preview." };
+  }
+  const firstName = firstNameFromDisplayName(input.displayName ?? "there");
+  const notice = buildExceptionNotice(sample, firstName, now);
+  const testNotice: EventNotice = { ...notice, subject: `[Test] ${notice.subject}` };
+  return deliver({
+    templateKey: `${REMINDER_EXCEPTION_TEMPLATE}:test`,
+    channel: "email",
+    recipientUserId: null,
+    recipientAddress: input.to,
+    recipientKey: input.recipientKey,
+    eventId: sample.id,
+    scheduleKey: `test:${new Date().toISOString()}`,
+    timezone: sample.timezone,
+    scheduledFor: null,
+    notice: testNotice,
+  });
+}
+
+export async function dispatchExceptionReminders(now = new Date()) {
+  const events = await loadExceptionAudienceEvents(now);
+  let sent = 0;
+  let skipped = 0;
+  let failed = 0;
+  let recipients = 0;
+  for (const event of events) {
+    const { data: rsvps } = await db().from("event_rsvps").select("user_id").eq("event_id", event.id).eq("status", "going");
+    for (const rsvp of (rsvps ?? []) as { user_id: string }[]) {
+      recipients += 1;
+      if (!(await emailPreferenceOn(rsvp.user_id, "event_reminder"))) {
+        skipped += 1;
+        continue;
+      }
+      const address = await memberEmail(rsvp.user_id);
+      if (!address) {
+        skipped += 1;
+        continue;
+      }
+      const name = await displayName(rsvp.user_id);
+      const notice = buildExceptionNotice(event, firstNameFromDisplayName(name === "A family member" ? null : name), now);
+      const result = await deliver({
+        templateKey: REMINDER_EXCEPTION_TEMPLATE,
+        channel: "email",
+        recipientUserId: rsvp.user_id,
+        recipientAddress: address,
+        recipientKey: rsvp.user_id,
+        eventId: event.id,
+        scheduleKey: EXCEPTION_SCHEDULE_KEY,
+        timezone: event.timezone,
+        scheduledFor: now.toISOString(),
+        notice,
+      });
+      if (result.ok && !result.skipped) sent += 1;
+      else if (result.ok && result.skipped) skipped += 1;
+      else failed += 1;
+    }
+  }
+  return { ok: true as const, events: events.length, recipients, sent, skipped, failed };
 }
 
