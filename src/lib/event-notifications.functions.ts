@@ -165,9 +165,11 @@ export const testSendEventDelivery = createServerFn({ method: "POST" })
 export const countExceptionReminders = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    if (!(await callerIsStaff(context.supabase, context.userId))) return { events: 0, recipients: 0 };
+    if (!(await callerIsStaff(context.supabase, context.userId))) return { events: 0, recipients: 0, from: null as string | null };
     const { countExceptionReminderAudience } = await import("@/server/event-mail.server");
-    return countExceptionReminderAudience();
+    const { senderAddress } = await import("@/server/email.server");
+    const audience = await countExceptionReminderAudience();
+    return { ...audience, from: senderAddress() };
   });
 
 export const testSendExceptionReminder = createServerFn({ method: "POST" })

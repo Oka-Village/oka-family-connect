@@ -33,6 +33,10 @@ export function resendConfigured() {
   return Boolean(process.env["RESEND_API_KEY"] && process.env["RESEND_FROM_EMAIL"]);
 }
 
+export function senderAddress() {
+  return process.env["RESEND_FROM_EMAIL"] ?? null;
+}
+
 export async function sendResendEmail(input: { to: string; notice: EventNotice; attachment?: MailAttachment | null | undefined }) {
   const apiKey = process.env["RESEND_API_KEY"];
   const from = process.env["RESEND_FROM_EMAIL"];
