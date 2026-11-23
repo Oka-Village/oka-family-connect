@@ -19,6 +19,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { MembershipBoundary } from "@/components/oka/membership-boundary";
+import { META_PIXEL_BASE_SCRIPT, META_PIXEL_ID, trackPageView } from "@/lib/meta-pixel";
 
 function NotFoundComponent() {
   return (
@@ -128,6 +129,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { rel: "icon", href: "/favicon.png", type: "image/png" },
     ],
+    scripts: [
+      { children: META_PIXEL_BASE_SCRIPT },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
@@ -140,6 +144,15 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="en" className="overflow-x-clip">
       <head>
         <HeadContent />
+        <noscript>
+          <img
+            height="1"
+            width="1"
+            style={{ display: "none" }}
+            src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
+            alt=""
+          />
+        </noscript>
       </head>
       <body className="overflow-x-clip">
         {children}
@@ -164,6 +177,20 @@ function RootComponent() {
     window.addEventListener("vite:preloadError", onPreloadError);
     return () => window.removeEventListener("vite:preloadError", onPreloadError);
   }, []);
+
+  // Base pixel fires the first PageView. Later client navigations use router lifecycle
+  // (more reliable than a pathname useEffect, which can miss or remount-skip).
+  useEffect(() => {
+    let skipFirstResolved = true;
+    return router.subscribe("onResolved", ({ pathChanged, hrefChanged }) => {
+      if (skipFirstResolved) {
+        skipFirstResolved = false;
+        return;
+      }
+      if (!pathChanged && !hrefChanged) return;
+      trackPageView();
+    });
+  }, [router]);
 
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((event) => {

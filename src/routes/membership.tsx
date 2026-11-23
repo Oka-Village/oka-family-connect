@@ -22,6 +22,7 @@ import { saveReturnTo } from "@/lib/join-link";
 import { beginSignupFlow } from "@/lib/signup-flow.functions";
 import { clearIntent, readIntent, resolveIntent, saveIntent } from "@/lib/membership-intent";
 import { chosenPlanToStart, planClickAction, termsPromptText } from "@/lib/membership-flow";
+import { trackInitiateCheckout, trackPurchase } from "@/lib/meta-pixel";
 
 export const Route = createFileRoute("/membership")({
   validateSearch: (s: Record<string, unknown>) => ({
@@ -73,7 +74,11 @@ function MembershipPage() {
     setBusy("confirm"); setError(null);
     void confirm({ data: { sessionId: session_id, kind } }).then(async (result) => {
       if (!active) return;
-      if (result.paid) { clearIntent(); await finish(); } else setPending(true);
+      if (result.paid) {
+        trackPurchase(kind, session_id);
+        clearIntent();
+        await finish();
+      } else setPending(true);
     }).catch((e: Error) => { if (active) setError(e.message); }).finally(() => { if (active) setBusy(null); });
     return () => { active = false; };
   }, [profile.data?.id, session_id, kind, confirm]);
@@ -117,6 +122,7 @@ function MembershipPage() {
         return;
       }
       clearIntent();
+      trackInitiateCheckout(choice);
       const result = await (choice === "founding" ? founding : monthly)({ data: { acceptedTerms: true, origin: window.location.origin } });
       if (result.status === "already") await finish(); else window.location.assign(result.url);
     } catch (e) { setError(e instanceof Error ? e.message : "Checkout could not be opened. Please try again."); }
