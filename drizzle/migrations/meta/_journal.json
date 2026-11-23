@@ -239,6 +239,13 @@
       "when": 1795329600337,
       "tag": "0033_approved_event_unpublishing",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1795408097873,
+      "tag": "0034_open_accounting_events_completed_by_time",
+      "breakpoints": true
     }
   ]
 }
