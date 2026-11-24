@@ -4,6 +4,10 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { fallback, zodValidator } from "@tanstack/zod-adapter";
 import { BedDouble, Home, Loader2, MapPin, Plus } from "lucide-react";
 import { z } from "zod";
+import { EventPageShell } from "@/components/oka/event-page-shell";
+import { EventSignIn } from "@/components/oka/event-sign-in";
+import { useCurrentUserId } from "@/hooks/use-is-admin";
+import { filterPublicHouses, getPublicHouses } from "@/lib/public-listings.functions";
 
 import { EmptyState } from "@/components/oka/empty-state";
 import { HouseCard } from "@/components/oka/house-card";
@@ -15,7 +19,7 @@ import { cn } from "@/lib/utils";
 import { DealtHand } from "@/components/oka/dealt-hand";
 import type { SignedHouse } from "@/lib/houses";
 
-export const Route = createFileRoute("/_authenticated/houses/")({
+export const Route = createFileRoute("/houses/")({
   validateSearch: zodValidator(z.object({
     location: fallback(z.string(), "").default(""),
     type: fallback(z.string(), "").default(""),
@@ -30,7 +34,7 @@ export const Route = createFileRoute("/_authenticated/houses/")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: HousesPage,
+  component: () => <EventPageShell><HousesPage /></EventPageShell>,
 });
 
 const pill = (on: boolean) =>
@@ -46,9 +50,12 @@ function HousesPage() {
   }, [loc, search.location, navigate]);
 
   const filters = { location: search.location, type: search.type };
+  const uid = useCurrentUserId();
+  const guest = !uid.isLoading && !uid.data;
   const query = useInfiniteQuery({
-    queryKey: ["houses", filters],
-    queryFn: ({ pageParam }) => fetchHousesPage(filters, pageParam),
+    queryKey: ["houses", filters, guest ? "public" : "member"],
+    enabled: !uid.isLoading,
+    queryFn: async ({ pageParam }) => guest ? { houses: filterPublicHouses(await getPublicHouses(), filters) as SignedHouse[], next: null as HouseCursor } : fetchHousesPage(filters, pageParam),
     initialPageParam: null as HouseCursor,
     getNextPageParam: (last) => last.next,
   });
@@ -59,8 +66,8 @@ function HousesPage() {
 
   return (
     <div className="mx-auto max-w-[1180px] px-6 py-6 lg:px-10 lg:py-8">
-      {houses.length > 0 && <DealtHand items={houses} itemKey={(h) => h.id} label="Houses · dealt for you" title={<>Three homes<br />waiting for you</>} description="Open doors in places the family calls home. One night is one credit." secondaryAction={<Button asChild variant="secondary" className="rounded-full px-6"><Link to="/houses/new"><Plus strokeWidth={1.5} />List my home</Link></Button>} renderCard={fanCard} />}
-      <div className="flex flex-wrap items-center justify-between gap-3"><p className="section-label">All homes · {houses.length}</p><div className="flex items-center gap-3"><CreditPill /><Button asChild variant="outline" className="rounded-full"><Link to="/stays"><BedDouble strokeWidth={1.5} />Stays</Link></Button></div></div>
+      {houses.length > 0 && <DealtHand items={houses} itemKey={(h) => h.id} label="Houses · dealt for you" title={<>Three homes<br />waiting for you</>} description="Open doors in places the family calls home. One night is one credit." secondaryAction={guest ? undefined : <Button asChild variant="secondary" className="rounded-full px-6"><Link to="/houses/new"><Plus strokeWidth={1.5} />List my home</Link></Button>} renderCard={fanCard} />}
+      <div className="flex flex-wrap items-center justify-between gap-3"><p className="section-label">All homes · {houses.length}</p>{guest ? <EventSignIn /> : <div className="flex items-center gap-3"><CreditPill /><Button asChild variant="outline" className="rounded-full"><Link to="/stays"><BedDouble strokeWidth={1.5} />Stays</Link></Button></div>}</div>
 
       <div className="mt-10 flex flex-wrap items-center gap-3">
         <label className="relative min-w-64 flex-1">
@@ -72,7 +79,7 @@ function HousesPage() {
         ))}
       </div>
 
-      {query.isLoading ? (
+      {query.isLoading || uid.isLoading ? (
         <div className="flex justify-center py-24"><Loader2 className="size-6 animate-spin text-primary" strokeWidth={1.5} /></div>
       ) : houses.length === 0 ? (
         <EmptyState

@@ -11,11 +11,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useCurrentUserId, useRoles } from "@/hooks/use-is-admin";
+import { EventPageShell } from "@/components/oka/event-page-shell";
+import { EventSignIn } from "@/components/oka/event-sign-in";
+import { getPublicSkills } from "@/lib/public-listings.functions";
 import { canEditListing } from "@/lib/direct-edit";
 import { supabase } from "@/integrations/supabase/client";
 import { SKILL_FORMAT_LABELS, SKILL_SELECT, formatDuration, sessionErrorMessage, signPaths, useCredits, type SkillRow } from "@/lib/skills";
 
-export const Route = createFileRoute("/_authenticated/skills/$skillId")({
+export const Route = createFileRoute("/skills/$skillId")({
   head: () => ({
     meta: [
       { title: "Skill — Oka" },
@@ -26,17 +29,21 @@ export const Route = createFileRoute("/_authenticated/skills/$skillId")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: SkillDetail,
+  component: () => <EventPageShell><SkillDetail /></EventPageShell>,
 });
 
 function SkillDetail() {
   const { skillId } = Route.useParams();
-  const { data: uid } = useCurrentUserId();
+  const uidQ = useCurrentUserId();
+  const uid = uidQ.data;
+  const guest = !uidQ.isLoading && !uid;
   const roles = useRoles();
   const qc = useQueryClient();
   const q = useQuery({
-    queryKey: ["skill", skillId],
+    queryKey: ["skill", skillId, guest ? "public" : "member"],
+    enabled: !uidQ.isLoading,
     queryFn: async () => {
+      if (guest) { const s = (await getPublicSkills()).find((x) => x.id === skillId); return s ? { skill: s as SkillRow, photo: s.photo, hostPhoto: s.hostPhoto } : null; }
       const { data, error } = await supabase.from("skills").select(SKILL_SELECT).eq("id", skillId).maybeSingle();
       if (error) throw error;
       const skill = data as unknown as SkillRow | null;
@@ -45,7 +52,7 @@ function SkillDetail() {
     },
   });
 
-  if (q.isLoading) return <div className="flex justify-center py-24"><Loader2 className="size-6 animate-spin text-primary" strokeWidth={1.5} /></div>;
+  if (q.isLoading || uidQ.isLoading) return <div className="flex justify-center py-24"><Loader2 className="size-6 animate-spin text-primary" strokeWidth={1.5} /></div>;
   if (!q.data) {
     return (
       <div className="mx-auto max-w-xl px-6 py-24 text-center">
@@ -87,7 +94,7 @@ function SkillDetail() {
             <span className="flex items-center gap-1 rounded-full border border-border px-3 py-1 text-xs text-muted-foreground"><FormatIcon className="size-3 text-primary" strokeWidth={1.5} />{SKILL_FORMAT_LABELS[skill.format]}</span>
             {skill.duration_minutes && <span className="flex items-center gap-1 rounded-full border border-border px-3 py-1 text-xs text-muted-foreground"><Clock className="size-3 text-primary" strokeWidth={1.5} />{formatDuration(skill.duration_minutes)}</span>}
           </div>
-          <div className="mt-5 flex items-start justify-between gap-4"><h1 className="text-4xl leading-tight text-foreground lg:text-5xl">{skill.title}</h1><FavoriteButton type="skill" itemRef={skill.id} /></div>
+          <div className="mt-5 flex items-start justify-between gap-4"><h1 className="text-4xl leading-tight text-foreground lg:text-5xl">{skill.title}</h1>{!guest && <FavoriteButton type="skill" itemRef={skill.id} />}</div>
           <p className="section-label mt-10">About this offering</p>
           <p className="mt-4 whitespace-pre-line leading-relaxed text-foreground">{skill.description || "The host hasn't written a description yet."}</p>
         </div>
@@ -95,15 +102,15 @@ function SkillDetail() {
         <aside className="space-y-6">
           <div className="rounded-2xl border border-border bg-card p-6 shadow-soft">
             <p className="section-label">Offered by</p>
-            <Link to="/members/$memberId" params={{ memberId: skill.owner_id }} className="mt-4 flex items-center gap-3 hover:text-primary">
+            {guest ? <div className="mt-4 flex items-center gap-3"><MemberAvatar src={hostPhoto} name={skill.owner?.display_name} className="size-12" /><span className="font-serif text-xl">{skill.owner?.display_name ?? "Oka member"}</span></div> : <Link to="/members/$memberId" params={{ memberId: skill.owner_id }} className="mt-4 flex items-center gap-3 hover:text-primary">
               <MemberAvatar src={hostPhoto} name={skill.owner?.display_name} className="size-12" />
               <span className="font-serif text-xl">{skill.owner?.display_name ?? "Oka member"}</span>
-            </Link>
+            </Link>}
           </div>
           {!mine && canEditListing(uid, skill.owner_id, roles.data?.isAdmin) && (
             <Button asChild variant="outline" className="w-full rounded-full"><Link to="/skills/edit/$skillId" params={{ skillId: skill.id }}><Pencil className="size-4 text-primary" strokeWidth={1.5} />Edit skill</Link></Button>
           )}
-          {mine ? (
+          {guest ? <div className="rounded-2xl border border-border bg-card p-6 shadow-soft"><p className="section-label">Request a session</p><p className="mt-3 text-sm text-muted-foreground">Join the family to send a request.</p><div className="mt-5"><EventSignIn className="w-full rounded-full" description="Sign in or create an account to request a session." /></div></div> : mine ? (
             <div className="rounded-2xl border border-border bg-card p-6 shadow-soft">
               <p className="section-label">Your offering</p>
               <div className="mt-4 flex flex-wrap gap-2">

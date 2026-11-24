@@ -1592,6 +1592,8 @@ export type Database = {
           video_url: string
         }[]
       }
+      public_houses_catalog: { Args: never; Returns: Json }
+      public_skills_catalog: { Args: never; Returns: Json }
       record_verified_membership: {
         Args: {
           _amount: number
