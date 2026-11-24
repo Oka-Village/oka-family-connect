@@ -10,7 +10,8 @@ export function useProfile() {
   return useQuery({
     queryKey: ["profile"],
     queryFn: async (): Promise<OkaProfile | null> => {
-      const { data: auth } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
+      const auth = { user: session?.user ?? null };
       if (!auth.user) return null;
 
       // No redirect result: call directly inside the async query, not another hook.
@@ -25,6 +26,7 @@ export function useProfile() {
       if (error) throw error;
       return (data as OkaProfile | null) ?? null;
     },
+    staleTime: 5 * 60_000,
   });
 }
 

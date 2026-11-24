@@ -27,7 +27,7 @@ function AppPendingScreen() {
 }
 
 export const getRouter = () => {
-  const queryClient = new QueryClient();
+  const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: 60_000, refetchOnWindowFocus: false } } });
 
   const router = createRouter({
     routeTree,
