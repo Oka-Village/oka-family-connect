@@ -1,11 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { BookOpen, Receipt } from "lucide-react";
+import { BookOpen, Receipt, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 
 import { AppShell } from "@/components/oka/app-shell";
 import { OpenAccountingBooks } from "@/components/oka/open-accounting-books";
+import { OpenAccountingEventPoints } from "@/components/oka/open-accounting-event-points";
 import { OpenAccountingExpenses } from "@/components/oka/open-accounting-expenses";
 import { Wordmark } from "@/components/oka/wordmark";
 import { Button } from "@/components/ui/button";
@@ -17,7 +18,7 @@ import { saveReturnTo } from "@/lib/join-link";
 import { beginSignupFlow } from "@/lib/signup-flow.functions";
 import { cn } from "@/lib/utils";
 
-const TABS = ["books", "expenses"] as const;
+const TABS = ["books", "event-points", "expenses"] as const;
 type Tab = (typeof TABS)[number];
 
 const OG_IMAGE = `${PRODUCTION_ORIGIN}/og/open-accounting-sage.jpg`;
@@ -130,9 +131,20 @@ function OpenAccountingMemberPage() {
   const isAdmin = Boolean(roles?.isAdmin);
   const tabs: { id: Tab; label: string; icon: typeof BookOpen }[] = [
     { id: "books", label: "Books", icon: BookOpen },
-    ...(isAdmin ? [{ id: "expenses" as const, label: "Expenses", icon: Receipt }] : []),
+    ...(isAdmin
+      ? [
+          { id: "event-points" as const, label: "Event points", icon: Sparkles },
+          { id: "expenses" as const, label: "Expenses", icon: Receipt },
+        ]
+      : []),
   ];
-  const active: Tab = tab === "expenses" && isAdmin ? "expenses" : "books";
+  const active: Tab =
+    tab === "expenses" && isAdmin
+      ? "expenses"
+      : tab === "event-points" && isAdmin
+        ? "event-points"
+        : "books";
+  const panelLabel = active === "books" ? "Books" : active === "event-points" ? "Event points" : "Expenses";
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-10 lg:py-16">
@@ -160,8 +172,9 @@ function OpenAccountingMemberPage() {
         ))}
       </div>
 
-      <div className="mt-10" role="tabpanel" aria-label={active === "books" ? "Books" : "Expenses"}>
+      <div className="mt-10" role="tabpanel" aria-label={panelLabel}>
         {active === "books" && <OpenAccountingBooks />}
+        {active === "event-points" && isAdmin && <OpenAccountingEventPoints />}
         {active === "expenses" && isAdmin && <OpenAccountingExpenses />}
       </div>
     </div>
