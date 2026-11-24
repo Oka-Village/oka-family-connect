@@ -116,6 +116,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { data: isAdmin } = useIsStaff();
   const membership = useMembership(profile?.id);
   const [supportOpen, setSupportOpen] = useState(false);
+  // Remember the member's device timezone so time-change emails can show "Your time".
+  useEffect(() => {
+    if (!profile?.id) return;
+    const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (!zone || (profile as { timezone?: string | null }).timezone === zone) return;
+    void supabase.from("profiles").update({ timezone: zone }).eq("id", profile.id);
+  }, [profile]);
   // Existing unpaid members get the same payment/trial offer as new ones, on each app entry.
   useEffect(() => {
     if (!profile || isAdmin !== false || membership.isPending || membership.isError) return;

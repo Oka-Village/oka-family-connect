@@ -1158,6 +1158,7 @@ export type Database = {
           show_on_referral_leaderboard: boolean
           skill_tags: string[]
           stripe_customer_id: string | null
+          timezone: string | null
           travel_desired: string[]
           travel_frequent: string[]
           trial_ends_at: string | null
@@ -1184,6 +1185,7 @@ export type Database = {
           show_on_referral_leaderboard?: boolean
           skill_tags?: string[]
           stripe_customer_id?: string | null
+          timezone?: string | null
           travel_desired?: string[]
           travel_frequent?: string[]
           trial_ends_at?: string | null
@@ -1210,6 +1212,7 @@ export type Database = {
           show_on_referral_leaderboard?: boolean
           skill_tags?: string[]
           stripe_customer_id?: string | null
+          timezone?: string | null
           travel_desired?: string[]
           travel_frequent?: string[]
           trial_ends_at?: string | null

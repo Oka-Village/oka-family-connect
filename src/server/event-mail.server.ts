@@ -27,6 +27,7 @@ import {
   rejectedNotice,
   reminderScheduleKey,
   rescheduleNotice,
+  formatEventWhenFor,
   rescheduleScheduleKey,
   rsvpConfirmationNotice,
   submittedNotice,
@@ -413,13 +414,17 @@ export async function dispatchScheduleChange(input: { event: EventRecord; previo
   await db().rpc("mark_event_rsvps_awaiting_reconfirmation", { _event_id: input.event.id });
   await db().from("notification_deliveries").update({ status: "cancelled", error: "Schedule changed" })
     .eq("event_id", input.event.id).in("template_key", ["reminder_7d", "reminder_24h"]).in("status", ["pending", "failed", "not_configured"]);
-  const previous = formatEventWhen(input.previous.starts_at, input.previous.ends_at, input.previous.timezone);
-  const next = whenOf(input.event);
-  const notice = rescheduleNotice({
-    title: input.event.title, previous, next, category: categoryLabel(input.event.event_type), eventUrl: eventUrl(input.event.id),
-  });
+  const { data: zoneRows } = ids.length ? await db().from("profiles").select("id, timezone").in("id", ids) : { data: [] };
+  const zones = new Map(((zoneRows ?? []) as { id: string; timezone: string | null }[]).map((r) => [r.id, r.timezone]));
   const scheduleKey = rescheduleScheduleKey(input.event);
   for (const userId of ids) {
+    const zone = zones.get(userId) ?? null;
+    const notice = rescheduleNotice({
+      title: input.event.title,
+      previous: formatEventWhenFor(input.previous.starts_at, input.previous.ends_at, input.previous.timezone, zone),
+      next: formatEventWhenFor(input.event.starts_at, input.event.ends_at, input.event.timezone, zone),
+      category: categoryLabel(input.event.event_type), eventUrl: eventUrl(input.event.id),
+    });
     await deliver({
       templateKey: "event_rescheduled", channel: "email", recipientUserId: userId, recipientAddress: await memberEmail(userId), recipientKey: userId,
       eventId: input.event.id, scheduleKey, timezone: input.event.timezone, scheduledFor: null, notice,
