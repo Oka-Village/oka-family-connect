@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
+import { useIsStaff } from "@/hooks/use-is-admin";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { fallback, zodValidator } from "@tanstack/zod-adapter";
 import { Loader2, MapPin, Search, Users } from "lucide-react";
@@ -43,6 +44,13 @@ function useDebounced(value: string, ms = 300) {
 }
 
 function DirectoryPage() {
+  const staff = useIsStaff();
+  if (staff.isPending) return null;
+  if (!staff.data) return <Navigate to="/home" replace />;
+  return <DirectoryContent />;
+}
+
+function DirectoryContent() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const [q, setQ] = useState(search.q);
