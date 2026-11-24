@@ -49,7 +49,7 @@ export function spotsText(e: EventRow) {
 function subscribeLabel(event: EventRow, rsvp?: string) {
   if (rsvp === "going") return "You're going";
   if (rsvp === "waitlist") return "On waitlist";
-  return spotsLeft(event) === 0 ? "Join waitlist" : "Subscribe";
+  return spotsLeft(event) === 0 ? "Join waitlist" : "Attend";
 }
 
 function eventDateParts(iso: string, tz: string | null) {
