@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { toWebImage } from "@/lib/web-image";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { Camera, ChevronLeft, Loader2 } from "lucide-react";
@@ -126,6 +127,7 @@ function Onboarding() {
   }, [draft.photo_url]);
 
   async function handleUpload(file: File) {
+    file = await toWebImage(file);
     if (!file.type.startsWith("image/")) {
       toast.error("Please choose an image.");
       return;
@@ -245,7 +247,7 @@ function Onboarding() {
               <input
                 ref={fileInput}
                 type="file"
-                accept="image/*"
+                accept="image/*,.heic,.heif"
                 className="hidden"
                 onChange={(e) => {
                   const file = e.target.files?.[0];

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { toWebImage } from "@/lib/web-image";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Camera, Loader2, Pencil } from "lucide-react";
@@ -249,6 +250,7 @@ function ProfileEditor({
   }, [focusSection, onFocusApplied]);
 
   async function upload(file: File) {
+    file = await toWebImage(file);
     if (!file.type.startsWith("image/")) return void toast.error("Please choose an image.");
     if (file.size > 5 * 1024 * 1024) return void toast.error("Please choose a photo under 5 MB.");
     setUploading(true);
@@ -288,7 +290,7 @@ function ProfileEditor({
       <Block id="profile-edit-basic" label="Basic details">
         <div className="flex items-center gap-5">
           <MemberAvatar src={preview} name={draft.display_name} className="size-20" />
-          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void upload(f); e.target.value = ""; }} />
+          <input ref={fileRef} type="file" accept="image/*,.heic,.heif" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void upload(f); e.target.value = ""; }} />
           <Button type="button" variant="outline" className="rounded-full" disabled={uploading} onClick={() => fileRef.current?.click()}>
             {uploading ? <Loader2 className="size-4 animate-spin" strokeWidth={1.5} /> : <Camera className="size-4 text-sage" strokeWidth={1.5} />}
             {draft.photo_url ? "Change photo" : "Upload photo"}
