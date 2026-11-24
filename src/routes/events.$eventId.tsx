@@ -136,6 +136,11 @@ function EventDetail() {
     },
     onSuccess: (status) => {
       if (status === "going") void confirmRsvp({ data: { eventId } }).catch(() => undefined);
+      if (status === "going" || status === "waitlist") {
+        let ref: string | null = null;
+        try { ref = sessionStorage.getItem("oka_event_ref"); } catch { /* storage blocked */ }
+        if (ref) void import("@/lib/community-alerts.functions").then(({ announceReferralRsvpFn }) => announceReferralRsvpFn({ data: { eventId, code: ref } })).catch(() => undefined);
+      }
       toast.success(status === "going" ? "You're going — see you there" : status === "waitlist" ? "It's full, so you're on the waitlist" : "Your RSVP is cancelled");
       if (status === "going" || status === "waitlist") {
         const evRow = q.data?.event;

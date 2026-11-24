@@ -13,7 +13,7 @@ import { signInWithGoogle } from "@/lib/google-sign-in";
 import { supabase } from "@/integrations/supabase/client";
 import { saveReturnTo } from "@/lib/join-link";
 import { claimEventInvite, saveEventJoinSlug } from "@/lib/event-invite";
-import { saveInviteCode } from "@/lib/affiliates";
+import { saveInviteCode, EVENT_REF_KEY } from "@/lib/affiliates";
 import { useServerFn } from "@tanstack/react-start";
 import { beginSignupFlow } from "@/lib/signup-flow.functions";
 import { getPublicEventPhoto, getEventShareMeta } from "@/lib/public-event-photo.functions";
@@ -108,7 +108,10 @@ function JoinPage() {
     ran.current = true;
     // A sharer's affiliate code rides along as ?ref=; store it exactly like /invite/<code> does.
     const ref = new URLSearchParams(window.location.search).get("ref");
-    if (ref?.trim()) saveInviteCode(ref);
+    if (ref?.trim()) {
+      saveInviteCode(ref);
+      try { sessionStorage.setItem(EVENT_REF_KEY, ref.trim().toUpperCase().slice(0, 32)); } catch { /* storage blocked */ }
+    }
     void (async () => {
       const { data: s } = await supabase.auth.getSession();
       const user = s.session?.user;
