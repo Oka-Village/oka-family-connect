@@ -19,18 +19,18 @@ function db() {
   return supabaseAdmin as unknown as SupabaseClient;
 }
 
-async function profileName(userId: string) {
+export async function profileName(userId: string) {
   const { data } = await db().from("profiles").select("display_name, created_at").eq("id", userId).maybeSingle();
   const row = data as { display_name?: string | null; created_at?: string } | null;
   return { name: row?.display_name?.trim() || "A new member", createdAt: row?.created_at ?? new Date().toISOString() };
 }
 
-async function emailOf(userId: string) {
+export async function emailOf(userId: string) {
   const { data, error } = await supabaseAdmin.auth.admin.getUserById(userId);
   return error ? null : data.user?.email ?? null;
 }
 
-async function staffIds() {
+export async function staffIds() {
   const { data } = await db().from("user_roles").select("user_id").in("role", ["admin", "moderator"]);
   return [...new Set(((data ?? []) as { user_id: string }[]).map((r) => r.user_id))];
 }
@@ -42,12 +42,12 @@ async function referrerOf(userId: string) {
   return { userId: ownerId, name: (await profileName(ownerId)).name };
 }
 
-async function safe(label: string, run: () => Promise<unknown>) {
+export async function safe(label: string, run: () => Promise<unknown>) {
   try { await run(); } catch (error) { console.error(`[community-alerts] ${label} failed`, error); }
 }
 
 /** Returns true only for the first caller with this (user, type, link) — the dedupe key. */
-async function inAppOnce(userId: string, type: string, title: string, body: string, link: string) {
+export async function inAppOnce(userId: string, type: string, title: string, body: string, link: string) {
   const { count } = await db().from("notifications").select("id", { count: "exact", head: true })
     .eq("user_id", userId).eq("type", type).eq("link", link);
   if ((count ?? 0) > 0) return false;
@@ -56,7 +56,7 @@ async function inAppOnce(userId: string, type: string, title: string, body: stri
   return true;
 }
 
-async function emailStaff(notice: EventNotice) {
+export async function emailStaff(notice: EventNotice) {
   const ids = await staffIds();
   const addresses = (await Promise.all(ids.map(emailOf))).filter((e): e is string => Boolean(e));
   if (!addresses.length && process.env["ADMIN_NOTIFICATION_EMAIL"]) addresses.push(process.env["ADMIN_NOTIFICATION_EMAIL"]);

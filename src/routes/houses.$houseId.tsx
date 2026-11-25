@@ -1,3 +1,4 @@
+import { announceExchangeFn } from "@/lib/exchange-alerts.functions";
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -157,9 +158,10 @@ function BookingForm({ houseId }: { houseId: string }) {
     if (nights < 1) { toast.error("Check-out must be after check-in."); return; }
     if (nights > available) { toast.error(sessionErrorMessage(new Error("INSUFFICIENT_CREDITS"))); return; }
     setBusy(true);
-    const { error } = await supabase.rpc("request_booking", { _house_id: houseId, _check_in: checkIn, _check_out: checkOut, _message: message });
+    const { data: bookingId, error } = await supabase.rpc("request_booking", { _house_id: houseId, _check_in: checkIn, _check_out: checkOut, _message: message });
     setBusy(false);
     if (error) { toast.error(sessionErrorMessage(error)); return; }
+    if (bookingId) void announceExchangeFn({ data: { kind: "booking", id: bookingId as string } }).catch(() => {});
     setSent(true);
     await Promise.all([qc.invalidateQueries({ queryKey: ["credits"] }), qc.invalidateQueries({ queryKey: ["house-booked", houseId] }), qc.invalidateQueries({ queryKey: ["stays"] })]);
   }

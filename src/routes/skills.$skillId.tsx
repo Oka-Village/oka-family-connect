@@ -1,3 +1,4 @@
+import { announceExchangeFn } from "@/lib/exchange-alerts.functions";
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -149,10 +150,11 @@ function RequestForm({ skillId }: { skillId: string }) {
     const at = when ? new Date(when) : null;
     if (!at || Number.isNaN(at.getTime()) || at < new Date()) { setNotice("Please propose a time in the future."); return; }
     setBusy(true);
-    const { error } = await supabase.rpc("request_skill_session", { _skill_id: skillId, _proposed_at: at.toISOString(), _message: message.trim().slice(0, 1000) });
+    const { data: requestId, error } = await supabase.rpc("request_skill_session", { _skill_id: skillId, _proposed_at: at.toISOString(), _message: message.trim().slice(0, 1000) });
     setBusy(false);
     await qc.invalidateQueries({ queryKey: ["credits"] });
     if (error) { setNotice(sessionErrorMessage(error)); return; }
+    if (requestId) void announceExchangeFn({ data: { kind: "session", id: requestId as string } }).catch(() => {});
     await qc.invalidateQueries({ queryKey: ["sessions"] });
     setSent(true);
     toast.success("Your request is on its way");

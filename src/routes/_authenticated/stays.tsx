@@ -1,3 +1,4 @@
+import { announceExchangeFn } from "@/lib/exchange-alerts.functions";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fallback, zodValidator } from "@tanstack/zod-adapter";
@@ -60,6 +61,7 @@ function StaysPage() {
   async function act(id: string, action: string) {
     const { error } = await supabase.rpc("update_booking", { _booking_id: id, _action: action });
     if (error) { toast.error(sessionErrorMessage(error)); return; }
+    if (action === "approve" || action === "decline") void announceExchangeFn({ data: { kind: "booking", id: id } }).catch(() => {});
     toast.success({ approve: "Stay approved", decline: "Request declined — credits returned", cancel: "Stay cancelled — credits returned", complete: "Stay complete — credits moved" }[action] ?? "Done");
     await Promise.all([qc.invalidateQueries({ queryKey: ["stays"] }), qc.invalidateQueries({ queryKey: ["credits"] }), qc.invalidateQueries({ queryKey: ["ledger"] }), qc.invalidateQueries({ queryKey: ["house-booked"] })]);
   }

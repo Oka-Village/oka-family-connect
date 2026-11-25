@@ -1,3 +1,4 @@
+import { announceExchangeFn } from "@/lib/exchange-alerts.functions";
 import { useEffect, useRef, useState } from "react";
 import { toWebImage } from "@/lib/web-image";
 import { useNavigate } from "@tanstack/react-router";
@@ -82,6 +83,7 @@ export function HouseForm({ userId, initial }: { userId: string; initial?: House
       : await supabase.from("houses").insert({ ...payload, owner_id: userId, status: "published" }).select("id").single();
     setBusy(false);
     if (res.error || !res.data) { toast.error("Your home didn't save. Please try again."); return; }
+    if (!initial) void announceExchangeFn({ data: { kind: "house", id: res.data.id } }).catch(() => {});
     await Promise.all([
       qc.invalidateQueries({ queryKey: ["houses"] }),
       qc.invalidateQueries({ queryKey: ["house", res.data.id] }),
