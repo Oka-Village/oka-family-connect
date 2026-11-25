@@ -9,7 +9,8 @@ export function useRoles() {
   return useQuery({
     queryKey: ["my-roles"],
     queryFn: async (): Promise<Roles> => {
-      const { data: auth } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
+      const auth = { user: session?.user ?? null };
       if (!auth.user) return { isAdmin: false, isModerator: false, isStaff: false };
       const { data, error } = await supabase.from("user_roles").select("role").eq("user_id", auth.user.id);
       if (error) throw error;
@@ -31,7 +32,7 @@ export function useIsStaff() {
 export function useCurrentUserId() {
   return useQuery({
     queryKey: ["current-user-id"],
-    queryFn: async () => (await supabase.auth.getUser()).data.user?.id ?? null,
+    queryFn: async () => (await supabase.auth.getSession()).data.session?.user.id ?? null,
     staleTime: Infinity,
   });
 }

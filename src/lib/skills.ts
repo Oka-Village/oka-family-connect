@@ -52,6 +52,28 @@ export async function signPaths(paths: Array<string | null | undefined>) {
   return (p: string | null | undefined) => (!p ? null : p.startsWith("http") ? p : out.get(p) ?? null);
 }
 
+/** Coalesce single-path signing requests made in the same tick into one storage call. */
+let pending: Map<string, Array<(u: string | null) => void>> | null = null;
+export function signPathBatched(path: string): Promise<string | null> {
+  if (path.startsWith("http")) return Promise.resolve(path);
+  return new Promise((resolve) => {
+    if (!pending) {
+      pending = new Map();
+      setTimeout(async () => {
+        const batch = pending!; pending = null;
+        try {
+          const get = await signPaths([...batch.keys()]);
+          batch.forEach((cbs, p) => cbs.forEach((cb) => cb(get(p))));
+        } catch {
+          batch.forEach((cbs) => cbs.forEach((cb) => cb(null)));
+        }
+      }, 50);
+    }
+    const list = pending.get(path) ?? [];
+    list.push(resolve); pending.set(path, list);
+  });
+}
+
 export async function fetchSkillsPage(f: SkillFilters, cursor: SkillCursor) {
   let q = supabase
     .from("skills")

@@ -253,6 +253,20 @@
       "when": 1795423094688,
       "tag": "0035_public_event_catalog",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1795497977770,
+      "tag": "0036_profiles_timezone",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1795520222161,
+      "tag": "0037_public_listing_catalogs",
+      "breakpoints": true
     }
   ]
 }

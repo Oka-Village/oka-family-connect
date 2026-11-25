@@ -34,19 +34,19 @@ import { Route as AuthenticatedWelcomeRouteImport } from './routes/_authenticate
 import { Route as EventsIndexRouteImport } from './routes/events.index'
 import { Route as EventsEventIdRouteImport } from './routes/events.$eventId'
 import { Route as GiftCodeRouteImport } from './routes/gift.$code'
+import { Route as HousesIndexRouteImport } from './routes/houses.index'
+import { Route as HousesHouseIdRouteImport } from './routes/houses.$houseId'
 import { Route as InviteCodeRouteImport } from './routes/invite.$code'
 import { Route as JoinSlugRouteImport } from './routes/join.$slug'
+import { Route as SkillsIndexRouteImport } from './routes/skills.index'
+import { Route as SkillsSkillIdRouteImport } from './routes/skills.$skillId'
 import { Route as AuthenticatedEventsNewRouteImport } from './routes/_authenticated/events.new'
 import { Route as AuthenticatedHomeIndexRouteImport } from './routes/_authenticated/home.index'
 import { Route as AuthenticatedHomeAppreciationRouteImport } from './routes/_authenticated/home.appreciation'
 import { Route as AuthenticatedHomeInspirationRouteImport } from './routes/_authenticated/home.inspiration'
 import { Route as AuthenticatedHomeReflectionRouteImport } from './routes/_authenticated/home.reflection'
-import { Route as AuthenticatedHousesIndexRouteImport } from './routes/_authenticated/houses.index'
-import { Route as AuthenticatedHousesHouseIdRouteImport } from './routes/_authenticated/houses.$houseId'
 import { Route as AuthenticatedHousesNewRouteImport } from './routes/_authenticated/houses.new'
 import { Route as AuthenticatedMembersMemberIdRouteImport } from './routes/_authenticated/members.$memberId'
-import { Route as AuthenticatedSkillsIndexRouteImport } from './routes/_authenticated/skills.index'
-import { Route as AuthenticatedSkillsSkillIdRouteImport } from './routes/_authenticated/skills.$skillId'
 import { Route as AuthenticatedSkillsNewRouteImport } from './routes/_authenticated/skills.new'
 import { Route as EventsDayDateRouteImport } from './routes/events.day.$date'
 import { Route as OgEventSlugRouteImport } from './routes/og/event/$slug'
@@ -54,6 +54,7 @@ import { Route as AuthenticatedEventsEditEventIdRouteImport } from './routes/_au
 import { Route as AuthenticatedHomeReflectionPastRouteImport } from './routes/_authenticated/home.reflection_.past'
 import { Route as AuthenticatedHousesEditHouseIdRouteImport } from './routes/_authenticated/houses.edit.$houseId'
 import { Route as AuthenticatedSkillsEditSkillIdRouteImport } from './routes/_authenticated/skills.edit.$skillId'
+import { Route as ApiPublicCronRemindersRouteImport } from './routes/api/public/cron/reminders'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -181,6 +182,16 @@ const GiftCodeRoute = GiftCodeRouteImport.update({
   path: '/gift/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HousesIndexRoute = HousesIndexRouteImport.update({
+  id: '/houses/',
+  path: '/houses/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HousesHouseIdRoute = HousesHouseIdRouteImport.update({
+  id: '/houses/$houseId',
+  path: '/houses/$houseId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InviteCodeRoute = InviteCodeRouteImport.update({
   id: '/invite/$code',
   path: '/invite/$code',
@@ -189,6 +200,16 @@ const InviteCodeRoute = InviteCodeRouteImport.update({
 const JoinSlugRoute = JoinSlugRouteImport.update({
   id: '/join/$slug',
   path: '/join/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SkillsIndexRoute = SkillsIndexRouteImport.update({
+  id: '/skills/',
+  path: '/skills/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SkillsSkillIdRoute = SkillsSkillIdRouteImport.update({
+  id: '/skills/$skillId',
+  path: '/skills/$skillId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedEventsNewRoute = AuthenticatedEventsNewRouteImport.update({
@@ -219,18 +240,6 @@ const AuthenticatedHomeReflectionRoute =
     path: '/home/reflection',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedHousesIndexRoute =
-  AuthenticatedHousesIndexRouteImport.update({
-    id: '/houses/',
-    path: '/houses/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedHousesHouseIdRoute =
-  AuthenticatedHousesHouseIdRouteImport.update({
-    id: '/houses/$houseId',
-    path: '/houses/$houseId',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedHousesNewRoute = AuthenticatedHousesNewRouteImport.update({
   id: '/houses/new',
   path: '/houses/new',
@@ -240,18 +249,6 @@ const AuthenticatedMembersMemberIdRoute =
   AuthenticatedMembersMemberIdRouteImport.update({
     id: '/members/$memberId',
     path: '/members/$memberId',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedSkillsIndexRoute =
-  AuthenticatedSkillsIndexRouteImport.update({
-    id: '/skills/',
-    path: '/skills/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedSkillsSkillIdRoute =
-  AuthenticatedSkillsSkillIdRouteImport.update({
-    id: '/skills/$skillId',
-    path: '/skills/$skillId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedSkillsNewRoute = AuthenticatedSkillsNewRouteImport.update({
@@ -293,6 +290,11 @@ const AuthenticatedSkillsEditSkillIdRoute =
     path: '/skills/edit/$skillId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicCronRemindersRoute = ApiPublicCronRemindersRouteImport.update({
+  id: '/api/public/cron/reminders',
+  path: '/api/public/cron/reminders',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -318,27 +320,28 @@ export interface FileRoutesByFullPath {
   '/welcome': typeof AuthenticatedWelcomeRoute
   '/events/$eventId': typeof EventsEventIdRoute
   '/gift/$code': typeof GiftCodeRoute
+  '/houses/$houseId': typeof HousesHouseIdRoute
   '/invite/$code': typeof InviteCodeRoute
   '/join/$slug': typeof JoinSlugRoute
+  '/skills/$skillId': typeof SkillsSkillIdRoute
   '/events/': typeof EventsIndexRoute
+  '/houses/': typeof HousesIndexRoute
+  '/skills/': typeof SkillsIndexRoute
   '/events/new': typeof AuthenticatedEventsNewRoute
   '/home/appreciation': typeof AuthenticatedHomeAppreciationRoute
   '/home/inspiration': typeof AuthenticatedHomeInspirationRoute
   '/home/reflection': typeof AuthenticatedHomeReflectionRoute
-  '/houses/$houseId': typeof AuthenticatedHousesHouseIdRoute
   '/houses/new': typeof AuthenticatedHousesNewRoute
   '/members/$memberId': typeof AuthenticatedMembersMemberIdRoute
-  '/skills/$skillId': typeof AuthenticatedSkillsSkillIdRoute
   '/skills/new': typeof AuthenticatedSkillsNewRoute
   '/events/day/$date': typeof EventsDayDateRoute
   '/og/event/$slug': typeof OgEventSlugRoute
   '/home/': typeof AuthenticatedHomeIndexRoute
-  '/houses/': typeof AuthenticatedHousesIndexRoute
-  '/skills/': typeof AuthenticatedSkillsIndexRoute
   '/events/edit/$eventId': typeof AuthenticatedEventsEditEventIdRoute
   '/home/reflection/past': typeof AuthenticatedHomeReflectionPastRoute
   '/houses/edit/$houseId': typeof AuthenticatedHousesEditHouseIdRoute
   '/skills/edit/$skillId': typeof AuthenticatedSkillsEditSkillIdRoute
+  '/api/public/cron/reminders': typeof ApiPublicCronRemindersRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -364,27 +367,28 @@ export interface FileRoutesByTo {
   '/welcome': typeof AuthenticatedWelcomeRoute
   '/events/$eventId': typeof EventsEventIdRoute
   '/gift/$code': typeof GiftCodeRoute
+  '/houses/$houseId': typeof HousesHouseIdRoute
   '/invite/$code': typeof InviteCodeRoute
   '/join/$slug': typeof JoinSlugRoute
+  '/skills/$skillId': typeof SkillsSkillIdRoute
   '/events': typeof EventsIndexRoute
+  '/houses': typeof HousesIndexRoute
+  '/skills': typeof SkillsIndexRoute
   '/events/new': typeof AuthenticatedEventsNewRoute
   '/home/appreciation': typeof AuthenticatedHomeAppreciationRoute
   '/home/inspiration': typeof AuthenticatedHomeInspirationRoute
   '/home/reflection': typeof AuthenticatedHomeReflectionRoute
-  '/houses/$houseId': typeof AuthenticatedHousesHouseIdRoute
   '/houses/new': typeof AuthenticatedHousesNewRoute
   '/members/$memberId': typeof AuthenticatedMembersMemberIdRoute
-  '/skills/$skillId': typeof AuthenticatedSkillsSkillIdRoute
   '/skills/new': typeof AuthenticatedSkillsNewRoute
   '/events/day/$date': typeof EventsDayDateRoute
   '/og/event/$slug': typeof OgEventSlugRoute
   '/home': typeof AuthenticatedHomeIndexRoute
-  '/houses': typeof AuthenticatedHousesIndexRoute
-  '/skills': typeof AuthenticatedSkillsIndexRoute
   '/events/edit/$eventId': typeof AuthenticatedEventsEditEventIdRoute
   '/home/reflection/past': typeof AuthenticatedHomeReflectionPastRoute
   '/houses/edit/$houseId': typeof AuthenticatedHousesEditHouseIdRoute
   '/skills/edit/$skillId': typeof AuthenticatedSkillsEditSkillIdRoute
+  '/api/public/cron/reminders': typeof ApiPublicCronRemindersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -412,27 +416,28 @@ export interface FileRoutesById {
   '/_authenticated/welcome': typeof AuthenticatedWelcomeRoute
   '/events/$eventId': typeof EventsEventIdRoute
   '/gift/$code': typeof GiftCodeRoute
+  '/houses/$houseId': typeof HousesHouseIdRoute
   '/invite/$code': typeof InviteCodeRoute
   '/join/$slug': typeof JoinSlugRoute
+  '/skills/$skillId': typeof SkillsSkillIdRoute
   '/events/': typeof EventsIndexRoute
+  '/houses/': typeof HousesIndexRoute
+  '/skills/': typeof SkillsIndexRoute
   '/_authenticated/events/new': typeof AuthenticatedEventsNewRoute
   '/_authenticated/home/appreciation': typeof AuthenticatedHomeAppreciationRoute
   '/_authenticated/home/inspiration': typeof AuthenticatedHomeInspirationRoute
   '/_authenticated/home/reflection': typeof AuthenticatedHomeReflectionRoute
-  '/_authenticated/houses/$houseId': typeof AuthenticatedHousesHouseIdRoute
   '/_authenticated/houses/new': typeof AuthenticatedHousesNewRoute
   '/_authenticated/members/$memberId': typeof AuthenticatedMembersMemberIdRoute
-  '/_authenticated/skills/$skillId': typeof AuthenticatedSkillsSkillIdRoute
   '/_authenticated/skills/new': typeof AuthenticatedSkillsNewRoute
   '/events/day/$date': typeof EventsDayDateRoute
   '/og/event/$slug': typeof OgEventSlugRoute
   '/_authenticated/home/': typeof AuthenticatedHomeIndexRoute
-  '/_authenticated/houses/': typeof AuthenticatedHousesIndexRoute
-  '/_authenticated/skills/': typeof AuthenticatedSkillsIndexRoute
   '/_authenticated/events/edit/$eventId': typeof AuthenticatedEventsEditEventIdRoute
   '/_authenticated/home/reflection_/past': typeof AuthenticatedHomeReflectionPastRoute
   '/_authenticated/houses/edit/$houseId': typeof AuthenticatedHousesEditHouseIdRoute
   '/_authenticated/skills/edit/$skillId': typeof AuthenticatedSkillsEditSkillIdRoute
+  '/api/public/cron/reminders': typeof ApiPublicCronRemindersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -460,27 +465,28 @@ export interface FileRouteTypes {
     | '/welcome'
     | '/events/$eventId'
     | '/gift/$code'
+    | '/houses/$houseId'
     | '/invite/$code'
     | '/join/$slug'
+    | '/skills/$skillId'
     | '/events/'
+    | '/houses/'
+    | '/skills/'
     | '/events/new'
     | '/home/appreciation'
     | '/home/inspiration'
     | '/home/reflection'
-    | '/houses/$houseId'
     | '/houses/new'
     | '/members/$memberId'
-    | '/skills/$skillId'
     | '/skills/new'
     | '/events/day/$date'
     | '/og/event/$slug'
     | '/home/'
-    | '/houses/'
-    | '/skills/'
     | '/events/edit/$eventId'
     | '/home/reflection/past'
     | '/houses/edit/$houseId'
     | '/skills/edit/$skillId'
+    | '/api/public/cron/reminders'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -506,27 +512,28 @@ export interface FileRouteTypes {
     | '/welcome'
     | '/events/$eventId'
     | '/gift/$code'
+    | '/houses/$houseId'
     | '/invite/$code'
     | '/join/$slug'
+    | '/skills/$skillId'
     | '/events'
+    | '/houses'
+    | '/skills'
     | '/events/new'
     | '/home/appreciation'
     | '/home/inspiration'
     | '/home/reflection'
-    | '/houses/$houseId'
     | '/houses/new'
     | '/members/$memberId'
-    | '/skills/$skillId'
     | '/skills/new'
     | '/events/day/$date'
     | '/og/event/$slug'
     | '/home'
-    | '/houses'
-    | '/skills'
     | '/events/edit/$eventId'
     | '/home/reflection/past'
     | '/houses/edit/$houseId'
     | '/skills/edit/$skillId'
+    | '/api/public/cron/reminders'
   id:
     | '__root__'
     | '/'
@@ -553,27 +560,28 @@ export interface FileRouteTypes {
     | '/_authenticated/welcome'
     | '/events/$eventId'
     | '/gift/$code'
+    | '/houses/$houseId'
     | '/invite/$code'
     | '/join/$slug'
+    | '/skills/$skillId'
     | '/events/'
+    | '/houses/'
+    | '/skills/'
     | '/_authenticated/events/new'
     | '/_authenticated/home/appreciation'
     | '/_authenticated/home/inspiration'
     | '/_authenticated/home/reflection'
-    | '/_authenticated/houses/$houseId'
     | '/_authenticated/houses/new'
     | '/_authenticated/members/$memberId'
-    | '/_authenticated/skills/$skillId'
     | '/_authenticated/skills/new'
     | '/events/day/$date'
     | '/og/event/$slug'
     | '/_authenticated/home/'
-    | '/_authenticated/houses/'
-    | '/_authenticated/skills/'
     | '/_authenticated/events/edit/$eventId'
     | '/_authenticated/home/reflection_/past'
     | '/_authenticated/houses/edit/$houseId'
     | '/_authenticated/skills/edit/$skillId'
+    | '/api/public/cron/reminders'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -589,11 +597,16 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   EventsEventIdRoute: typeof EventsEventIdRoute
   GiftCodeRoute: typeof GiftCodeRoute
+  HousesHouseIdRoute: typeof HousesHouseIdRoute
   InviteCodeRoute: typeof InviteCodeRoute
   JoinSlugRoute: typeof JoinSlugRoute
+  SkillsSkillIdRoute: typeof SkillsSkillIdRoute
   EventsIndexRoute: typeof EventsIndexRoute
+  HousesIndexRoute: typeof HousesIndexRoute
+  SkillsIndexRoute: typeof SkillsIndexRoute
   EventsDayDateRoute: typeof EventsDayDateRoute
   OgEventSlugRoute: typeof OgEventSlugRoute
+  ApiPublicCronRemindersRoute: typeof ApiPublicCronRemindersRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -773,6 +786,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GiftCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/houses/': {
+      id: '/houses/'
+      path: '/houses'
+      fullPath: '/houses/'
+      preLoaderRoute: typeof HousesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/houses/$houseId': {
+      id: '/houses/$houseId'
+      path: '/houses/$houseId'
+      fullPath: '/houses/$houseId'
+      preLoaderRoute: typeof HousesHouseIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/invite/$code': {
       id: '/invite/$code'
       path: '/invite/$code'
@@ -785,6 +812,20 @@ declare module '@tanstack/react-router' {
       path: '/join/$slug'
       fullPath: '/join/$slug'
       preLoaderRoute: typeof JoinSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/skills/': {
+      id: '/skills/'
+      path: '/skills'
+      fullPath: '/skills/'
+      preLoaderRoute: typeof SkillsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/skills/$skillId': {
+      id: '/skills/$skillId'
+      path: '/skills/$skillId'
+      fullPath: '/skills/$skillId'
+      preLoaderRoute: typeof SkillsSkillIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/events/new': {
@@ -822,20 +863,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedHomeReflectionRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/houses/': {
-      id: '/_authenticated/houses/'
-      path: '/houses'
-      fullPath: '/houses/'
-      preLoaderRoute: typeof AuthenticatedHousesIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/houses/$houseId': {
-      id: '/_authenticated/houses/$houseId'
-      path: '/houses/$houseId'
-      fullPath: '/houses/$houseId'
-      preLoaderRoute: typeof AuthenticatedHousesHouseIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/houses/new': {
       id: '/_authenticated/houses/new'
       path: '/houses/new'
@@ -848,20 +875,6 @@ declare module '@tanstack/react-router' {
       path: '/members/$memberId'
       fullPath: '/members/$memberId'
       preLoaderRoute: typeof AuthenticatedMembersMemberIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/skills/': {
-      id: '/_authenticated/skills/'
-      path: '/skills'
-      fullPath: '/skills/'
-      preLoaderRoute: typeof AuthenticatedSkillsIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/skills/$skillId': {
-      id: '/_authenticated/skills/$skillId'
-      path: '/skills/$skillId'
-      fullPath: '/skills/$skillId'
-      preLoaderRoute: typeof AuthenticatedSkillsSkillIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/skills/new': {
@@ -913,6 +926,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSkillsEditSkillIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/cron/reminders': {
+      id: '/api/public/cron/reminders'
+      path: '/api/public/cron/reminders'
+      fullPath: '/api/public/cron/reminders'
+      preLoaderRoute: typeof ApiPublicCronRemindersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -933,14 +953,10 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedHomeAppreciationRoute: typeof AuthenticatedHomeAppreciationRoute
   AuthenticatedHomeInspirationRoute: typeof AuthenticatedHomeInspirationRoute
   AuthenticatedHomeReflectionRoute: typeof AuthenticatedHomeReflectionRoute
-  AuthenticatedHousesHouseIdRoute: typeof AuthenticatedHousesHouseIdRoute
   AuthenticatedHousesNewRoute: typeof AuthenticatedHousesNewRoute
   AuthenticatedMembersMemberIdRoute: typeof AuthenticatedMembersMemberIdRoute
-  AuthenticatedSkillsSkillIdRoute: typeof AuthenticatedSkillsSkillIdRoute
   AuthenticatedSkillsNewRoute: typeof AuthenticatedSkillsNewRoute
   AuthenticatedHomeIndexRoute: typeof AuthenticatedHomeIndexRoute
-  AuthenticatedHousesIndexRoute: typeof AuthenticatedHousesIndexRoute
-  AuthenticatedSkillsIndexRoute: typeof AuthenticatedSkillsIndexRoute
   AuthenticatedEventsEditEventIdRoute: typeof AuthenticatedEventsEditEventIdRoute
   AuthenticatedHomeReflectionPastRoute: typeof AuthenticatedHomeReflectionPastRoute
   AuthenticatedHousesEditHouseIdRoute: typeof AuthenticatedHousesEditHouseIdRoute
@@ -964,14 +980,10 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedHomeAppreciationRoute: AuthenticatedHomeAppreciationRoute,
   AuthenticatedHomeInspirationRoute: AuthenticatedHomeInspirationRoute,
   AuthenticatedHomeReflectionRoute: AuthenticatedHomeReflectionRoute,
-  AuthenticatedHousesHouseIdRoute: AuthenticatedHousesHouseIdRoute,
   AuthenticatedHousesNewRoute: AuthenticatedHousesNewRoute,
   AuthenticatedMembersMemberIdRoute: AuthenticatedMembersMemberIdRoute,
-  AuthenticatedSkillsSkillIdRoute: AuthenticatedSkillsSkillIdRoute,
   AuthenticatedSkillsNewRoute: AuthenticatedSkillsNewRoute,
   AuthenticatedHomeIndexRoute: AuthenticatedHomeIndexRoute,
-  AuthenticatedHousesIndexRoute: AuthenticatedHousesIndexRoute,
-  AuthenticatedSkillsIndexRoute: AuthenticatedSkillsIndexRoute,
   AuthenticatedEventsEditEventIdRoute: AuthenticatedEventsEditEventIdRoute,
   AuthenticatedHomeReflectionPastRoute: AuthenticatedHomeReflectionPastRoute,
   AuthenticatedHousesEditHouseIdRoute: AuthenticatedHousesEditHouseIdRoute,
@@ -994,11 +1006,16 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   EventsEventIdRoute: EventsEventIdRoute,
   GiftCodeRoute: GiftCodeRoute,
+  HousesHouseIdRoute: HousesHouseIdRoute,
   InviteCodeRoute: InviteCodeRoute,
   JoinSlugRoute: JoinSlugRoute,
+  SkillsSkillIdRoute: SkillsSkillIdRoute,
   EventsIndexRoute: EventsIndexRoute,
+  HousesIndexRoute: HousesIndexRoute,
+  SkillsIndexRoute: SkillsIndexRoute,
   EventsDayDateRoute: EventsDayDateRoute,
   OgEventSlugRoute: OgEventSlugRoute,
+  ApiPublicCronRemindersRoute: ApiPublicCronRemindersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

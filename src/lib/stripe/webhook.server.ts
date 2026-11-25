@@ -174,6 +174,9 @@ async function upsertPaidPayment(
 
   await admin.rpc("sync_member_earnings");
   await admin.rpc("schedule_member_payouts", {});
+
+  const { announcePayment } = await import("@/server/community-alerts.server");
+  await announcePayment({ sessionId, paymentIntent });
 }
 
 async function handleRefund(admin: AdminClient, obj: Record<string, unknown>) {

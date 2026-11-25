@@ -116,6 +116,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { data: isAdmin } = useIsStaff();
   const membership = useMembership(profile?.id);
   const [supportOpen, setSupportOpen] = useState(false);
+  // Remember the member's device timezone so time-change emails can show "Your time".
+  useEffect(() => {
+    if (!profile?.id) return;
+    const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (!zone || (profile as { timezone?: string | null }).timezone === zone) return;
+    void supabase.from("profiles").update({ timezone: zone }).eq("id", profile.id);
+  }, [profile]);
   // Existing unpaid members get the same payment/trial offer as new ones, on each app entry.
   useEffect(() => {
     if (!profile || isAdmin !== false || membership.isPending || membership.isError) return;
@@ -201,7 +208,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-30 hidden items-center gap-8 border-b border-border bg-background/95 px-8 py-5 backdrop-blur lg:flex xl:px-14">
         <Link to="/home" aria-label="Oka home"><Wordmark /></Link>
         <nav className="flex items-center gap-7 xl:gap-8">
-          {PRIMARY_ITEMS.map((item) => {
+          {PRIMARY_ITEMS.filter((item) => isAdmin || item.to !== "/directory").map((item) => {
             const active = pathname.startsWith(item.to);
             return (
               <Link
@@ -250,8 +257,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         }}
       />
 
-      <nav aria-label="Mobile navigation" className="fixed inset-x-0 bottom-0 z-10 grid grid-cols-6 bg-card px-2 pb-[22px] pt-1.5 lg:hidden">
-        {MOBILE_TAB_ITEMS.map((item) => {
+      <nav aria-label="Mobile navigation" className={cn("fixed inset-x-0 bottom-0 z-10 grid bg-card", isAdmin ? "grid-cols-6" : "grid-cols-5", " px-2 pb-[22px] pt-1.5 lg:hidden")}>
+        {MOBILE_TAB_ITEMS.filter((item) => isAdmin || item.to !== "/directory").map((item) => {
           const active = pathname.startsWith(item.to);
           return (
             <Link

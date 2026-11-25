@@ -11,7 +11,7 @@ export function EventPageShell({ children }: { children: ReactNode }) {
   return <div className="min-h-screen bg-background">
     <header className="flex flex-wrap items-center justify-between gap-4 border-b border-border px-6 py-5 lg:px-10">
       <Link to="/" aria-label="Oka home"><Wordmark /></Link>
-      <div className="flex items-center gap-5"><Link to="/events" className="text-sm text-foreground">Events</Link><EventSignIn /></div>
+      <div className="flex items-center gap-5"><Link to="/events" className="text-sm text-foreground">Events</Link><Link to="/skills" className="text-sm text-foreground">Skills</Link><Link to="/houses" className="text-sm text-foreground">Homes</Link><EventSignIn /></div>
     </header>
     <main>{children}</main>
   </div>;

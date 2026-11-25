@@ -4,9 +4,11 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Gift, HeartHandshake, Home, Loader2, Sparkles } from "lucide-react";
 
+import { GiftQrPanel } from "@/components/oka/gift-qr-panel";
 import { Wordmark } from "@/components/oka/wordmark";
 import { EmailAuthDialog } from "@/components/oka/email-auth";
 import { Button } from "@/components/ui/button";
+import { useCurrentUserId } from "@/hooks/use-is-admin";
 import { supabase } from "@/integrations/supabase/client";
 import { signInWithGoogle } from "@/lib/google-sign-in";
 import { saveInviteCode } from "@/lib/affiliates";
@@ -32,6 +34,7 @@ const fmt = (iso: string) => new Date(iso).toLocaleDateString(undefined, { month
 function GiftPage() {
   const { code } = Route.useParams();
   const qc = useQueryClient();
+  const { data: uid } = useCurrentUserId();
   const beginSignup = useServerFn(beginSignupFlow);
   const claim = useServerFn(claimGift);
   const [busy, setBusy] = useState(false);
@@ -44,6 +47,20 @@ function GiftPage() {
       const { data, error } = await supabase.rpc("affiliate_invite_info", { _code: code });
       if (error) throw error;
       return (Array.isArray(data) ? data[0] : data) ?? null;
+    },
+  });
+  const isOwn = useQuery({
+    queryKey: ["gift-own", code, uid],
+    enabled: Boolean(uid),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("affiliates")
+        .select("id")
+        .eq("user_id", uid!)
+        .eq("invite_code", code.toUpperCase())
+        .maybeSingle();
+      if (error) throw error;
+      return data != null;
     },
   });
 
@@ -77,49 +94,70 @@ function GiftPage() {
   }
 
   const name = info.data?.inviter_name;
+  const showGiverQr = isOwn.data === true || result?.status === "self";
+
   return (
     <div className="min-h-screen bg-background">
       <header className="mx-auto flex max-w-5xl items-center justify-between px-6 py-8"><Wordmark /></header>
       <main className="mx-auto max-w-3xl px-6 pb-24 pt-6 text-center">
         <Gift className="mx-auto size-10 text-primary" strokeWidth={1.5} />
-        <p className="section-label mt-6">A gift for you</p>
-        <h1 className="mt-6 text-4xl leading-tight text-foreground sm:text-5xl lg:text-6xl">
-          {info.isLoading ? "…" : name ? `${name} gifted you your first two months` : "Your first two months, a gift"}
-        </h1>
-        <p className="mx-auto mt-6 max-w-xl text-lg text-muted-foreground">
-          One World Family is a global chosen family: people who open their homes, share what they know and gather, with credits instead of money. Two months of full membership, no card needed.
-        </p>
-        <div className="mt-10 flex flex-col items-center gap-3">
-          {result?.status === "ok" ? (
-            <>
-              <p className="font-serif text-3xl text-foreground">Welcome to the family ╰(´︶`)╯♡</p>
-              {result.endsAt && <p className="text-muted-foreground">Your gift is open until {fmt(result.endsAt)}.</p>}
-              <Button asChild size="lg" className="mt-2 rounded-full px-10"><Link to="/onboarding">Start exploring</Link></Button>
-            </>
-          ) : result ? (
-            <>
-              <p className="text-muted-foreground">
-                {result.status === "already_member" ? "You already have a membership, so there's nothing more to open." :
-                 result.status === "self" ? "This is your own gift link. Share it with someone new." :
-                 "This account has already received a gift or special access."}
-              </p>
-              <Button asChild size="lg" className="rounded-full px-10"><Link to="/events">Enter Oka</Link></Button>
-            </>
-          ) : signedIn ? (
-            <Button size="lg" className="rounded-full px-10" onClick={() => void open()} disabled={busy}>
-              {busy && <Loader2 className="size-4 animate-spin" strokeWidth={1.5} />}Open my two months
+        {showGiverQr ? (
+          <>
+            <p className="section-label mt-6">Gift two months</p>
+            <h1 className="mt-6 text-4xl leading-tight text-foreground sm:text-5xl lg:text-6xl">
+              Show a QR code that opens two free months for someone new
+            </h1>
+            <p className="mx-auto mt-6 max-w-xl text-lg text-muted-foreground">
+              Let them scan this with their phone camera, or send the link afterwards.
+            </p>
+            <div className="mt-10">
+              <GiftQrPanel code={code} />
+            </div>
+            <Button asChild variant="outline" size="lg" className="mt-8 rounded-full px-10">
+              <Link to="/earnings">Back to earnings</Link>
             </Button>
-          ) : signedIn === false ? (
-            <>
-              <Button size="lg" className="rounded-full px-10" onClick={() => void join()} disabled={busy}>
-                {busy && <Loader2 className="size-4 animate-spin" strokeWidth={1.5} />}Claim with Google
-              </Button>
-              <EmailAuthDialog label="Claim with email" />
-              <p className="text-sm text-muted-foreground">After signing in, tap “Open my two months”.</p>
-            </>
-          ) : null}
-          {error && <p className="text-sm text-destructive">{error}</p>}
-        </div>
+          </>
+        ) : (
+          <>
+            <p className="section-label mt-6">A gift for you</p>
+            <h1 className="mt-6 text-4xl leading-tight text-foreground sm:text-5xl lg:text-6xl">
+              {info.isLoading ? "…" : name ? `${name} gifted you your first two months` : "Your first two months, a gift"}
+            </h1>
+            <p className="mx-auto mt-6 max-w-xl text-lg text-muted-foreground">
+              One World Family is a global chosen family: people who open their homes, share what they know and gather, with credits instead of money. Two months of full membership, no card needed.
+            </p>
+            <div className="mt-10 flex flex-col items-center gap-3">
+              {result?.status === "ok" ? (
+                <>
+                  <p className="font-serif text-3xl text-foreground">Welcome to the family ╰(´︶`)╯♡</p>
+                  {result.endsAt && <p className="text-muted-foreground">Your gift is open until {fmt(result.endsAt)}.</p>}
+                  <Button asChild size="lg" className="mt-2 rounded-full px-10"><Link to="/onboarding">Start exploring</Link></Button>
+                </>
+              ) : result ? (
+                <>
+                  <p className="text-muted-foreground">
+                    {result.status === "already_member" ? "You already have a membership, so there's nothing more to open." :
+                     "This account has already received a gift or special access."}
+                  </p>
+                  <Button asChild size="lg" className="rounded-full px-10"><Link to="/events">Enter Oka</Link></Button>
+                </>
+              ) : signedIn ? (
+                <Button size="lg" className="rounded-full px-10" onClick={() => void open()} disabled={busy}>
+                  {busy && <Loader2 className="size-4 animate-spin" strokeWidth={1.5} />}Open my two months
+                </Button>
+              ) : signedIn === false ? (
+                <>
+                  <Button size="lg" className="rounded-full px-10" onClick={() => void join()} disabled={busy}>
+                    {busy && <Loader2 className="size-4 animate-spin" strokeWidth={1.5} />}Claim with Google
+                  </Button>
+                  <EmailAuthDialog label="Claim with email" />
+                  <p className="text-sm text-muted-foreground">After signing in, tap “Open my two months”.</p>
+                </>
+              ) : null}
+              {error && <p className="text-sm text-destructive">{error}</p>}
+            </div>
+          </>
+        )}
         <div className="mt-20 grid gap-5 text-left sm:grid-cols-3">
           {[
             { icon: Home, t: "Homes", d: "Stay with family around the world, and host them in return." },

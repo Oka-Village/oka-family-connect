@@ -36,6 +36,12 @@ export function categoryLabel(eventType: string) {
   return EVENT_CATEGORY_LABELS[eventType as EventCategory] ?? "Gathering";
 }
 
+/** Event time in the recipient's own timezone, labelled "(Your time)". Falls back to host time. */
+export function formatEventWhenFor(startsAt: string, endsAt: string | null, hostZone: string | null, viewerZone: string | null) {
+  if (!viewerZone) return `${formatEventWhen(startsAt, endsAt, hostZone)} (host time${hostZone ? ` · ${hostZone}` : ""})`;
+  return `${formatEventWhen(startsAt, endsAt, viewerZone)} (Your time)`;
+}
+
 export function formatEventWhen(startsAt: string, endsAt: string | null, timezone: string | null) {
   const zone = timezone || "UTC";
   const when = formatEventTimeDual(startsAt, endsAt, zone, null);

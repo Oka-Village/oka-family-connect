@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { toWebImage } from "@/lib/web-image";
 import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { Camera, Loader2 } from "lucide-react";
@@ -43,6 +44,7 @@ export function SkillForm({ userId, initial }: { userId: string; initial?: Skill
   }, [f.photo_url]);
 
   async function upload(file: File) {
+    file = await toWebImage(file);
     if (!file.type.startsWith("image/") || file.size > 5 * 1024 * 1024) {
       toast.error("Please choose an image under 5 MB.");
       return;
@@ -89,7 +91,7 @@ export function SkillForm({ userId, initial }: { userId: string; initial?: Skill
     <form onSubmit={submit} className="surface-card grid min-w-0 gap-6 p-5 sm:p-6 [&>*]:min-w-0">
       <div className="flex flex-wrap items-center gap-5">
         {preview ? <img src={preview} alt="" className="size-24 rounded-2xl object-cover" /> : <div className="size-24 rounded-2xl bg-accent/60" />}
-        <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const x = e.target.files?.[0]; if (x) void upload(x); e.target.value = ""; }} />
+        <input ref={fileRef} type="file" accept="image/*,.heic,.heif" className="hidden" onChange={(e) => { const x = e.target.files?.[0]; if (x) void upload(x); e.target.value = ""; }} />
         <div className="flex flex-wrap gap-2">
           <Button type="button" variant="outline" className="rounded-full" disabled={uploading} onClick={() => fileRef.current?.click()}>
             {uploading ? <Loader2 className="size-4 animate-spin" strokeWidth={1.5} /> : <Camera className="size-4 text-primary" strokeWidth={1.5} />}

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Copy, Gift, Loader2, Users } from "lucide-react";
 import { toast } from "sonner";
@@ -10,7 +11,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatCents } from "@/lib/affiliates";
 import { inviteUrl } from "@/lib/affiliate-share";
 import { signPaths } from "@/lib/skills";
-import { GiftQrDialog } from "@/components/oka/gift-qr-dialog";
 
 type Stat = {
   referred_user_id: string;
@@ -128,7 +128,12 @@ export function InviteEarnSection() {
                 <p className="section-label">Gift two months</p>
                 <p className="mt-2 text-sm text-muted-foreground">Show a QR code that opens two free months for someone new.</p>
               </div>
-              <GiftQrDialog code={aff.data.invite_code} />
+              <Button asChild className="rounded-full">
+                <Link to="/gift/$code" params={{ code: aff.data.invite_code }}>
+                  <Gift className="size-4" strokeWidth={1.5} />
+                  Gift 2 months
+                </Link>
+              </Button>
             </div>
           )}
           <div className="mt-6 grid gap-4 sm:grid-cols-3">

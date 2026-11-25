@@ -1,4 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
+import { toWebImage } from "@/lib/web-image";
 import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
@@ -87,6 +88,7 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
     return () => { alive = false; };
   }, [f.photo_url]);
   async function upload(file: File) {
+    file = await toWebImage(file);
     if (!file.type.startsWith("image/") || file.size > 5 * 1024 * 1024) return void toast.error("Please choose an image under 5 MB.");
     setUploading(true);
     const path = `${userId}/events/${Date.now()}-${file.name.replace(/[^\w.-]/g, "_")}`;
@@ -237,7 +239,7 @@ export function EventForm({ mode, isAdmin, userId, initial, initialLocation }: P
       <div className="grid gap-3">
         <Label>Event photo (required)</Label>
         {preview ? <img src={preview} alt="" className="h-auto w-full rounded-2xl object-contain" /> : <div className="aspect-[16/9] w-full rounded-2xl bg-accent/60" />}
-        <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const x = e.target.files?.[0]; if (x) { if (!x.type.startsWith("image/")) toast.error("Please choose an image."); else setCropFile(x); } e.target.value = ""; }} />
+        <input ref={fileRef} type="file" accept="image/*,.heic,.heif" className="hidden" onChange={(e) => { const x = e.target.files?.[0]; if (x) { if (!x.type.startsWith("image/")) toast.error("Please choose an image."); else setCropFile(x); } e.target.value = ""; }} />
         <Button type="button" variant="outline" className="justify-self-start rounded-full" disabled={uploading} onClick={() => fileRef.current?.click()}>
           {uploading ? <Loader2 className="size-4 animate-spin" strokeWidth={1.5} /> : <Camera className="size-4 text-primary" strokeWidth={1.5} />}
           {f.photo_url ? "Change photo" : "Add a photo"}

@@ -19,7 +19,8 @@ export function isPublicEntryRoute(pathname: string): boolean {
   return (
     isPublicEventRoute(path) ||
     ["/", "/membership", "/founding", "/privacy", "/terms", "/facilitators", "/onboarding-chat", "/open-accounting"].includes(path) ||
-    /^\/(invite|join|gift)\/[^/]+$/.test(path)
+    /^\/(invite|join|gift)\/[^/]+$/.test(path) ||
+    /^\/(skills|houses)(\/[^/]+)?$/.test(path) && !/^\/(skills|houses)\/new$/.test(path)
   );
 }
 
