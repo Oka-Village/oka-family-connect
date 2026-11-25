@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 
+import { InviteFriendCta } from "@/components/oka/invite-friend";
 import { MemberAvatar } from "@/components/oka/profile-sections";
 import { Skeleton } from "@/components/ui/skeleton";
 import { resolvePhotoUrl, useProfile } from "@/hooks/use-profile";
@@ -49,24 +50,30 @@ export function HomeMobileHeader() {
           {themeLabel} · <span className="text-terracotta">{daysUntilOpen} days</span>
         </span>
       </div>
-      <Link to="/profile" tabIndex={compact ? 0 : -1} aria-label="Your profile" className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-sage text-[13px] font-semibold text-cream">
-        {photoQuery.data ? <MemberAvatar src={photoQuery.data} name={name} className="size-full" /> : initial}
-      </Link>
+      <div className="flex shrink-0 items-center gap-2">
+        <InviteFriendCta className="px-3 text-sm" />
+        <Link to="/profile" tabIndex={compact ? 0 : -1} aria-label="Your profile" className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-sage text-[13px] font-semibold text-cream">
+          {photoQuery.data ? <MemberAvatar src={photoQuery.data} name={name} className="size-full" /> : initial}
+        </Link>
+      </div>
     </div>
     <header ref={headerRef} className="rounded-b-[28px] bg-[#FFFDF9] px-5 pb-5 pt-10 shadow-[0_1px_0_var(--sand)] md:hidden">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-terracotta">Welcome to Oka</p>
-        <Link
-          to="/profile"
-          aria-label="Your profile"
-          className="flex size-10 items-center justify-center overflow-hidden rounded-full bg-sage text-[15px] font-semibold text-cream"
-        >
-          {photoQuery.data ? (
-            <MemberAvatar src={photoQuery.data} name={name} className="size-full" />
-          ) : (
-            initial
-          )}
-        </Link>
+        <div className="flex shrink-0 items-center gap-2">
+          <InviteFriendCta className="px-3 text-sm" />
+          <Link
+            to="/profile"
+            aria-label="Your profile"
+            className="flex size-10 items-center justify-center overflow-hidden rounded-full bg-sage text-[15px] font-semibold text-cream"
+          >
+            {photoQuery.data ? (
+              <MemberAvatar src={photoQuery.data} name={name} className="size-full" />
+            ) : (
+              initial
+            )}
+          </Link>
+        </div>
       </div>
 
       {isLoading ? (

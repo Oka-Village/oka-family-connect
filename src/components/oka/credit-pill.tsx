@@ -25,7 +25,7 @@ export function CreditPill() {
   return (
     <Link
       to="/profile"
-      className="flex items-center gap-2 rounded-full bg-secondary px-4 py-2 text-sm text-secondary-foreground hover:opacity-90"
+      className="flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full bg-secondary px-4 py-2 text-sm text-secondary-foreground hover:opacity-90"
     >
       <Coins className="size-4 text-primary" strokeWidth={1.5} />
       {PROFILE_COMPLETION_PROMPT}
