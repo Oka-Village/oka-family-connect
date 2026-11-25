@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useClaimInvite } from "@/lib/affiliates";
 import { cn } from "@/lib/utils";
 import { CreditPill, ProfileCompletionBanner } from "@/components/oka/credit-pill";
+import { InviteFriendCta } from "@/components/oka/invite-friend";
 import { NotificationsBell } from "@/components/oka/notifications-bell";
 import { useMemberAccess } from "@/hooks/use-member-access";
 import { MemberAccessGate } from "@/components/oka/member-access-gate";
@@ -222,6 +223,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           })}
         </nav>
         <div className="ml-auto flex items-center gap-4">
+          <InviteFriendCta />
           <CreditPill />
           <NotificationsBell userId={profile?.id} />
           <AccountMenu photo={photo} name={profile?.display_name} items={items.slice(7)} onSignOut={handleSignOut} />
@@ -230,7 +232,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <header className={cn("flex items-center justify-between border-b border-border px-6 py-4 lg:hidden", pathname === "/home" && "hidden")}>
         <Link to="/home" aria-label="Oka home"><Wordmark className="text-2xl" /></Link>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
+          <InviteFriendCta className="px-3 text-sm" />
           <NotificationsBell userId={profile?.id} />
           <AccountMenu photo={photo} name={profile?.display_name} items={items.slice(7)} onSignOut={handleSignOut} />
         </div>

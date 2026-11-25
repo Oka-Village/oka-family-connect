@@ -93,10 +93,12 @@ function ProfilePage() {
     <div className="mx-auto flex max-w-[1280px] flex-col px-5 pb-20 pt-12 md:px-10 md:pt-[84px] xl:px-24">
       <div className="mx-auto max-w-3xl">
         <p className="section-label">My profile</p>
-        <div className="mt-6 flex flex-wrap items-center gap-6">
-          <MemberAvatar src={photo} name={profile.display_name} className="size-24" />
+        <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6">
+          <MemberAvatar src={photo} name={profile.display_name} className="size-24 shrink-0" />
           <div className="min-w-0 flex-1">
-            <h1 className="font-serif text-4xl leading-tight text-foreground md:text-5xl">{profile.display_name ?? "Welcome"}</h1>
+            <h1 className="font-serif text-3xl leading-tight text-foreground sm:text-4xl md:text-5xl">
+              {profile.display_name ?? "Welcome"}
+            </h1>
             <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
               <Link to="/members/$memberId" params={{ memberId: profile.id }} className="text-sm text-sage hover:underline">
                 See how others see you
@@ -105,7 +107,7 @@ function ProfilePage() {
             </div>
           </div>
           {!editing && (
-            <Button className={cn(sageButton, "px-6")} onClick={() => openEditor()}>
+            <Button className={cn(sageButton, "w-full px-6 sm:w-auto")} onClick={() => openEditor()}>
               <Pencil className="size-4" strokeWidth={1.5} /> Edit profile
             </Button>
           )}
