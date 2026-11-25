@@ -164,10 +164,10 @@ describe("allocateFacilitatorPool", () => {
     expect(undistributedCents).toBe(0);
     expect(allocations.reduce((sum, row) => sum + row.allocatedCents, 0)).toBe(250_000);
     const byId = Object.fromEntries(allocations.map((row) => [row.facilitatorId, row.allocatedCents]));
-    expect(byId.A).toBe(100_000);
-    expect(byId.B).toBe(75_000);
-    expect(byId.C).toBe(50_000);
-    expect(byId.D).toBe(25_000);
+    expect(byId['A']).toBe(100_000);
+    expect(byId['B']).toBe(75_000);
+    expect(byId['C']).toBe(50_000);
+    expect(byId['D']).toBe(25_000);
   });
 
   it("records the full pool as undistributed when points are zero", () => {
@@ -185,9 +185,9 @@ describe("allocateFacilitatorPool", () => {
     expect(allocations.reduce((sum, row) => sum + row.allocatedCents, 0)).toBe(100);
     // 100/3 = 33.333… → floors 33 each (99), leftover 1 → highest remainder tie → lowest id "a"
     const byId = Object.fromEntries(allocations.map((row) => [row.facilitatorId, row.allocatedCents]));
-    expect(byId.a).toBe(34);
-    expect(byId.b).toBe(33);
-    expect(byId.c).toBe(33);
+    expect(byId['a']).toBe(34);
+    expect(byId['b']).toBe(33);
+    expect(byId['c']).toBe(33);
   });
 });
 
@@ -335,14 +335,14 @@ describe("buildMonthStatement", () => {
     expect(statement.rulesVersion).toBe(EVENT_POINTS_RULES.version);
 
     const byId = Object.fromEntries(statement.allocations.map((row) => [row.facilitatorId, row]));
-    expect(byId.A?.points).toBe(480);
-    expect(byId.A?.allocatedCents).toBe(100_000);
-    expect(byId.B?.points).toBe(360);
-    expect(byId.B?.allocatedCents).toBe(75_000);
-    expect(byId.C?.points).toBe(240);
-    expect(byId.C?.allocatedCents).toBe(50_000);
-    expect(byId.D?.points).toBe(120);
-    expect(byId.D?.allocatedCents).toBe(25_000);
+    expect(byId['A']?.points).toBe(480);
+    expect(byId['A']?.allocatedCents).toBe(100_000);
+    expect(byId['B']?.points).toBe(360);
+    expect(byId['B']?.allocatedCents).toBe(75_000);
+    expect(byId['C']?.points).toBe(240);
+    expect(byId['C']?.allocatedCents).toBe(50_000);
+    expect(byId['D']?.points).toBe(120);
+    expect(byId['D']?.allocatedCents).toBe(25_000);
   });
 
   it("leaves the pool undistributed for a zero-point month", () => {

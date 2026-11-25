@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { MOMENTS, type Moment } from "@/data/moments";
 import { Wordmark } from "@/components/oka/wordmark";
+import { useIsStaff } from "@/hooks/use-is-admin";
 
 const KEY = "oka:lastMoment";
 
@@ -28,6 +29,7 @@ const LINKS = [
 ] as const;
 
 export function LittleMomentFooter() {
+  const { data: isAdmin } = useIsStaff();
   const [state, setState] = useState<ReturnType<typeof pickMoment> | null>(null);
   const [visible, setVisible] = useState(false);
   const [animate, setAnimate] = useState(true);
@@ -78,7 +80,7 @@ export function LittleMomentFooter() {
           <Wordmark className="h-7" />
         </Link>
         <nav aria-label="Footer" className="flex flex-wrap justify-center gap-x-6 gap-y-2 md:justify-start">
-          {LINKS.map((l) => (
+          {LINKS.filter((l) => isAdmin || l.to !== "/directory").map((l) => (
             <Link key={l.to} to={l.to} className="transition-colors hover:text-sage">{l.label}</Link>
           ))}
         </nav>

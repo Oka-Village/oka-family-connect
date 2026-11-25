@@ -1,3 +1,4 @@
+import { announceExchangeFn } from "@/lib/exchange-alerts.functions";
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -11,13 +12,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useCurrentUserId, useRoles } from "@/hooks/use-is-admin";
+import { EventPageShell } from "@/components/oka/event-page-shell";
+import { EventSignIn } from "@/components/oka/event-sign-in";
+import { getPublicHouses } from "@/lib/public-listings.functions";
 import { canEditListing } from "@/lib/direct-edit";
 import { supabase } from "@/integrations/supabase/client";
 import { HOUSE_SELECT, PROPERTY_LABELS, formatDay, isoDay, nightsBetween, withSignedHousePhotos, type HouseRow } from "@/lib/houses";
 import { sessionErrorMessage, useCredits } from "@/lib/skills";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/_authenticated/houses/$houseId")({
+export const Route = createFileRoute("/houses/$houseId")({
   head: () => ({
     meta: [
       { title: "Home — Oka" },
@@ -28,18 +32,22 @@ export const Route = createFileRoute("/_authenticated/houses/$houseId")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: HouseDetail,
+  component: () => <EventPageShell><HouseDetail /></EventPageShell>,
 });
 
 function HouseDetail() {
   const { houseId } = Route.useParams();
-  const { data: uid } = useCurrentUserId();
+  const uidQ = useCurrentUserId();
+  const uid = uidQ.data;
+  const guest = !uidQ.isLoading && !uid;
   const roles = useRoles();
   const qc = useQueryClient();
   const [active, setActive] = useState(0);
   const q = useQuery({
-    queryKey: ["house", houseId],
+    queryKey: ["house", houseId, guest ? "public" : "member"],
+    enabled: !uidQ.isLoading,
     queryFn: async () => {
+      if (guest) return (await getPublicHouses()).find((x) => x.id === houseId) ?? null;
       const { data, error } = await supabase.from("houses").select(HOUSE_SELECT).eq("id", houseId).maybeSingle();
       if (error) throw error;
       if (!data) return null;
@@ -48,7 +56,7 @@ function HouseDetail() {
     },
   });
 
-  if (q.isLoading) return <div className="flex justify-center py-24"><Loader2 className="size-6 animate-spin text-primary" strokeWidth={1.5} /></div>;
+  if (q.isLoading || uidQ.isLoading) return <div className="flex justify-center py-24"><Loader2 className="size-6 animate-spin text-primary" strokeWidth={1.5} /></div>;
   const h = q.data;
   if (!h) return <div className="mx-auto max-w-2xl px-6 py-24 text-center text-muted-foreground">This home isn't available.</div>;
   const mine = uid === h.owner_id;
@@ -85,7 +93,7 @@ function HouseDetail() {
             <span className="rounded-full bg-accent px-3 py-0.5 text-xs uppercase tracking-widest text-accent-foreground">{PROPERTY_LABELS[h.property_type]}</span>
             {h.status !== "published" && <span className="rounded-full bg-muted px-3 py-0.5 text-xs uppercase tracking-widest text-muted-foreground">Unlisted</span>}
           </div>
-          <div className="mt-4 flex items-start justify-between gap-4"><h1 className="text-4xl text-foreground lg:text-5xl">{h.title}</h1><FavoriteButton type="house" itemRef={h.id} /></div>
+          <div className="mt-4 flex items-start justify-between gap-4"><h1 className="text-4xl text-foreground lg:text-5xl">{h.title}</h1>{!guest && <FavoriteButton type="house" itemRef={h.id} />}</div>
           {h.location_text && <p className="mt-3 flex items-center gap-2 text-muted-foreground"><MapPin className="size-4 text-primary" strokeWidth={1.5} />{h.location_text}</p>}
           {h.description && <p className="mt-8 whitespace-pre-line leading-relaxed text-foreground">{h.description}</p>}
           {h.house_rules && (
@@ -94,7 +102,7 @@ function HouseDetail() {
               <p className="mt-3 whitespace-pre-line leading-relaxed text-foreground">{h.house_rules}</p>
             </div>
           )}
-          <Link to="/members/$memberId" params={{ memberId: h.owner_id }} className="surface-card mt-10 flex items-center gap-4 p-5 hover:shadow-lifted">
+          <Link to={guest ? "/houses/$houseId" : "/members/$memberId"} params={guest ? { houseId: h.id } : { memberId: h.owner_id }} className="surface-card mt-10 flex items-center gap-4 p-5 hover:shadow-lifted">
             <MemberAvatar src={h.hostPhoto} name={h.owner?.display_name} className="size-14" />
             <div>
               <p className="text-xs uppercase tracking-widest text-muted-foreground">Your host</p>
@@ -107,7 +115,7 @@ function HouseDetail() {
           {!mine && canEditListing(uid, h.owner_id, roles.data?.isAdmin) && (
             <Button asChild variant="outline" className="mb-5 w-full rounded-full"><Link to="/houses/edit/$houseId" params={{ houseId: h.id }}><Pencil className="size-4 text-primary" strokeWidth={1.5} />Edit home</Link></Button>
           )}
-          {mine ? (
+          {guest ? <div className="rounded-2xl border border-border bg-card p-6 shadow-soft"><p className="section-label">Request a stay</p><p className="mt-3 text-sm text-muted-foreground">Join the family to send a request.</p><div className="mt-5"><EventSignIn className="w-full rounded-full" description="Sign in or create an account to request a stay." /></div></div> : mine ? (
             <div className="surface-card grid gap-3 p-6">
               <p className="section-label">Your home</p>
               <Button asChild variant="outline" className="rounded-full"><Link to="/houses/edit/$houseId" params={{ houseId: h.id }}><Pencil className="size-4 text-primary" strokeWidth={1.5} />Edit</Link></Button>
@@ -150,9 +158,10 @@ function BookingForm({ houseId }: { houseId: string }) {
     if (nights < 1) { toast.error("Check-out must be after check-in."); return; }
     if (nights > available) { toast.error(sessionErrorMessage(new Error("INSUFFICIENT_CREDITS"))); return; }
     setBusy(true);
-    const { error } = await supabase.rpc("request_booking", { _house_id: houseId, _check_in: checkIn, _check_out: checkOut, _message: message });
+    const { data: bookingId, error } = await supabase.rpc("request_booking", { _house_id: houseId, _check_in: checkIn, _check_out: checkOut, _message: message });
     setBusy(false);
     if (error) { toast.error(sessionErrorMessage(error)); return; }
+    if (bookingId) void announceExchangeFn({ data: { kind: "booking", id: bookingId as string } }).catch(() => {});
     setSent(true);
     await Promise.all([qc.invalidateQueries({ queryKey: ["credits"] }), qc.invalidateQueries({ queryKey: ["house-booked", houseId] }), qc.invalidateQueries({ queryKey: ["stays"] })]);
   }

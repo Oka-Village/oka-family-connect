@@ -85,7 +85,8 @@ export async function fetchEvents(
 
 export async function fetchMyRsvps(eventIds: string[]): Promise<Record<string, string>> {
   if (eventIds.length === 0) return {};
-  const { data: auth } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const auth = { user: session?.user ?? null };
   if (!auth.user) return {};
   const { data, error } = await supabase
     .from("event_rsvps")

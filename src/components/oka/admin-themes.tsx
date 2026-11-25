@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { toWebImage } from "@/lib/web-image";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -45,9 +46,10 @@ export function ThemesSection() {
     try {
       let image_path = existing.data?.image_path ?? null;
       if (file) {
-        const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+        const file2 = await toWebImage(file);
+        const ext = file2.name.split(".").pop()?.toLowerCase() || "jpg";
         image_path = `${kind}/${key}-${Date.now()}.${ext}`;
-        const { error } = await supabase.storage.from(THEME_BUCKET).upload(image_path, file, { contentType: file.type });
+        const { error } = await supabase.storage.from(THEME_BUCKET).upload(image_path, file2, { contentType: file2.type });
         if (error) throw error;
       }
       const { error } = await supabase.from("themes").upsert({ kind, period_key: key, title: title.trim(), body: body.trim() || null, image_path }, { onConflict: "kind,period_key" });
@@ -79,7 +81,7 @@ export function ThemesSection() {
         <label className="flex flex-col gap-1 text-sm text-muted-foreground">Body<Textarea value={body} maxLength={600} rows={4} onChange={(e) => setBody(e.target.value)} /></label>
         <div className="flex flex-wrap items-center gap-4">
           {(file || existing.data?.imageUrl) && <img src={file ? URL.createObjectURL(file) : existing.data!.imageUrl!} alt="" className="size-20 rounded-xl object-cover" />}
-          <label className="flex flex-col gap-1 text-sm text-muted-foreground">Image<Input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} /></label>
+          <label className="flex flex-col gap-1 text-sm text-muted-foreground">Image<Input type="file" accept="image/*,.heic,.heif" onChange={(e) => setFile(e.target.files?.[0] ?? null)} /></label>
         </div>
         <div><Button className="rounded-full" disabled={saving || !title.trim() || !valid} onClick={save}>{saving ? "Saving…" : existing.data ? "Update theme" : "Save theme"}</Button></div>
       </div>

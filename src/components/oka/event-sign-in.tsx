@@ -9,7 +9,7 @@ import { beginSignupFlow } from "@/lib/signup-flow.functions";
 import { saveReturnTo } from "@/lib/join-link";
 import { useCurrentUserId } from "@/hooks/use-is-admin";
 
-export function EventSignIn({ label = "Sign in / Sign up" }: { label?: string }) {
+export function EventSignIn({ label = "Sign in / Sign up", description = "Sign in or create an account to RSVP.", className = "rounded-full" }: { label?: string; description?: string; className?: string }) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const uid = useCurrentUserId();
@@ -24,7 +24,7 @@ export function EventSignIn({ label = "Sign in / Sign up" }: { label?: string })
     } finally { setBusy(false); }
   }
   return <>
-    <Button className="rounded-full" onClick={() => {
+    <Button className={className} onClick={() => {
       saveReturnTo(window.location.pathname + window.location.search);
       setOpen(true);
     }}>{label}</Button>
@@ -32,7 +32,7 @@ export function EventSignIn({ label = "Sign in / Sign up" }: { label?: string })
       <DialogContent className="rounded-2xl">
         <DialogHeader>
           <DialogTitle className="font-serif text-3xl">Join the gathering</DialogTitle>
-          <DialogDescription>Sign in or create an account to RSVP.</DialogDescription>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <Button className="rounded-full" disabled={busy} onClick={google}>{busy ? "Opening…" : "Continue with Google"}</Button>
         <EmailAuthDialog label="Continue with email" initialMode="signin" />

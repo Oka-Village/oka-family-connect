@@ -7,7 +7,7 @@ import { EventInviteChip } from "@/components/oka/event-invite-chip";
 import { EventTime } from "@/components/oka/event-time";
 import { Button } from "@/components/ui/button";
 import { formatEventTimeDual } from "@/lib/event-time";
-import { signPaths } from "@/lib/skills";
+import { signPathBatched } from "@/lib/skills";
 import {
   FORMAT_LABELS,
   TYPE_LABELS,
@@ -49,7 +49,7 @@ export function spotsText(e: EventRow) {
 function subscribeLabel(event: EventRow, rsvp?: string) {
   if (rsvp === "going") return "You're going";
   if (rsvp === "waitlist") return "On waitlist";
-  return spotsLeft(event) === 0 ? "Join waitlist" : "Subscribe";
+  return spotsLeft(event) === 0 ? "Join waitlist" : "Attend";
 }
 
 function eventDateParts(iso: string, tz: string | null) {
@@ -69,7 +69,7 @@ function eventDateParts(iso: string, tz: string | null) {
 export function useEventPhoto(path: string | null | undefined) {
   return useQuery({
     queryKey: ["event-photo", path],
-    queryFn: async () => (await signPaths([path]))(path) ?? null,
+    queryFn: () => signPathBatched(path!),
     enabled: !!path,
     staleTime: 30 * 60_000,
   }).data ?? null;

@@ -5,6 +5,10 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { fallback, zodValidator } from "@tanstack/zod-adapter";
 import { Inbox, Loader2, Plus, Search, Sparkles } from "lucide-react";
 import { z } from "zod";
+import { EventPageShell } from "@/components/oka/event-page-shell";
+import { EventSignIn } from "@/components/oka/event-sign-in";
+import { useCurrentUserId } from "@/hooks/use-is-admin";
+import { filterPublicSkills, getPublicSkills } from "@/lib/public-listings.functions";
 
 import { EmptyState } from "@/components/oka/empty-state";
 import { SkillCard } from "@/components/oka/skill-card";
@@ -21,7 +25,7 @@ const searchSchema = z.object({
   format: fallback(z.string(), "").default(""),
 });
 
-export const Route = createFileRoute("/_authenticated/skills/")({
+export const Route = createFileRoute("/skills/")({
   validateSearch: zodValidator(searchSchema),
   head: () => ({
     meta: [
@@ -33,7 +37,7 @@ export const Route = createFileRoute("/_authenticated/skills/")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: SkillsPage,
+  component: () => <EventPageShell><SkillsPage /></EventPageShell>,
 });
 
 const pill = (on: boolean) =>
@@ -49,9 +53,12 @@ function SkillsPage() {
   }, [q, search.q, navigate]);
 
   const filters = { q: search.q, category: search.category, format: search.format };
+  const uid = useCurrentUserId();
+  const guest = !uid.isLoading && !uid.data;
   const query = useInfiniteQuery({
-    queryKey: ["skills", filters],
-    queryFn: ({ pageParam }) => fetchSkillsPage(filters, pageParam),
+    queryKey: ["skills", filters, guest ? "public" : "member"],
+    enabled: !uid.isLoading,
+    queryFn: async ({ pageParam }) => guest ? { skills: filterPublicSkills(await getPublicSkills(), filters), next: null as SkillCursor } : fetchSkillsPage(filters, pageParam),
     initialPageParam: null as SkillCursor,
     getNextPageParam: (last) => last.next,
   });
@@ -62,8 +69,8 @@ function SkillsPage() {
 
   return (
     <div className="mx-auto max-w-[1180px] px-6 py-6 lg:px-10 lg:py-8">
-      {skills.length > 0 && <DealtHand items={skills} itemKey={(s) => s.id} label="Skills · dealt for you" title={<>Three things<br />to learn this week</>} description="One hour, one credit. Each one taught by someone in the family." secondaryAction={<Button asChild variant="secondary" className="rounded-full px-6"><Link to="/skills/new"><Plus strokeWidth={1.5} />Offer a skill</Link></Button>} renderCard={fanCard} />}
-      <div className="flex flex-wrap items-center justify-between gap-3"><p className="section-label">All skills</p><div className="flex items-center gap-3"><CreditPill /><Button asChild variant="outline" className="rounded-full"><Link to="/sessions"><Inbox strokeWidth={1.5} />Sessions</Link></Button></div></div>
+      {skills.length > 0 && <DealtHand items={skills} itemKey={(s) => s.id} label="Skills · dealt for you" title={<>Three things<br />to learn this week</>} description="One hour, one credit. Each one taught by someone in the family." secondaryAction={guest ? undefined : <Button asChild variant="secondary" className="rounded-full px-6"><Link to="/skills/new"><Plus strokeWidth={1.5} />Offer a skill</Link></Button>} renderCard={fanCard} />}
+      <div className="flex flex-wrap items-center justify-between gap-3"><p className="section-label">All skills</p>{guest ? <EventSignIn /> : <div className="flex items-center gap-3"><CreditPill /><Button asChild variant="outline" className="rounded-full"><Link to="/sessions"><Inbox strokeWidth={1.5} />Sessions</Link></Button></div>}</div>
 
       <label className="relative mt-10 block">
         <Search className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-primary" strokeWidth={1.5} />
@@ -83,7 +90,7 @@ function SkillsPage() {
         ))}
       </div>
 
-      {query.isLoading ? (
+      {query.isLoading || uid.isLoading ? (
         <div className="flex justify-center py-24"><Loader2 className="size-6 animate-spin text-primary" strokeWidth={1.5} /></div>
       ) : skills.length === 0 ? (
         <EmptyState

@@ -1,3 +1,4 @@
+import { announceExchangeFn } from "@/lib/exchange-alerts.functions";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fallback, zodValidator } from "@tanstack/zod-adapter";
@@ -72,6 +73,7 @@ function SessionsPage() {
   async function act(id: string, action: "accept" | "decline" | "cancel" | "complete") {
     const { error } = await supabase.rpc("update_skill_session", { _request_id: id, _action: action });
     if (error) { toast.error(sessionErrorMessage(error)); return; }
+    if (action === "accept" || action === "decline") void announceExchangeFn({ data: { kind: "session", id: id } }).catch(() => {});
     await Promise.all([
       qc.invalidateQueries({ queryKey: ["sessions"] }),
       qc.invalidateQueries({ queryKey: ["credits"] }),

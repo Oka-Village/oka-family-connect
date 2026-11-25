@@ -1,4 +1,6 @@
+import { announceExchangeFn } from "@/lib/exchange-alerts.functions";
 import { useEffect, useRef, useState } from "react";
+import { toWebImage } from "@/lib/web-image";
 import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { ImagePlus, Loader2, X } from "lucide-react";
@@ -49,7 +51,8 @@ export function HouseForm({ userId, initial }: { userId: string; initial?: House
     const list = Array.from(files).slice(0, MAX_PHOTOS - photos.length);
     if (!list.length) { toast.error(`Up to ${MAX_PHOTOS} photos per home.`); return; }
     setUploading(list.length);
-    const results = await Promise.all(list.map(async (file) => {
+    const results = await Promise.all(list.map(async (raw) => {
+      const file = await toWebImage(raw);
       if (!file.type.startsWith("image/") || file.size > 5 * 1024 * 1024) return null;
       const path = `${userId}/houses/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${file.name.replace(/[^\w.-]/g, "_")}`;
       const { error } = await supabase.storage.from("avatars").upload(path, file);
@@ -80,6 +83,7 @@ export function HouseForm({ userId, initial }: { userId: string; initial?: House
       : await supabase.from("houses").insert({ ...payload, owner_id: userId, status: "published" }).select("id").single();
     setBusy(false);
     if (res.error || !res.data) { toast.error("Your home didn't save. Please try again."); return; }
+    if (!initial) void announceExchangeFn({ data: { kind: "house", id: res.data.id } }).catch(() => {});
     await Promise.all([
       qc.invalidateQueries({ queryKey: ["houses"] }),
       qc.invalidateQueries({ queryKey: ["house", res.data.id] }),
@@ -112,7 +116,7 @@ export function HouseForm({ userId, initial }: { userId: string; initial?: House
             </button>
           )}
         </div>
-        <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => { if (e.target.files?.length) void uploadMany(e.target.files); e.target.value = ""; }} />
+        <input ref={fileRef} type="file" accept="image/*,.heic,.heif" multiple className="hidden" onChange={(e) => { if (e.target.files?.length) void uploadMany(e.target.files); e.target.value = ""; }} />
         {photoError && !photos.length && <p className="text-sm text-destructive">Please add at least one photo for your home.</p>}
       </div>
       <div><L>Title</L><Input required maxLength={120} placeholder="e.g. Sunlit room above the olive grove" value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} /></div>

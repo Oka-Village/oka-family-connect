@@ -43,6 +43,19 @@ export function formatCents(cents: number) {
  * After sign-in, claim a stored invite code once. The database decides whether it
  * counts (new member, not self, not already referred); we only report the outcome.
  */
+const SIGNUP_ANNOUNCED_KEY = "oka_signup_announced";
+
+/** Lets the server send new-member and referral-join alerts; it ignores accounts older than a week. */
+function announceSignupOnce() {
+  try {
+    if (sessionStorage.getItem(SIGNUP_ANNOUNCED_KEY)) return;
+    sessionStorage.setItem(SIGNUP_ANNOUNCED_KEY, "1");
+  } catch { return; }
+  void import("@/lib/community-alerts.functions").then(({ announceMySignup }) => announceMySignup()).catch(() => undefined);
+}
+
+export const EVENT_REF_KEY = "oka_event_ref";
+
 export function useClaimInvite(enabled: boolean) {
   const qc = useQueryClient();
   const ran = useRef(false);
@@ -50,11 +63,12 @@ export function useClaimInvite(enabled: boolean) {
     if (!enabled || ran.current) return;
     let code: string | null = null;
     try { code = localStorage.getItem(INVITE_KEY); } catch { return; }
-    if (!code) return;
+    if (!code) { ran.current = true; announceSignupOnce(); return; }
     ran.current = true;
     void supabase.rpc("claim_referral", { _code: code }).then(({ data, error }) => {
       if (error) { ran.current = false; return; } // keep the code and retry on next visit
       try { localStorage.removeItem(INVITE_KEY); } catch { /* ignore */ }
+      announceSignupOnce();
       if (data === "claimed") {
         toast.success("Welcome — you joined through a friend's invitation");
         void qc.invalidateQueries({ queryKey: ["affiliate"] });

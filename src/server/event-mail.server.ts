@@ -27,6 +27,7 @@ import {
   rejectedNotice,
   reminderScheduleKey,
   rescheduleNotice,
+  formatEventWhenFor,
   rescheduleScheduleKey,
   rsvpConfirmationNotice,
   submittedNotice,
@@ -259,6 +260,7 @@ async function deliver(input: {
   if (!row) return { ok: false as const, skipped: true as const };
   if (row.status === "sent" || row.status === "cancelled") return { ok: true as const, skipped: true as const };
   const address = input.recipientAddress ?? row.recipient_address;
+  const deliveryId = row.id;
   return claimAndFinish({ ...row, payload }, async () => {
     if (input.channel === "slack") {
       const slack = await sendSlackEventAlert(payload.text);
@@ -277,7 +279,9 @@ async function deliver(input: {
       return { ok: true };
     }
     if (!address) return { ok: false, reason: "failed", error: "No email address" };
-    const sent = await sendResendEmail({ to: address, notice: input.notice, attachment: input.attachment });
+    const sent = await sendResendEmail({ to: address, notice: input.notice, attachment: input.attachment,
+      ...(["reminder_7d", "reminder_24h"].includes(input.templateKey) ? { idempotencyKey: `event-reminder/${deliveryId}` } : {}),
+    });
     return sent.ok ? { ok: true } : { ok: false, reason: sent.reason, error: sent.reason === "failed" ? sent.error : undefined };
   });
 }
@@ -413,13 +417,17 @@ export async function dispatchScheduleChange(input: { event: EventRecord; previo
   await db().rpc("mark_event_rsvps_awaiting_reconfirmation", { _event_id: input.event.id });
   await db().from("notification_deliveries").update({ status: "cancelled", error: "Schedule changed" })
     .eq("event_id", input.event.id).in("template_key", ["reminder_7d", "reminder_24h"]).in("status", ["pending", "failed", "not_configured"]);
-  const previous = formatEventWhen(input.previous.starts_at, input.previous.ends_at, input.previous.timezone);
-  const next = whenOf(input.event);
-  const notice = rescheduleNotice({
-    title: input.event.title, previous, next, category: categoryLabel(input.event.event_type), eventUrl: eventUrl(input.event.id),
-  });
+  const { data: zoneRows } = ids.length ? await db().from("profiles").select("id, timezone").in("id", ids) : { data: [] };
+  const zones = new Map(((zoneRows ?? []) as { id: string; timezone: string | null }[]).map((r) => [r.id, r.timezone]));
   const scheduleKey = rescheduleScheduleKey(input.event);
   for (const userId of ids) {
+    const zone = zones.get(userId) ?? null;
+    const notice = rescheduleNotice({
+      title: input.event.title,
+      previous: formatEventWhenFor(input.previous.starts_at, input.previous.ends_at, input.previous.timezone, zone),
+      next: formatEventWhenFor(input.event.starts_at, input.event.ends_at, input.event.timezone, zone),
+      category: categoryLabel(input.event.event_type), eventUrl: eventUrl(input.event.id),
+    });
     await deliver({
       templateKey: "event_rescheduled", channel: "email", recipientUserId: userId, recipientAddress: await memberEmail(userId), recipientKey: userId,
       eventId: input.event.id, scheduleKey, timezone: input.event.timezone, scheduledFor: null, notice,
@@ -435,16 +443,68 @@ export async function dispatchScheduleChange(input: { event: EventRecord; previo
 async function sendReminder(event: EventRecord, userId: string, kind: "reminder_7d" | "reminder_24h") {
   if (!(await emailPreferenceOn(userId, "event_reminder"))) return;
   const place = await meetingLink(event.id);
-  const when = whenOf(event);
+  const { data: profile } = await db().from("profiles").select("timezone").eq("id", userId).maybeSingle();
+  const zone = (profile as { timezone: string | null } | null)?.timezone ?? null;
+  const when = formatEventWhenFor(event.starts_at, event.ends_at, event.timezone, zone);
+  const weekly = weekReminderNotice({ title: event.title, category: categoryLabel(event.event_type), eventUrl: eventUrl(event.id) });
   const notice = kind === "reminder_7d"
-    ? weekReminderNotice({ title: event.title, category: categoryLabel(event.event_type), eventUrl: eventUrl(event.id) })
+    ? { ...weekly, paragraphs: [...weekly.paragraphs, when] }
     : dayReminderNotice({ title: event.title, when, category: categoryLabel(event.event_type), eventUrl: eventUrl(event.id), meetingUrl: place.meeting });
   const start = new Date(event.starts_at).getTime();
   const scheduledFor = new Date(start - (kind === "reminder_7d" ? 7 : 1) * 24 * 60 * 60 * 1000).toISOString();
   await deliver({
     templateKey: kind, channel: "email", recipientUserId: userId, recipientAddress: await memberEmail(userId), recipientKey: userId,
-    eventId: event.id, scheduleKey: reminderScheduleKey(event.starts_at), timezone: event.timezone, scheduledFor, notice,
+    eventId: event.id, scheduleKey: reminderScheduleKey(event.starts_at), timezone: zone ?? event.timezone, scheduledFor, notice,
   });
+}
+
+/** Reminder-only runner: no bulk replays of confirmations or unrelated alerts. */
+export async function runScheduledEventReminders(now = new Date()) {
+  if (!resendConfigured()) return { ok: false, processed: 0 };
+  const deadline = Date.now() + 25_000;
+  let processed = 0;
+  const soonest = new Date(now.getTime() + 12 * 60 * 60 * 1000).toISOString();
+  const latest = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
+  for (let offset = 0; Date.now() < deadline; offset += 100) {
+    const { data, error } = await db().from("events")
+      .select("id,title,event_type,status,starts_at,ends_at,timezone,host_id,created_by,join_slug,description,format")
+      .eq("status", "published").gte("starts_at", soonest).lte("starts_at", latest)
+      .order("id").range(offset, offset + 99);
+    if (error) return { ok: false, processed };
+    const events = (data ?? []) as EventRecord[];
+    for (const event of events) {
+      for (let rsvpOffset = 0; Date.now() < deadline; rsvpOffset += 100) {
+        const { data: rows, error: rsvpError } = await db().from("event_rsvps")
+          .select("user_id,status,created_at").eq("event_id", event.id).eq("status", "going")
+          .order("user_id").range(rsvpOffset, rsvpOffset + 99);
+        if (rsvpError) return { ok: false, processed };
+        const rsvps = (rows ?? []) as { user_id: string; status: string; created_at: string }[];
+        if (!rsvps.length) break;
+        const { data: deliveries, error: deliveryError } = await db().from("notification_deliveries")
+          .select("recipient_key,template_key,status,attempt_count").eq("event_id", event.id)
+          .eq("channel", "email").eq("schedule_key", reminderScheduleKey(event.starts_at))
+          .in("template_key", ["reminder_7d", "reminder_24h"])
+          .in("recipient_key", rsvps.map((rsvp) => rsvp.user_id));
+        if (deliveryError) return { ok: false, processed };
+        const done = new Set(((deliveries ?? []) as { recipient_key: string; template_key: string; status: string; attempt_count: number }[])
+          .filter((row) => ["sent", "cancelled"].includes(row.status) || row.attempt_count >= 3)
+          .map((row) => `${row.recipient_key}:${row.template_key}`));
+        for (const rsvp of rsvps) {
+          if (Date.now() >= deadline) return { ok: true, processed, remaining: true };
+          const kind = dueReminder({ now, startsAt: event.starts_at, eventStatus: event.status,
+            rsvpStatus: rsvp.status, rsvpCreatedAt: rsvp.created_at });
+          if (!kind || done.has(`${rsvp.user_id}:${kind}`)) continue;
+          await sendReminder(event, rsvp.user_id, kind);
+          processed += 1;
+          // Stay below the default provider's two-email-per-second limit.
+          await new Promise((resolve) => setTimeout(resolve, 550));
+        }
+        if (rsvps.length < 100) break;
+      }
+    }
+    if (events.length < 100) return { ok: true, processed, remaining: false };
+  }
+  return { ok: true, processed, remaining: true };
 }
 
 export async function runDueEventMail(now = new Date()) {

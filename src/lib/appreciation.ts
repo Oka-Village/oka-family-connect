@@ -1,3 +1,4 @@
+import { announceExchangeFn } from "@/lib/exchange-alerts.functions";
 import { supabase } from "@/integrations/supabase/client";
 
 export type MentionMember = { id: string; display_name: string; photo_url: string | null; photo: string | null; location?: string | null };
@@ -55,5 +56,6 @@ export async function fetchLetters(kind: "received" | "sent", currentUserId: str
 export async function sendAppreciation(senderId: string, recipientId: string, body: string) {
   const { data, error } = await supabase.from("appreciation_letters").insert({ sender_id: senderId, recipient_id: recipientId, body: body.trim() }).select("id").single();
   if (error) throw error;
+  void announceExchangeFn({ data: { kind: "letter", id: data.id } }).catch(() => {});
   return data;
 }

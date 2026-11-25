@@ -37,7 +37,7 @@ export function senderAddress() {
   return process.env["RESEND_FROM_EMAIL"] ?? null;
 }
 
-export async function sendResendEmail(input: { to: string; notice: EventNotice; attachment?: MailAttachment | null | undefined }) {
+export async function sendResendEmail(input: { to: string; notice: EventNotice; attachment?: MailAttachment | null | undefined; idempotencyKey?: string }) {
   const apiKey = process.env["RESEND_API_KEY"];
   const from = process.env["RESEND_FROM_EMAIL"];
   if (!apiKey || !from) return { ok: false as const, reason: "not_configured" as const };
@@ -57,7 +57,7 @@ export async function sendResendEmail(input: { to: string; notice: EventNotice; 
         content: Buffer.from(input.attachment.content, "utf8"),
         contentType: input.attachment.contentType ?? "text/calendar",
       }],
-    } : message);
+    } : message, input.idempotencyKey ? { idempotencyKey: input.idempotencyKey } : undefined);
     if (result.error) return { ok: false as const, reason: "failed" as const, error: result.error.message };
     return { ok: true as const, id: result.data?.id ?? "" };
   } catch (error) {

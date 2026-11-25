@@ -52,13 +52,6 @@ export default {
         const { handleStripeWebhookRequest } = await import("./lib/stripe/webhook.server");
         return await handleStripeWebhookRequest(request);
       }
-      if (url.pathname === "/api/public/cron/event-reminders" && request.method === "POST") {
-        const { authenticateCronRequest } = await import("./integrations/supabase/cron-auth");
-        const denied = await authenticateCronRequest(request);
-        if (denied) return denied;
-        const { handleEventReminders } = await import("./server/event-reminders.server");
-        return await handleEventReminders();
-      }
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);

@@ -45,5 +45,7 @@ export async function verifyAndRecordMembership(sessionId: string, userId: strin
   if (syncError) console.error("Referral earnings sync failed after membership confirm", { code: syncError.code });
   const { error: payoutError } = await admin.rpc("schedule_member_payouts", {});
   if (payoutError) console.error("Payout schedule failed after membership confirm", { code: payoutError.code });
+  const { announcePayment } = await import("@/server/community-alerts.server");
+  await announcePayment({ sessionId: session.id });
   return { paid: true };
 }
