@@ -170,7 +170,7 @@ export function FeaturedEvent({ event, rsvp }: { event: EventRow; rsvp?: string 
             <Button asChild className="min-h-10 rounded-full bg-golden px-6 text-brown hover:bg-golden/90">
               <Link to="/events/$eventId" params={{ eventId: event.id }}>{subscribeLabel(event, rsvp)}</Link>
             </Button>
-            <EventInviteChip slug={event.join_slug} label="Invite a friend" dark />
+            <EventInviteChip event={event} label="Invite a friend" dark />
           </div>
         </div>
         <div className="order-1 lg:order-2">
@@ -216,7 +216,7 @@ export function ComingSoonCard({ event, rsvp, seriesLabel }: { event: EventRow; 
         </div>
         <div className="mt-auto flex flex-wrap items-center gap-2 pt-3">
           <p className="mr-auto text-xs text-muted-foreground">{spotsText(event)}</p>
-          <EventInviteChip slug={event.join_slug} />
+          <EventInviteChip event={event} />
           <Button asChild className="min-h-10 rounded-full bg-sage-deep px-5 text-cream hover:bg-sage-dark">
             <Link to="/events/$eventId" params={{ eventId: event.id }}>{subscribeLabel(event, rsvp)}</Link>
           </Button>
@@ -263,7 +263,7 @@ export function EventListRow({ event, rsvp, seriesLabel }: { event: EventRow; rs
           <div className="flex flex-wrap items-center gap-2 md:ml-auto md:justify-end">
             <p className="mr-auto text-xs text-muted-foreground md:mr-2">{spotsText(event)}</p>
             <RsvpBadge status={rsvp} />
-            <EventInviteChip slug={event.join_slug} />
+            <EventInviteChip event={event} />
             <Button asChild className="min-h-10 rounded-full bg-sage-deep px-5 text-cream hover:bg-sage-dark">
               <Link to="/events/$eventId" params={{ eventId: event.id }}>{subscribeLabel(event, rsvp)}</Link>
             </Button>
