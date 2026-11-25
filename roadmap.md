@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Prepare automatic seven-day and 24-hour RSVP emails with managed 30-minute schedule and no dashboard controls or migration; authentication/body validation and real callback verified. Focused timing, timezone, deduplication and retry tests passed. No currently eligible real RSVPs, so actual recipient delivery was not exercised; production schedule requires publishing the new route. Bounded batches catch up on later runs under heavy volume.
+
 - [x] Make event list, calendar days and published details public through a published-only safe catalog; guest image access limited to published covers/host photos, with no anonymous profile/table grants and unchanged RSVP/location authorization.
 - [x] Verify guest list/detail/day browsing and sign-in prompt at desktop/390px; 93 focused tests pass, anonymous profile/location reads empty and RSVP rejected. Fabia's real RSVP, refresh and cancellation verified with a removed temporary event; build OK, no publishing. New Google/email signup not exercised.
 

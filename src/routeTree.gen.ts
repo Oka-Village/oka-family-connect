@@ -54,6 +54,7 @@ import { Route as AuthenticatedEventsEditEventIdRouteImport } from './routes/_au
 import { Route as AuthenticatedHomeReflectionPastRouteImport } from './routes/_authenticated/home.reflection_.past'
 import { Route as AuthenticatedHousesEditHouseIdRouteImport } from './routes/_authenticated/houses.edit.$houseId'
 import { Route as AuthenticatedSkillsEditSkillIdRouteImport } from './routes/_authenticated/skills.edit.$skillId'
+import { Route as ApiPublicCronRemindersRouteImport } from './routes/api/public/cron/reminders'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -289,6 +290,11 @@ const AuthenticatedSkillsEditSkillIdRoute =
     path: '/skills/edit/$skillId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicCronRemindersRoute = ApiPublicCronRemindersRouteImport.update({
+  id: '/api/public/cron/reminders',
+  path: '/api/public/cron/reminders',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -335,6 +341,7 @@ export interface FileRoutesByFullPath {
   '/home/reflection/past': typeof AuthenticatedHomeReflectionPastRoute
   '/houses/edit/$houseId': typeof AuthenticatedHousesEditHouseIdRoute
   '/skills/edit/$skillId': typeof AuthenticatedSkillsEditSkillIdRoute
+  '/api/public/cron/reminders': typeof ApiPublicCronRemindersRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -381,6 +388,7 @@ export interface FileRoutesByTo {
   '/home/reflection/past': typeof AuthenticatedHomeReflectionPastRoute
   '/houses/edit/$houseId': typeof AuthenticatedHousesEditHouseIdRoute
   '/skills/edit/$skillId': typeof AuthenticatedSkillsEditSkillIdRoute
+  '/api/public/cron/reminders': typeof ApiPublicCronRemindersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -429,6 +437,7 @@ export interface FileRoutesById {
   '/_authenticated/home/reflection_/past': typeof AuthenticatedHomeReflectionPastRoute
   '/_authenticated/houses/edit/$houseId': typeof AuthenticatedHousesEditHouseIdRoute
   '/_authenticated/skills/edit/$skillId': typeof AuthenticatedSkillsEditSkillIdRoute
+  '/api/public/cron/reminders': typeof ApiPublicCronRemindersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -477,6 +486,7 @@ export interface FileRouteTypes {
     | '/home/reflection/past'
     | '/houses/edit/$houseId'
     | '/skills/edit/$skillId'
+    | '/api/public/cron/reminders'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -523,6 +533,7 @@ export interface FileRouteTypes {
     | '/home/reflection/past'
     | '/houses/edit/$houseId'
     | '/skills/edit/$skillId'
+    | '/api/public/cron/reminders'
   id:
     | '__root__'
     | '/'
@@ -570,6 +581,7 @@ export interface FileRouteTypes {
     | '/_authenticated/home/reflection_/past'
     | '/_authenticated/houses/edit/$houseId'
     | '/_authenticated/skills/edit/$skillId'
+    | '/api/public/cron/reminders'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -594,6 +606,7 @@ export interface RootRouteChildren {
   SkillsIndexRoute: typeof SkillsIndexRoute
   EventsDayDateRoute: typeof EventsDayDateRoute
   OgEventSlugRoute: typeof OgEventSlugRoute
+  ApiPublicCronRemindersRoute: typeof ApiPublicCronRemindersRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -913,6 +926,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSkillsEditSkillIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/cron/reminders': {
+      id: '/api/public/cron/reminders'
+      path: '/api/public/cron/reminders'
+      fullPath: '/api/public/cron/reminders'
+      preLoaderRoute: typeof ApiPublicCronRemindersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -995,6 +1015,7 @@ const rootRouteChildren: RootRouteChildren = {
   SkillsIndexRoute: SkillsIndexRoute,
   EventsDayDateRoute: EventsDayDateRoute,
   OgEventSlugRoute: OgEventSlugRoute,
+  ApiPublicCronRemindersRoute: ApiPublicCronRemindersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
