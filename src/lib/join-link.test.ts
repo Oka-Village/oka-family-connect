@@ -8,6 +8,11 @@ describe("joinUrl", () => {
   it("uses the production origin without adding a ref for plain event links", () => {
     expect(joinUrl("abc123", null)).toBe("https://www.oneworldfamily.app/join/abc123");
   });
+  it("routes an event invitation to its preview-enabled slug with the sharer's referral", () => {
+    expect(joinUrl("stories-that-help-us-grow-inspiration-connection-52b9ec", "7D31AD8C")).toBe(
+      "https://www.oneworldfamily.app/join/stories-that-help-us-grow-inspiration-connection-52b9ec?ref=7D31AD8C",
+    );
+  });
 });
 
 describe("joinPath", () => {
