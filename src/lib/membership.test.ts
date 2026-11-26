@@ -42,7 +42,7 @@ describe("membership payment rules", () => {
     expect(isPaymentExempt({ member_status: "limited" }, true)).toBe(true);
     expect(isPaymentExempt(null)).toBe(false);
   });
-  it.each(["/home", "/directory", "/profile", "/events/new", "/events/edit/abc", "/skills/new", "/houses/new", "/skills/edit/abc", "/sessions", "/stays", "/welcome", "/collections", "/credits"])(
+  it.each(["/home", "/directory", "/profile", "/events/new", "/events/edit/abc", "/skills/new", "/houses/new", "/skills/edit/abc", "/sessions", "/stays", "/welcome", "/collections", "/credits", "/pods", "/pods/new", "/pods/abc/join"])(
     "does not expose signed-out member content at %s",
     (path) => {
       expect(isPublicEntryRoute(path)).toBe(false);

@@ -47,12 +47,16 @@ import { Route as AuthenticatedHomeInspirationRouteImport } from './routes/_auth
 import { Route as AuthenticatedHomeReflectionRouteImport } from './routes/_authenticated/home.reflection'
 import { Route as AuthenticatedHousesNewRouteImport } from './routes/_authenticated/houses.new'
 import { Route as AuthenticatedMembersMemberIdRouteImport } from './routes/_authenticated/members.$memberId'
+import { Route as AuthenticatedPodsIndexRouteImport } from './routes/_authenticated/pods.index'
+import { Route as AuthenticatedPodsPodIdRouteImport } from './routes/_authenticated/pods.$podId'
+import { Route as AuthenticatedPodsNewRouteImport } from './routes/_authenticated/pods.new'
 import { Route as AuthenticatedSkillsNewRouteImport } from './routes/_authenticated/skills.new'
 import { Route as EventsDayDateRouteImport } from './routes/events.day.$date'
 import { Route as OgEventSlugRouteImport } from './routes/og/event/$slug'
 import { Route as AuthenticatedEventsEditEventIdRouteImport } from './routes/_authenticated/events.edit.$eventId'
 import { Route as AuthenticatedHomeReflectionPastRouteImport } from './routes/_authenticated/home.reflection_.past'
 import { Route as AuthenticatedHousesEditHouseIdRouteImport } from './routes/_authenticated/houses.edit.$houseId'
+import { Route as AuthenticatedPodsPodIdJoinRouteImport } from './routes/_authenticated/pods.$podId.join'
 import { Route as AuthenticatedSkillsEditSkillIdRouteImport } from './routes/_authenticated/skills.edit.$skillId'
 import { Route as ApiPublicCronRemindersRouteImport } from './routes/api/public/cron/reminders'
 
@@ -251,6 +255,21 @@ const AuthenticatedMembersMemberIdRoute =
     path: '/members/$memberId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedPodsIndexRoute = AuthenticatedPodsIndexRouteImport.update({
+  id: '/pods/',
+  path: '/pods/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPodsPodIdRoute = AuthenticatedPodsPodIdRouteImport.update({
+  id: '/pods/$podId',
+  path: '/pods/$podId',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPodsNewRoute = AuthenticatedPodsNewRouteImport.update({
+  id: '/pods/new',
+  path: '/pods/new',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedSkillsNewRoute = AuthenticatedSkillsNewRouteImport.update({
   id: '/skills/new',
   path: '/skills/new',
@@ -283,6 +302,12 @@ const AuthenticatedHousesEditHouseIdRoute =
     id: '/houses/edit/$houseId',
     path: '/houses/edit/$houseId',
     getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPodsPodIdJoinRoute =
+  AuthenticatedPodsPodIdJoinRouteImport.update({
+    id: '/join',
+    path: '/join',
+    getParentRoute: () => AuthenticatedPodsPodIdRoute,
   } as any)
 const AuthenticatedSkillsEditSkillIdRoute =
   AuthenticatedSkillsEditSkillIdRouteImport.update({
@@ -333,13 +358,17 @@ export interface FileRoutesByFullPath {
   '/home/reflection': typeof AuthenticatedHomeReflectionRoute
   '/houses/new': typeof AuthenticatedHousesNewRoute
   '/members/$memberId': typeof AuthenticatedMembersMemberIdRoute
+  '/pods/$podId': typeof AuthenticatedPodsPodIdRouteWithChildren
+  '/pods/new': typeof AuthenticatedPodsNewRoute
   '/skills/new': typeof AuthenticatedSkillsNewRoute
   '/events/day/$date': typeof EventsDayDateRoute
   '/og/event/$slug': typeof OgEventSlugRoute
   '/home/': typeof AuthenticatedHomeIndexRoute
+  '/pods/': typeof AuthenticatedPodsIndexRoute
   '/events/edit/$eventId': typeof AuthenticatedEventsEditEventIdRoute
   '/home/reflection/past': typeof AuthenticatedHomeReflectionPastRoute
   '/houses/edit/$houseId': typeof AuthenticatedHousesEditHouseIdRoute
+  '/pods/$podId/join': typeof AuthenticatedPodsPodIdJoinRoute
   '/skills/edit/$skillId': typeof AuthenticatedSkillsEditSkillIdRoute
   '/api/public/cron/reminders': typeof ApiPublicCronRemindersRoute
 }
@@ -380,13 +409,17 @@ export interface FileRoutesByTo {
   '/home/reflection': typeof AuthenticatedHomeReflectionRoute
   '/houses/new': typeof AuthenticatedHousesNewRoute
   '/members/$memberId': typeof AuthenticatedMembersMemberIdRoute
+  '/pods/$podId': typeof AuthenticatedPodsPodIdRouteWithChildren
+  '/pods/new': typeof AuthenticatedPodsNewRoute
   '/skills/new': typeof AuthenticatedSkillsNewRoute
   '/events/day/$date': typeof EventsDayDateRoute
   '/og/event/$slug': typeof OgEventSlugRoute
   '/home': typeof AuthenticatedHomeIndexRoute
+  '/pods': typeof AuthenticatedPodsIndexRoute
   '/events/edit/$eventId': typeof AuthenticatedEventsEditEventIdRoute
   '/home/reflection/past': typeof AuthenticatedHomeReflectionPastRoute
   '/houses/edit/$houseId': typeof AuthenticatedHousesEditHouseIdRoute
+  '/pods/$podId/join': typeof AuthenticatedPodsPodIdJoinRoute
   '/skills/edit/$skillId': typeof AuthenticatedSkillsEditSkillIdRoute
   '/api/public/cron/reminders': typeof ApiPublicCronRemindersRoute
 }
@@ -429,13 +462,17 @@ export interface FileRoutesById {
   '/_authenticated/home/reflection': typeof AuthenticatedHomeReflectionRoute
   '/_authenticated/houses/new': typeof AuthenticatedHousesNewRoute
   '/_authenticated/members/$memberId': typeof AuthenticatedMembersMemberIdRoute
+  '/_authenticated/pods/$podId': typeof AuthenticatedPodsPodIdRouteWithChildren
+  '/_authenticated/pods/new': typeof AuthenticatedPodsNewRoute
   '/_authenticated/skills/new': typeof AuthenticatedSkillsNewRoute
   '/events/day/$date': typeof EventsDayDateRoute
   '/og/event/$slug': typeof OgEventSlugRoute
   '/_authenticated/home/': typeof AuthenticatedHomeIndexRoute
+  '/_authenticated/pods/': typeof AuthenticatedPodsIndexRoute
   '/_authenticated/events/edit/$eventId': typeof AuthenticatedEventsEditEventIdRoute
   '/_authenticated/home/reflection_/past': typeof AuthenticatedHomeReflectionPastRoute
   '/_authenticated/houses/edit/$houseId': typeof AuthenticatedHousesEditHouseIdRoute
+  '/_authenticated/pods/$podId/join': typeof AuthenticatedPodsPodIdJoinRoute
   '/_authenticated/skills/edit/$skillId': typeof AuthenticatedSkillsEditSkillIdRoute
   '/api/public/cron/reminders': typeof ApiPublicCronRemindersRoute
 }
@@ -478,13 +515,17 @@ export interface FileRouteTypes {
     | '/home/reflection'
     | '/houses/new'
     | '/members/$memberId'
+    | '/pods/$podId'
+    | '/pods/new'
     | '/skills/new'
     | '/events/day/$date'
     | '/og/event/$slug'
     | '/home/'
+    | '/pods/'
     | '/events/edit/$eventId'
     | '/home/reflection/past'
     | '/houses/edit/$houseId'
+    | '/pods/$podId/join'
     | '/skills/edit/$skillId'
     | '/api/public/cron/reminders'
   fileRoutesByTo: FileRoutesByTo
@@ -525,13 +566,17 @@ export interface FileRouteTypes {
     | '/home/reflection'
     | '/houses/new'
     | '/members/$memberId'
+    | '/pods/$podId'
+    | '/pods/new'
     | '/skills/new'
     | '/events/day/$date'
     | '/og/event/$slug'
     | '/home'
+    | '/pods'
     | '/events/edit/$eventId'
     | '/home/reflection/past'
     | '/houses/edit/$houseId'
+    | '/pods/$podId/join'
     | '/skills/edit/$skillId'
     | '/api/public/cron/reminders'
   id:
@@ -573,13 +618,17 @@ export interface FileRouteTypes {
     | '/_authenticated/home/reflection'
     | '/_authenticated/houses/new'
     | '/_authenticated/members/$memberId'
+    | '/_authenticated/pods/$podId'
+    | '/_authenticated/pods/new'
     | '/_authenticated/skills/new'
     | '/events/day/$date'
     | '/og/event/$slug'
     | '/_authenticated/home/'
+    | '/_authenticated/pods/'
     | '/_authenticated/events/edit/$eventId'
     | '/_authenticated/home/reflection_/past'
     | '/_authenticated/houses/edit/$houseId'
+    | '/_authenticated/pods/$podId/join'
     | '/_authenticated/skills/edit/$skillId'
     | '/api/public/cron/reminders'
   fileRoutesById: FileRoutesById
@@ -877,6 +926,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMembersMemberIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/pods/': {
+      id: '/_authenticated/pods/'
+      path: '/pods'
+      fullPath: '/pods/'
+      preLoaderRoute: typeof AuthenticatedPodsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/pods/$podId': {
+      id: '/_authenticated/pods/$podId'
+      path: '/pods/$podId'
+      fullPath: '/pods/$podId'
+      preLoaderRoute: typeof AuthenticatedPodsPodIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/pods/new': {
+      id: '/_authenticated/pods/new'
+      path: '/pods/new'
+      fullPath: '/pods/new'
+      preLoaderRoute: typeof AuthenticatedPodsNewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/skills/new': {
       id: '/_authenticated/skills/new'
       path: '/skills/new'
@@ -919,6 +989,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedHousesEditHouseIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/pods/$podId/join': {
+      id: '/_authenticated/pods/$podId/join'
+      path: '/join'
+      fullPath: '/pods/$podId/join'
+      preLoaderRoute: typeof AuthenticatedPodsPodIdJoinRouteImport
+      parentRoute: typeof AuthenticatedPodsPodIdRoute
+    }
     '/_authenticated/skills/edit/$skillId': {
       id: '/_authenticated/skills/edit/$skillId'
       path: '/skills/edit/$skillId'
@@ -935,6 +1012,20 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface AuthenticatedPodsPodIdRouteChildren {
+  AuthenticatedPodsPodIdJoinRoute: typeof AuthenticatedPodsPodIdJoinRoute
+}
+
+const AuthenticatedPodsPodIdRouteChildren: AuthenticatedPodsPodIdRouteChildren =
+  {
+    AuthenticatedPodsPodIdJoinRoute: AuthenticatedPodsPodIdJoinRoute,
+  }
+
+const AuthenticatedPodsPodIdRouteWithChildren =
+  AuthenticatedPodsPodIdRoute._addFileChildren(
+    AuthenticatedPodsPodIdRouteChildren,
+  )
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
@@ -955,8 +1046,11 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedHomeReflectionRoute: typeof AuthenticatedHomeReflectionRoute
   AuthenticatedHousesNewRoute: typeof AuthenticatedHousesNewRoute
   AuthenticatedMembersMemberIdRoute: typeof AuthenticatedMembersMemberIdRoute
+  AuthenticatedPodsPodIdRoute: typeof AuthenticatedPodsPodIdRouteWithChildren
+  AuthenticatedPodsNewRoute: typeof AuthenticatedPodsNewRoute
   AuthenticatedSkillsNewRoute: typeof AuthenticatedSkillsNewRoute
   AuthenticatedHomeIndexRoute: typeof AuthenticatedHomeIndexRoute
+  AuthenticatedPodsIndexRoute: typeof AuthenticatedPodsIndexRoute
   AuthenticatedEventsEditEventIdRoute: typeof AuthenticatedEventsEditEventIdRoute
   AuthenticatedHomeReflectionPastRoute: typeof AuthenticatedHomeReflectionPastRoute
   AuthenticatedHousesEditHouseIdRoute: typeof AuthenticatedHousesEditHouseIdRoute
@@ -982,8 +1076,11 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedHomeReflectionRoute: AuthenticatedHomeReflectionRoute,
   AuthenticatedHousesNewRoute: AuthenticatedHousesNewRoute,
   AuthenticatedMembersMemberIdRoute: AuthenticatedMembersMemberIdRoute,
+  AuthenticatedPodsPodIdRoute: AuthenticatedPodsPodIdRouteWithChildren,
+  AuthenticatedPodsNewRoute: AuthenticatedPodsNewRoute,
   AuthenticatedSkillsNewRoute: AuthenticatedSkillsNewRoute,
   AuthenticatedHomeIndexRoute: AuthenticatedHomeIndexRoute,
+  AuthenticatedPodsIndexRoute: AuthenticatedPodsIndexRoute,
   AuthenticatedEventsEditEventIdRoute: AuthenticatedEventsEditEventIdRoute,
   AuthenticatedHomeReflectionPastRoute: AuthenticatedHomeReflectionPastRoute,
   AuthenticatedHousesEditHouseIdRoute: AuthenticatedHousesEditHouseIdRoute,

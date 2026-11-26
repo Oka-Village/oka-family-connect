@@ -512,3 +512,604 @@
   -ms-overflow-style: none;
   &::-webkit-scrollbar { display: none; }
 }
+
+/* Pods UI — scoped sage primary; does not change global --primary (terracotta). */
+.pods-ui {
+  --pods-action-primary: var(--sage-deep);
+  --pods-action-primary-hover: var(--sage-dark);
+  --pods-on-action-primary: var(--cream);
+  --pods-surface-page: var(--cream);
+  --pods-surface-card: #fffdf9;
+  --pods-surface-linen: #f4eee4;
+  --pods-surface-earth: #45372d;
+  --pods-ink: var(--brown);
+  --pods-ink-secondary: #554c43;
+  --pods-ink-muted: #75675b;
+  --pods-ink-on-dark: #f4eee4;
+  --pods-line-hairline: #efe4d3;
+  --pods-line-control: #8e7f70;
+  --pods-element-earth: #45372d;
+  --pods-element-forest: var(--sage-deep);
+  --pods-element-fire: #a2533a;
+  --pods-element-sun: #edbe6a;
+  --pods-element-water: #3576b8;
+  --pods-on-element-forest: #fffdf9;
+  --pods-element-forest-accent: #f2d59a;
+  --pods-on-element-fire: #fffdf9;
+  --pods-ink-on-sun: #45372d;
+  --pods-element-sun-accent: #8a3f28;
+  --pods-on-element-water: #ffffff;
+  --pods-tint-earth: #efe6d9;
+  --pods-ink-earth: #45372d;
+  --pods-tint-forest: #e5f0e7;
+  --pods-ink-forest: #2f5a43;
+  --pods-tint-fire: #fbede4;
+  --pods-ink-fire: #5c3324;
+  --pods-tint-sun: #fbf0d6;
+  --pods-ink-sun: #8a5d14;
+  --pods-tint-water: #dce8f5;
+  --pods-ink-water: #1f4f82;
+  --pods-focus-ring: #3576b8;
+  --pods-radius-sm: 8px;
+  --pods-radius-md: 16px;
+  --pods-radius-lg: 24px;
+  --pods-radius-pill: 999px;
+  color: var(--pods-ink);
+  font-family: var(--font-sans);
+}
+
+.pods-ui .pods-num {
+  font-family: var(--font-number);
+  font-weight: 400;
+}
+
+.pods-ui .pods-btn {
+  font: 600 15px/20px var(--font-sans);
+  min-height: 44px;
+  padding: 0 24px;
+  border-radius: var(--pods-radius-pill);
+  border: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 0.15s;
+}
+
+.pods-ui .pods-btn:focus-visible {
+  outline: 2px solid var(--pods-focus-ring);
+  outline-offset: 2px;
+}
+
+.pods-ui .pods-btn-primary {
+  background: var(--pods-action-primary);
+  color: var(--pods-on-action-primary);
+}
+
+.pods-ui .pods-btn-primary:hover {
+  background: var(--pods-action-primary-hover);
+}
+
+.pods-ui .pods-btn-outline {
+  background: transparent;
+  color: var(--pods-action-primary-hover);
+  box-shadow: inset 0 0 0 1.5px var(--pods-action-primary-hover);
+}
+
+.pods-ui .pods-btn-sun {
+  background: var(--pods-element-sun);
+  color: var(--pods-ink-on-sun);
+}
+
+.pods-ui .pods-btn-ghost {
+  background: transparent;
+  color: var(--pods-action-primary-hover);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  padding: 0 12px;
+}
+
+.pods-ui .pods-btn-block {
+  width: 100%;
+}
+
+.pods-ui .pods-kaomoji {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: var(--pods-radius-pill);
+  padding: 6px 14px;
+  white-space: nowrap;
+}
+
+.pods-ui .pods-kaomoji .face {
+  font: 400 14px/20px var(--font-kaomoji);
+  unicode-bidi: isolate;
+  direction: ltr;
+}
+
+.pods-ui .pods-kaomoji .name {
+  font: 600 12px/16px var(--font-sans);
+}
+
+.pods-ui .pods-tint-forest {
+  background: var(--pods-tint-forest);
+  color: var(--pods-ink-forest);
+}
+
+.pods-ui .pods-tint-sun {
+  background: var(--pods-tint-sun);
+  color: var(--pods-ink-sun);
+}
+
+.pods-ui .pods-tint-water {
+  background: var(--pods-tint-water);
+  color: var(--pods-ink-water);
+}
+
+.pods-ui .pods-tint-fire {
+  background: var(--pods-tint-fire);
+  color: var(--pods-ink-fire);
+}
+
+.pods-ui .pods-tint-linen {
+  background: var(--pods-surface-linen);
+  color: var(--pods-ink);
+}
+
+.pods-ui .pods-tint-earth {
+  background: var(--pods-tint-earth);
+  color: var(--pods-ink-earth);
+}
+
+.pods-ui .pods-band {
+  padding: 32px 0;
+}
+
+.pods-ui .pods-band-forest {
+  background: var(--pods-element-forest);
+  color: var(--pods-on-element-forest);
+}
+
+.pods-ui .pods-band-fire {
+  background: var(--pods-element-fire);
+  color: var(--pods-on-element-fire);
+}
+
+.pods-ui .pods-band-water {
+  background: var(--pods-element-water);
+  color: var(--pods-on-element-water);
+}
+
+.pods-ui .pods-band-earth {
+  background: var(--pods-element-earth);
+  color: var(--pods-ink-on-dark);
+}
+
+.pods-ui .pods-band-sun {
+  background: var(--pods-element-sun);
+  color: var(--pods-ink-on-sun);
+}
+
+.pods-ui .pods-band h1 i {
+  font-style: italic;
+}
+
+.pods-ui .pods-band-forest h1 i,
+.pods-ui .pods-band-fire h1 i,
+.pods-ui .pods-band-water h1 i {
+  color: var(--pods-element-forest-accent);
+}
+
+.pods-ui .pods-band-earth h1 i {
+  color: var(--pods-element-sun);
+}
+
+.pods-ui .pods-band-sun h1 i {
+  color: var(--pods-element-sun-accent);
+}
+
+.pods-ui .pods-wrap {
+  max-width: 1168px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.pods-ui .pods-eyebrow {
+  font: 600 12px/16px var(--font-sans);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--pods-element-fire);
+}
+
+.pods-ui .pods-band .pods-eyebrow {
+  color: inherit;
+}
+
+.pods-ui .pods-circle {
+  position: relative;
+  width: 184px;
+  height: 184px;
+  flex: none;
+}
+
+.pods-ui .pods-circle .path {
+  position: absolute;
+  inset: 26px;
+  width: 132px;
+  height: 132px;
+  overflow: visible;
+}
+
+.pods-ui .pods-circle .path circle {
+  fill: none;
+  stroke: var(--pods-line-control);
+  stroke-width: 2;
+  stroke-dasharray: 0.1 8;
+  stroke-linecap: round;
+}
+
+.pods-ui .pods-circle .mid {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.pods-ui .pods-circle .mid .pods-num {
+  font-size: 28px;
+  line-height: 32px;
+  font-weight: 300;
+  letter-spacing: 1.2px;
+  color: var(--pods-ink);
+}
+
+.pods-ui .pods-circle .mid small {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--pods-ink-muted);
+}
+
+.pods-ui .pods-seat {
+  position: absolute;
+  z-index: 1;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--pods-surface-card);
+  border: 3px solid var(--pods-surface-card);
+}
+
+.pods-ui .pods-seat img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: block;
+}
+
+.pods-ui .pods-seat-s0 {
+  left: 66px;
+  top: 0;
+}
+
+.pods-ui .pods-seat-s1 {
+  right: 0;
+  top: 66px;
+}
+
+.pods-ui .pods-seat-s2 {
+  left: 66px;
+  bottom: 0;
+}
+
+.pods-ui .pods-seat-s3 {
+  left: 0;
+  top: 66px;
+}
+
+.pods-ui .pods-seat-lead {
+  box-shadow: 0 0 0 2px var(--pods-element-sun);
+}
+
+.pods-ui .pods-seat-me {
+  box-shadow: 0 0 0 2px var(--pods-action-primary);
+}
+
+.pods-ui .pods-seat-open {
+  border: 1.5px dashed var(--pods-line-control);
+  display: grid;
+  place-items: center;
+  color: var(--pods-ink-muted);
+}
+
+.pods-ui .pods-enc {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.pods-ui .pods-enc li {
+  position: relative;
+  border-radius: var(--pods-radius-md);
+  padding: 16px;
+  background: var(--pods-surface-linen);
+  color: var(--pods-ink);
+  min-width: 0;
+}
+
+.pods-ui .pods-enc li + li::before {
+  content: "";
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  width: 24px;
+  border-top: 3px dotted var(--pods-line-control);
+}
+
+.pods-ui .pods-enc-mix li:nth-child(1) {
+  background: var(--pods-tint-sun);
+  color: var(--pods-ink-sun);
+}
+
+.pods-ui .pods-enc-mix li:nth-child(2) {
+  background: var(--pods-tint-forest);
+  color: var(--pods-ink-forest);
+}
+
+.pods-ui .pods-enc-mix li:nth-child(3) {
+  background: var(--pods-tint-water);
+  color: var(--pods-ink-water);
+}
+
+.pods-ui .pods-enc .lab {
+  font: 600 12px/16px var(--font-sans);
+  margin: 0;
+}
+
+.pods-ui .pods-enc .date {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 6px 0 2px;
+}
+
+.pods-ui .pods-enc .day {
+  font-family: var(--font-number);
+  font-weight: 200;
+  font-size: 40px;
+  line-height: 44px;
+  letter-spacing: 1.8px;
+}
+
+.pods-ui .pods-enc .mon {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.pods-ui .pods-enc .time {
+  font-size: 13px;
+  line-height: 18px;
+  margin: 0;
+}
+
+.pods-ui .pods-card {
+  background: var(--pods-surface-card);
+  border: 1px solid var(--pods-line-hairline);
+  border-radius: var(--pods-radius-lg);
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 300px 1fr;
+}
+
+.pods-ui .pods-card-photo {
+  position: relative;
+  min-height: 100%;
+}
+
+.pods-ui .pods-card-photo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.pods-ui .pods-card-in {
+  padding: 24px 32px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+.pods-ui .pods-card-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: center;
+}
+
+.pods-ui .pods-card h3 {
+  font: 500 32px/36px var(--font-serif);
+  margin: 8px 0 12px;
+  text-wrap: balance;
+}
+
+.pods-ui .pods-by {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--pods-ink-secondary);
+  margin: 0;
+}
+
+.pods-ui .pods-by img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+.pods-ui .pods-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--pods-ink-secondary);
+}
+
+.pods-ui .pods-card-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.pods-ui .pods-seg {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--pods-radius-pill);
+  background: var(--pods-surface-linen);
+  align-self: flex-start;
+}
+
+.pods-ui .pods-seg a {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  border-radius: var(--pods-radius-pill);
+  text-decoration: none;
+  font: 600 15px/20px var(--font-sans);
+  color: var(--pods-ink-muted);
+}
+
+.pods-ui .pods-seg a[aria-current="page"] {
+  background: var(--pods-surface-card);
+  color: var(--pods-ink);
+  box-shadow: inset 0 0 0 1px var(--pods-line-hairline);
+}
+
+.pods-ui .pods-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  z-index: 50;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--pods-surface-earth);
+  color: var(--pods-ink-on-dark);
+  border-radius: var(--pods-radius-pill);
+  padding: 13px 22px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.pods-ui .pods-toast .face {
+  font-family: var(--font-kaomoji);
+  color: var(--pods-element-sun);
+  white-space: nowrap;
+  unicode-bidi: isolate;
+  direction: ltr;
+}
+
+.pods-ui .pods-check:checked {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23FFFDF9' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 8.5 6.5 11.5 12.5 4.5'/%3E%3C/svg%3E");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 16px 16px;
+}
+
+@media (max-width: 1100px) {
+  .pods-ui .pods-card {
+    grid-template-columns: 1fr;
+  }
+
+  .pods-ui .pods-card-photo {
+    height: 200px;
+  }
+
+  .pods-ui .pods-toast {
+    bottom: calc(64px + 16px);
+    border-radius: var(--pods-radius-lg);
+  }
+}
+
+@media (max-width: 720px) {
+  .pods-ui .pods-wrap {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .pods-ui .pods-card-in {
+    padding: 16px 16px 24px;
+  }
+
+  .pods-ui .pods-card-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .pods-ui .pods-card-top .pods-circle {
+    align-self: center;
+  }
+
+  .pods-ui .pods-enc {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .pods-ui .pods-enc li {
+    display: grid;
+    grid-template-columns: 104px 1fr;
+    grid-template-areas: "d l" "d t";
+    column-gap: 12px;
+    align-items: center;
+  }
+
+  .pods-ui .pods-enc .date {
+    grid-area: d;
+    margin: 0;
+  }
+
+  .pods-ui .pods-enc .lab {
+    grid-area: l;
+  }
+
+  .pods-ui .pods-enc .time {
+    grid-area: t;
+  }
+
+  .pods-ui .pods-enc li + li::before {
+    right: auto;
+    left: 40px;
+    top: auto;
+    bottom: 100%;
+    width: 0;
+    height: 16px;
+    border-top: 0;
+    border-left: 3px dotted var(--pods-line-control);
+  }
+
+  .pods-ui .pods-card-foot .pods-btn {
+    width: 100%;
+  }
+}
