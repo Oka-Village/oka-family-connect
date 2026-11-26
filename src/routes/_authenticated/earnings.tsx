@@ -49,7 +49,6 @@ function shortMonthLabel(id: string) {
 
 function EarningsPage() {
   const { data: uid } = useCurrentUserId();
-  const [paymentOpen, setPaymentOpen] = useState(false);
   const [monthId, setMonthId] = useState<string | null>(null);
 
   const account = useQuery({
@@ -347,32 +346,7 @@ function EarningsPage() {
                 <Stat label="Pending approval" value={formatCents(data.pendingCents)} />
                 <Stat label="Available payout" value={formatCents(Math.max(data.balance.cents, 0))} />
                 <Stat label="Already paid" value={formatCents(data.paidCents)} />
-                <div>
-                  <dt className="section-label">Payment method</dt>
-                  <dd className="mt-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="rounded-full"
-                      onClick={() => setPaymentOpen((open) => !open)}
-                      aria-expanded={paymentOpen}
-                    >
-                      {data.paymentMethod ?? "No payout method on file"}
-                    </Button>
-                  </dd>
-                </div>
               </dl>
-              {paymentOpen && (
-                <div className="mt-4 rounded-2xl bg-secondary p-4 text-secondary-foreground" role="dialog" aria-label="Payout method">
-                  <p className="font-medium">Add or change payout method</p>
-                  <p className="mt-2 text-sm">
-                    Contact the Oka team to add a bank transfer or another approved payout method. Account numbers stay hidden.
-                  </p>
-                  <Button type="button" className="mt-3 rounded-full" variant="ghost" onClick={() => setPaymentOpen(false)}>
-                    Close
-                  </Button>
-                </div>
-              )}
               {data.payouts.length > 0 && (
                 <div className="mt-4 max-w-full overflow-x-auto">
                   <table className="w-full min-w-140 text-left text-sm">
@@ -392,7 +366,7 @@ function EarningsPage() {
                           <td className="py-3 pr-3 text-muted-foreground">{payout.covers}</td>
                           <td className="py-3 pr-3 text-foreground">{formatCents(payout.cents)}</td>
                           <td className="py-3 pr-3 text-muted-foreground">{payout.status}</td>
-                          <td className="py-3 pr-3 text-muted-foreground">{payout.method ?? data.paymentMethod ?? "—"}</td>
+                          <td className="py-3 pr-3 text-muted-foreground">{payout.method ?? "—"}</td>
                         </tr>
                       ))}
                     </tbody>
