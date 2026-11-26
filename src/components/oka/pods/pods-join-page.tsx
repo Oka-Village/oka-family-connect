@@ -5,6 +5,8 @@ import { Calendar, Clock, CreditCard, Heart, Info, Leaf, Lock } from "lucide-rea
 import { HeaderBand } from "@/components/oka/pods/header-band";
 import { KaomojiPill } from "@/components/oka/pods/kaomoji-pill";
 import { PodsButton } from "@/components/oka/pods/pods-button";
+import { RegistrationSoonButton } from "@/components/oka/pods/registration-soon";
+import { PODS_REGISTRATION_OPEN } from "@/lib/pods/flags";
 import { PodsToastHost } from "@/components/oka/pods/pods-toast";
 import {
   POD_COMMITMENTS,
@@ -281,9 +283,13 @@ export function PodsJoinPage({ detail }: Props) {
                 </p>
               </div>
               <div className="flex flex-wrap gap-3">
-                <PodsButton variant="primary" onClick={onPay} disabled={busy}>
-                  {busy ? "Opening Stripe…" : "Pay with Stripe"}
-                </PodsButton>
+                {PODS_REGISTRATION_OPEN ? (
+                  <PodsButton variant="primary" onClick={onPay} disabled={busy}>
+                    {busy ? "Opening Stripe…" : "Pay with Stripe"}
+                  </PodsButton>
+                ) : (
+                  <RegistrationSoonButton variant="primary" />
+                )}
                 <PodsButton variant="outline" onClick={() => goStep(1)}>
                   Go back
                 </PodsButton>

@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { EncounterTrio } from "@/components/oka/pods/encounter-trio";
 import { HeaderBand } from "@/components/oka/pods/header-band";
 import { PodsButton } from "@/components/oka/pods/pods-button";
+import { RegistrationSoonButton } from "@/components/oka/pods/registration-soon";
+import { PODS_REGISTRATION_OPEN } from "@/lib/pods/flags";
 import { SeatCircle } from "@/components/oka/pods/seat-circle";
 import { getPod } from "@/lib/pods/pods.functions";
 import { POD_MEMBER_SEATS } from "@/lib/pods/constants";
@@ -133,9 +135,13 @@ export function PodsDetailPage({ podId }: Props) {
             </li>
           </ul>
           {!isMember && pod.status === "published" && paidCount < pod.capacity_members ? (
-            <PodsButton variant="primary" href={`/pods/${pod.id}/join`}>
-              Join this pod — $175
-            </PodsButton>
+            PODS_REGISTRATION_OPEN ? (
+              <PodsButton variant="primary" href={`/pods/${pod.id}/join`}>
+                Join this pod — $175
+              </PodsButton>
+            ) : (
+              <RegistrationSoonButton variant="primary" />
+            )
           ) : null}
           <PodsButton variant="ghost" href="/pods">
             Back to pods

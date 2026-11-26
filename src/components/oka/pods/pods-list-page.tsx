@@ -11,7 +11,8 @@ import { useRoles } from "@/hooks/use-is-admin";
 import { canCreatePods } from "@/lib/pods/access";
 import { POD_MEMBER_SEATS } from "@/lib/pods/constants";
 import { listPublishedPods } from "@/lib/pods/pods.functions";
-import { podIllustrationSrc, podImageSrc } from "@/lib/pods/mock-data";
+import { podIllustrationSrc } from "@/lib/pods/mock-data";
+import fourWindows from "@/assets/pod-b-four-windows.svg.asset.json";
 import { showPodsToast } from "@/lib/pods/toast";
 
 const FACTS: { icon: typeof CalendarDays; title: string; body: ReactNode }[] = [
@@ -80,8 +81,8 @@ export function PodsListPage() {
           </div>
           <figure className="relative h-[372px] overflow-hidden rounded-[var(--pods-radius-lg)] max-[720px]:order-1 max-[720px]:h-[200px]">
             <img
-              src={podImageSrc("fire-circle")}
-              alt="People sitting in a circle around a fire at sunset"
+              src={fourWindows.url}
+              alt="Four members, each at their own home window, joined in one circle around a candle"
               className="size-full object-cover"
             />
             <span className="absolute left-4 top-4">

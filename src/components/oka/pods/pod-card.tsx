@@ -1,6 +1,8 @@
 import { Video } from "lucide-react";
 
 import { PodsButton } from "@/components/oka/pods/pods-button";
+import { RegistrationSoonButton } from "@/components/oka/pods/registration-soon";
+import { PODS_REGISTRATION_OPEN } from "@/lib/pods/flags";
 import { SeatCircle } from "@/components/oka/pods/seat-circle";
 import { EncounterTrio } from "@/components/oka/pods/encounter-trio";
 import { POD_ENCOUNTER_COUNT, POD_MEMBER_SEATS } from "@/lib/pods/constants";
@@ -73,6 +75,8 @@ export function PodCard({ pod, featured = false, onWaitlist, className }: Props)
             <PodsButton variant="outline" onClick={onWaitlist}>
               Join the waitlist
             </PodsButton>
+          ) : !PODS_REGISTRATION_OPEN ? (
+            <RegistrationSoonButton variant={featured ? "primary" : "outline"} />
           ) : (
             <PodsButton
               variant={featured ? "primary" : "outline"}
