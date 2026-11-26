@@ -24,7 +24,7 @@ export const STRIPE_PRODUCTS: Record<StripeProduct, StripeProductConfig> = {
   pod: {
     purpose: "pod",
     label: "Oka Pod",
-    amountCents: 50000, // $500
+    amountCents: 17500, // $175 — matches live Payment Link
     currency: "usd",
     mode: "payment",
     allowPromotionCodes: true,
