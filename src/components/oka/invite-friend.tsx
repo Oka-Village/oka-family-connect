@@ -255,7 +255,7 @@ export function InviteFriendDialog({
 
         <p className="mt-2 text-xs text-muted-foreground">
           {event
-            ? "Your link carries your name. If a friend becomes a member through it, you receive a share of their membership."
+            ? "Your link carries your ID. If a friend becomes a member through it, you receive a share of their membership."
             : "This is your personal link. If your friend becomes a member through it, you receive a share of their membership."}
         </p>
       </DialogContent>
