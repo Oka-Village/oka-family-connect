@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Compress new photo uploads and optimize 136 existing referenced photos (243.8 MB → 19.8 MB) with hash-verified private originals retained; three non-beneficial conversions skipped, no failures or authorization changes. Signed-in profile/events/skills/houses and guest/mobile image rendering verified; browser upload 1.82 MB → 238 KB, 363 tests passed, build OK. New-upload changes require publishing; existing browser image caches may need refresh.
+
 - [x] Fix copied event invitations and direct event metadata to use the actual cover; real member clipboard, guest preview image and direct event metadata verified. Live sharing requires publishing; external chat-app rendering not exercised.
 
 - [x] Prepare automatic seven-day and 24-hour RSVP emails with managed 30-minute schedule and no dashboard controls or migration; authentication/body validation and real callback verified. Focused timing, timezone, deduplication and retry tests passed. No currently eligible real RSVPs, so actual recipient delivery was not exercised; production schedule requires publishing the new route. Bounded batches catch up on later runs under heavy volume.

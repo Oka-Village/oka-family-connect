@@ -9,6 +9,8 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 
+- Photo uploads share browser-side resizing in `web-image.ts`; existing-photo maintenance must retain and verify private originals before replacing display files, so compression never removes the source photo or changes access rules.
+
 - In-app event calls use `@daily-co/daily-js` call-object mode with a custom Campfire UI; keep access, token, and expiry enforcement in `video.functions.ts` so presentation changes cannot weaken room security.
 - Shared event links always stop at the event page: the call only opens from an explicit member click, never automatically on arrival; external meeting links take precedence over the built-in room.
 - The four discovery pages share the reusable dealt-hand pattern; keep recommendation presentation client-side so visual shuffling never changes backend rules.

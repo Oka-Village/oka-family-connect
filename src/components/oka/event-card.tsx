@@ -69,7 +69,7 @@ function eventDateParts(iso: string, tz: string | null) {
 export function useEventPhoto(path: string | null | undefined) {
   return useQuery({
     queryKey: ["event-photo", path],
-    queryFn: () => signPathBatched(path!),
+    queryFn: () => path ? signPathBatched(path) : Promise.resolve(null),
     enabled: !!path,
     staleTime: 30 * 60_000,
   }).data ?? null;
@@ -80,15 +80,17 @@ function PhotoBlock({
   eventType,
   className,
   rounded = "rounded-2xl",
+  priority = false,
 }: {
   path: string | null | undefined;
   eventType: EventType;
   className?: string;
   rounded?: string;
+  priority?: boolean;
 }) {
   const photo = useEventPhoto(path);
   if (photo) {
-    return <img src={photo} alt="" loading="lazy" className={cn("object-cover", rounded, className)} />;
+    return <img src={photo} alt="" loading={priority ? "eager" : "lazy"} fetchPriority={priority ? "high" : "auto"} decoding="async" className={cn("bg-secondary object-cover", rounded, className)} />;
   }
   return <div className={cn(TYPE_TINT[eventType], rounded, className)} aria-hidden />;
 }
@@ -107,7 +109,7 @@ export function EventCard({ event, rsvp, seriesLabel }: { event: EventRow; rsvp?
         cancelled && "opacity-60",
       )}
     >
-      {photo && <img src={photo} alt="" loading="lazy" className="-mx-4 -mt-4 mb-4 aspect-[16/9] w-[calc(100%+2rem)] max-w-none rounded-t-2xl object-cover" />}
+      {event.photo_url && (photo ? <img src={photo} alt="" loading="lazy" decoding="async" className="-mx-4 -mt-4 mb-4 aspect-[16/9] w-[calc(100%+2rem)] max-w-none rounded-t-2xl bg-secondary object-cover" /> : <div aria-hidden className="-mx-4 -mt-4 mb-4 aspect-[16/9] w-[calc(100%+2rem)] rounded-t-2xl bg-secondary" />)}
       <div className="font-serif text-4xl leading-none text-foreground">{new Date(event.starts_at).toLocaleDateString("en-US", { day: "numeric", timeZone: event.timezone || "UTC" })}</div>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
@@ -177,6 +179,7 @@ export function FeaturedEvent({ event, rsvp }: { event: EventRow; rsvp?: string 
           <PhotoBlock
             path={event.photo_url}
             eventType={event.event_type}
+            priority
             rounded="rounded-none"
             className="aspect-[4/3] w-full lg:aspect-auto lg:h-full lg:min-h-[22rem]"
           />
