@@ -11,6 +11,7 @@ import { resolvePhotoUrl, useProfile } from "@/hooks/use-profile";
 import { useIsStaff } from "@/hooks/use-is-admin";
 import { supabase } from "@/integrations/supabase/client";
 import { useClaimInvite } from "@/lib/affiliates";
+import { PODS_UI_ENABLED } from "@/lib/pods/flags";
 import { cn } from "@/lib/utils";
 import { CreditPill, ProfileCompletionBanner } from "@/components/oka/credit-pill";
 import { InviteFriendCta } from "@/components/oka/invite-friend";
@@ -24,7 +25,7 @@ import { showSupportOffer } from "@/lib/onboarding-rules";
 
 const SUPPORT_EMAIL = "daniel@zoe.garden";
 
-const NAV_ITEMS = [
+const BASE_NAV = [
   { to: "/home", label: "Home", icon: Heart },
   { to: "/events", label: "Events", icon: CalendarDays },
   { to: "/directory", label: "Members", icon: Users },
@@ -37,8 +38,16 @@ const NAV_ITEMS = [
   { to: "/earnings", label: "My Earnings", icon: Gift },
 ] as const;
 
-/** Desktop bar runs through Collections, then Open Accounting. */
-const PRIMARY_ITEMS = NAV_ITEMS.slice(0, 7);
+type NavItem = (typeof BASE_NAV)[number] | { readonly to: "/pods"; readonly label: "Pods"; readonly icon: typeof Users };
+
+const NAV_ITEMS: readonly NavItem[] = PODS_UI_ENABLED
+  ? [BASE_NAV[0], BASE_NAV[1], { to: "/pods", label: "Pods", icon: Users }, ...BASE_NAV.slice(2)]
+  : BASE_NAV;
+
+/** Desktop bar runs through Open Accounting (Pods inserts after Events when flagged). */
+const PRIMARY_COUNT = PODS_UI_ENABLED ? 8 : 7;
+const PRIMARY_ITEMS = NAV_ITEMS.slice(0, PRIMARY_COUNT);
+const ACCOUNT_MENU_START = PRIMARY_COUNT;
 /** Mobile bottom bar matches handoff: Home, Events, Homes, Members, Skills. */
 const MOBILE_TAB_ITEMS = [
   { to: "/home", label: "Home" },
@@ -50,7 +59,7 @@ const MOBILE_TAB_ITEMS = [
 ] as const;
 
 type AccountMenuItem =
-  | (typeof NAV_ITEMS)[number]
+  | NavItem
   | { readonly to: "/admin"; readonly label: string; readonly icon: typeof ShieldCheck };
 
 /** Avatar menu shared by the desktop and mobile headers. */
@@ -233,7 +242,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <InviteFriendCta />
           <CreditPill />
           <NotificationsBell userId={profile?.id} />
-          <AccountMenu photo={photo} name={profile?.display_name} items={items.slice(7)} onSignOut={handleSignOut} />
+          <AccountMenu photo={photo} name={profile?.display_name} items={items.slice(ACCOUNT_MENU_START)} onSignOut={handleSignOut} />
         </div>
       </header>
 
@@ -242,7 +251,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="flex items-center gap-2">
           <InviteFriendCta className="px-3 text-sm" />
           <NotificationsBell userId={profile?.id} />
-          <AccountMenu photo={photo} name={profile?.display_name} items={items.slice(7)} onSignOut={handleSignOut} />
+          <AccountMenu photo={photo} name={profile?.display_name} items={items.slice(ACCOUNT_MENU_START)} onSignOut={handleSignOut} />
         </div>
       </header>
 

@@ -511,10 +511,13 @@ export async function runDueEventMail(now = new Date()) {
   const soonest = new Date(now.getTime() + 12 * 60 * 60 * 1000).toISOString();
   const latest = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
   const { data: events, error } = await db().from("events")
-    .select("id,title,event_type,status,starts_at,ends_at,timezone,host_id,created_by,join_slug,description,format")
-    .eq("status", "published").neq("event_type", "pod_session").gte("starts_at", soonest).lte("starts_at", latest).limit(200);
+    .select("id,title,event_type,status,starts_at,ends_at,timezone,host_id,created_by,join_slug,description,format,pod_id")
+    .eq("status", "published").gte("starts_at", soonest).lte("starts_at", latest).limit(200);
   if (missing(error)) return { ok: false as const, skipped: true as const };
-  for (const event of (events ?? []) as EventRecord[]) {
+  // Skip legacy unlinked pod_session rows; include new Pods product encounters (pod_id set).
+  for (const event of ((events ?? []) as (EventRecord & { pod_id?: string | null })[]).filter(
+    (e) => e.event_type !== "pod_session" || Boolean(e.pod_id),
+  )) {
     const { data: rsvps } = await db().from("event_rsvps").select("user_id,status,created_at").eq("event_id", event.id).eq("status", "going");
     for (const rsvp of (rsvps ?? []) as { user_id: string; status: string; created_at: string }[]) {
       const kind = dueReminder({ now, startsAt: event.starts_at, eventStatus: event.status, rsvpStatus: rsvp.status, rsvpCreatedAt: rsvp.created_at });

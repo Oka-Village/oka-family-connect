@@ -33,6 +33,7 @@ import { cn } from "@/lib/utils";
 import { AdminDeleteMember, AdminEditProfile, AdminMemberPhoto, AdminSuspendMember, BlockedEmails, useSuspendedIds } from "@/components/oka/admin-member-tools";
 import { AdminTrialDialog } from "@/components/oka/admin-trial-dialog";
 import { TRIAL_ACCESS_LAUNCH_AT, trialEndDate } from "@/lib/trial-access";
+import { listPendingPods, publishPod } from "@/lib/pods/pods.functions";
 
 const TABS = ["events", "members", "listings", "affiliates", "facilitators", "activity", "themes"] as const;
 type Tab = (typeof TABS)[number];
@@ -95,7 +96,12 @@ function AdminPage() {
           </button>
         ))}
       </div>
-      {active === "events" && <EventsSection />}
+      {active === "events" && (
+        <>
+          <PodsPendingSection />
+          <EventsSection />
+        </>
+      )}
       {active === "members" && roles.isAdmin && <MembersSection viewerIsAdmin={roles.isAdmin} />}
       {active === "listings" && <ListingsSection />}
       {active === "affiliates" && roles.isAdmin && <AffiliatesSection />}
@@ -108,6 +114,52 @@ function AdminPage() {
 
 function Card({ children }: { children: React.ReactNode }) {
   return <li className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-card p-5 shadow-soft">{children}</li>;
+}
+
+function PodsPendingSection() {
+  const qc = useQueryClient();
+  const pending = useQuery({ queryKey: ["admin", "pending-pods"], queryFn: () => listPendingPods() });
+  const publish = useMutation({
+    mutationFn: (podId: string) => publishPod({ data: { podId } }),
+    onSuccess: () => {
+      toast.success("Pod published");
+      void qc.invalidateQueries({ queryKey: ["admin", "pending-pods"] });
+      void qc.invalidateQueries({ queryKey: ["pods-published"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const rows = pending.data?.pods ?? [];
+  if (pending.isLoading || rows.length === 0) return null;
+
+  return (
+    <section className="mb-10">
+      <h2 className="text-xl text-foreground">Pods awaiting review</h2>
+      <p className="mt-1 text-sm text-muted-foreground">Facilitator submissions stay off the member list until you publish.</p>
+      <ul className="mt-4 flex flex-col gap-3">
+        {rows.map((pod) => (
+          <Card key={pod.id}>
+            <div>
+              <p className="font-medium text-foreground">{pod.title}</p>
+              <p className="text-sm text-muted-foreground">
+                {pod.host_name ?? "Facilitator"} · {new Date(pod.created_at).toLocaleDateString()}
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button asChild variant="outline" size="sm">
+                <Link to="/pods/$podId" params={{ podId: pod.id }}>
+                  Open
+                </Link>
+              </Button>
+              <Button size="sm" disabled={publish.isPending} onClick={() => publish.mutate(pod.id)}>
+                Publish
+              </Button>
+            </div>
+          </Card>
+        ))}
+      </ul>
+    </section>
+  );
 }
 
 // ---------------- Events ----------------

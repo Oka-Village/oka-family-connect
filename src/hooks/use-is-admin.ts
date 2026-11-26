@@ -2,7 +2,12 @@ import { useQuery } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
 
-export type Roles = { isAdmin: boolean; isModerator: boolean; isStaff: boolean };
+export type Roles = {
+  isAdmin: boolean;
+  isModerator: boolean;
+  isStaff: boolean;
+  isFacilitator: boolean;
+};
 
 /** The signed-in member's roles, read from user_roles under RLS (never from the profile). */
 export function useRoles() {
@@ -11,13 +16,21 @@ export function useRoles() {
     queryFn: async (): Promise<Roles> => {
       const { data: { session } } = await supabase.auth.getSession();
       const auth = { user: session?.user ?? null };
-      if (!auth.user) return { isAdmin: false, isModerator: false, isStaff: false };
+      if (!auth.user) {
+        return { isAdmin: false, isModerator: false, isStaff: false, isFacilitator: false };
+      }
       const { data, error } = await supabase.from("user_roles").select("role").eq("user_id", auth.user.id);
       if (error) throw error;
       const set = new Set((data ?? []).map((r) => r.role));
       const isAdmin = set.has("admin");
       const isModerator = set.has("moderator");
-      return { isAdmin, isModerator, isStaff: isAdmin || isModerator };
+      const isFacilitator = set.has("facilitator");
+      return {
+        isAdmin,
+        isModerator,
+        isStaff: isAdmin || isModerator,
+        isFacilitator,
+      };
     },
     staleTime: 5 * 60_000,
   });

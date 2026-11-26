@@ -76,13 +76,71 @@ function purposeFromInvoice(obj: Record<string, unknown>): "membership_monthly" 
 
 async function resolveUserId(admin: AdminClient, obj: Record<string, unknown>): Promise<string | null> {
   const meta = (obj["metadata"] ?? {}) as Record<string, unknown>;
-  const fromMeta = asString(meta["member_id"]) ?? asString(meta["user_id"]) ?? asString(obj["client_reference_id"]);
+  const ref = asString(obj["client_reference_id"]);
+  // Pod Payment Link sends enrollment id as client_reference_id (not the member id).
+  if (ref) {
+    const { data: enrollment } = await admin.from("pod_enrollments").select("user_id").eq("id", ref).maybeSingle();
+    if (enrollment?.user_id) return enrollment.user_id;
+  }
+  const fromMeta = asString(meta["member_id"]) ?? asString(meta["user_id"]) ?? ref;
   if (fromMeta) return fromMeta;
 
   const customerId = asString(obj["customer"]);
   if (!customerId) return null;
   const { data } = await admin.from("memberships").select("user_id").eq("stripe_customer_id", customerId).maybeSingle();
   return data?.user_id ?? null;
+}
+
+async function confirmPodFromCheckout(admin: AdminClient, obj: Record<string, unknown>, purpose: string) {
+  const enrollmentId = asString(obj["client_reference_id"]);
+  if (!enrollmentId) return;
+  // Prefer metadata.kind=pod; also accept enrollment-linked one-time checkouts.
+  if (purpose !== "pod") {
+    const { data: enr } = await admin.from("pod_enrollments").select("id").eq("id", enrollmentId).maybeSingle();
+    if (!enr) return;
+  }
+
+  const sessionId = asString(obj["id"])?.startsWith("cs_") ? asString(obj["id"]) : null;
+  const paymentIntent = asString(obj["payment_intent"]);
+  let paymentId: string | null = null;
+  if (sessionId) {
+    const { data } = await admin.from("payments").select("id").eq("stripe_checkout_session_id", sessionId).maybeSingle();
+    paymentId = data?.id ?? null;
+  }
+  if (!paymentId && paymentIntent) {
+    const { data } = await admin.from("payments").select("id").eq("stripe_payment_intent_id", paymentIntent).maybeSingle();
+    paymentId = data?.id ?? null;
+  }
+  if (!paymentId) return;
+
+  const { data: result, error } = await admin.rpc("confirm_pod_enrollment", {
+    _enrollment_id: enrollmentId,
+    _payment_id: paymentId,
+  });
+  if (error) {
+    console.error("confirm_pod_enrollment failed", error.message);
+    return;
+  }
+  const payload = result as {
+    ok?: boolean;
+    pod_id?: string;
+    user_id?: string;
+    paid_count?: number;
+    capacity?: number;
+    full?: boolean;
+    idempotent?: boolean;
+  } | null;
+  if (!payload?.ok || !payload.pod_id || !payload.user_id || payload.idempotent) return;
+
+  const { announcePodEnrollment } = await import("@/server/pod-alerts.server");
+  await announcePodEnrollment({
+    admin,
+    podId: payload.pod_id,
+    userId: payload.user_id,
+    paidCount: payload.paid_count ?? 0,
+    capacity: payload.capacity ?? 3,
+    full: Boolean(payload.full),
+  });
 }
 
 type ChargeList = { data: { id: string; balance_transaction: { fee: number } | string | null }[] };
@@ -250,7 +308,16 @@ export async function processStripeWebhookEvent(admin: AdminClient, event: Strip
       if (asString(obj["payment_status"]) !== "paid" && asString(obj["status"]) !== "complete") break;
       const userId = await resolveUserId(admin, obj);
       if (!userId) break;
-      await upsertPaidPayment(admin, userId, obj, purposeFromInvoice(obj));
+      const purpose = purposeFromInvoice(obj);
+      // Enrollment-linked Payment Links may lack metadata.kind until the dashboard is updated.
+      const enrollmentRef = asString(obj["client_reference_id"]);
+      let resolvedPurpose = purpose;
+      if (purpose !== "pod" && enrollmentRef) {
+        const { data: enr } = await admin.from("pod_enrollments").select("id").eq("id", enrollmentRef).maybeSingle();
+        if (enr) resolvedPurpose = "pod";
+      }
+      await upsertPaidPayment(admin, userId, obj, resolvedPurpose);
+      await confirmPodFromCheckout(admin, obj, resolvedPurpose);
       break;
     }
     case "invoice.paid": {

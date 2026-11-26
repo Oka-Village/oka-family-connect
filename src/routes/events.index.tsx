@@ -18,6 +18,7 @@ import { z } from "zod";
 
 import { ComingSoonCard, EventListRow, FeaturedEvent, PastEventRow } from "@/components/oka/event-card";
 import { EventPageShell } from "@/components/oka/event-page-shell";
+import { EventsPodsSeg } from "@/components/oka/pods/events-pods-seg";
 import { useCurrentUserId } from "@/hooks/use-is-admin";
 import { publicEventsOptions, fetchPublicEvents as fetchEvents } from "@/lib/public-events.functions";
 import { filterPublicEvents } from "@/lib/public-events";
@@ -33,6 +34,7 @@ import {
 } from "@/lib/events";
 import { groupEventSeries } from "@/lib/event-series";
 import { bucketUpcomingEvents } from "@/lib/event-schedule";
+import { PODS_UI_ENABLED } from "@/lib/pods/flags";
 import { cn } from "@/lib/utils";
 
 const searchSchema = z.object({
@@ -79,6 +81,11 @@ function EventsPage() {
 
   return (
     <div className="mx-auto max-w-[1180px] overflow-x-hidden px-6 py-6 lg:px-10 lg:py-8">
+      {PODS_UI_ENABLED && uid.data ? (
+        <div className="pods-ui mb-4">
+          <EventsPodsSeg current="events" />
+        </div>
+      ) : null}
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
         <div className="flex min-w-0 flex-1 flex-wrap gap-3">
           <select
