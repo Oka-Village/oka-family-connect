@@ -90,7 +90,7 @@ function PhotoBlock({
 }) {
   const photo = useEventPhoto(path);
   if (photo) {
-    return <img src={photo} alt="" loading={priority ? "eager" : "lazy"} fetchPriority={priority ? "high" : "auto"} decoding="async" className={cn("bg-secondary object-cover", rounded, className)} />;
+    return <img src={photo} alt="" loading={priority ? "eager" : "lazy"} fetchPriority={priority ? "high" : "auto"} decoding="async" className={cn("bg-secondary object-cover object-[center_20%]", rounded, className)} />;
   }
   return <div className={cn(TYPE_TINT[eventType], rounded, className)} aria-hidden />;
 }
@@ -109,7 +109,7 @@ export function EventCard({ event, rsvp, seriesLabel }: { event: EventRow; rsvp?
         cancelled && "opacity-60",
       )}
     >
-      {event.photo_url && (photo ? <img src={photo} alt="" loading="lazy" decoding="async" className="-mx-4 -mt-4 mb-4 aspect-[16/9] w-[calc(100%+2rem)] max-w-none rounded-t-2xl bg-secondary object-cover" /> : <div aria-hidden className="-mx-4 -mt-4 mb-4 aspect-[16/9] w-[calc(100%+2rem)] rounded-t-2xl bg-secondary" />)}
+      {event.photo_url && (photo ? <img src={photo} alt="" loading="lazy" decoding="async" className="-mx-4 -mt-4 mb-4 aspect-[16/9] w-[calc(100%+2rem)] max-w-none rounded-t-2xl bg-secondary object-cover object-[center_20%]" /> : <div aria-hidden className="-mx-4 -mt-4 mb-4 aspect-[16/9] w-[calc(100%+2rem)] rounded-t-2xl bg-secondary" />)}
       <div className="font-serif text-4xl leading-none text-foreground">{new Date(event.starts_at).toLocaleDateString("en-US", { day: "numeric", timeZone: event.timezone || "UTC" })}</div>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
