@@ -279,6 +279,7 @@ export type AccountingView = {
     ebitdaCents: number;
     netCents: number;
     members: number;
+    newMembers: number;
     paying: number;
     mrrCents: number;
     points: number;
@@ -533,6 +534,7 @@ function seriesPoint(allMonths: MonthInput[], month: MonthInput, todayOnly: bool
     ebitdaCents: ebitda,
     netCents: net,
     members: month.registered,
+    newMembers: flow.newMembers,
     paying,
     mrrCents: month.mrrCents,
     points: flow.points,

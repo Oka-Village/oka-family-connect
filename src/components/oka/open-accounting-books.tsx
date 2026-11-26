@@ -804,7 +804,7 @@ function Profit({ view }: { view: AccountingView }) {
   );
 }
 
-function growthData(view: AccountingView, metric: GrowthId): { label: string; value: number }[] {
+function growthData(view: AccountingView, metric: GrowthId): { label: string; value: number; tooltipSuffix?: string }[] {
   if (metric === "growth") {
     return view.series.slice(1).flatMap((point, index) => {
       const previous = view.series[index]?.eligibleCents ?? null;
@@ -823,7 +823,13 @@ function growthData(view: AccountingView, metric: GrowthId): { label: string; va
       net: point.netCents,
       growth: 0,
     }[metric];
-    return { label: point.label, value };
+    return {
+      label: point.label,
+      value,
+      ...(metric === "members" ? {
+        tooltipSuffix: ` (+${formatCount(point.newMembers)} ${point.label === "Today" ? "today" : `in ${point.label}`})`,
+      } : {}),
+    };
   });
 }
 

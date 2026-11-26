@@ -20,7 +20,7 @@ const compactUsd = new Intl.NumberFormat("en-US", {
 
 type TipProps = {
   active?: boolean;
-  payload?: { name?: string; value?: number; color?: string }[];
+  payload?: { name?: string; value?: number; color?: string; payload?: { tooltipSuffix?: string } }[];
   label?: string;
 };
 
@@ -31,7 +31,7 @@ function Tip({ active, payload, label, money }: TipProps & { money: boolean }) {
       {label && <p className="font-medium">{label}</p>}
       {payload.map((item) => (
         <p key={item.name} className="mt-1 text-muted-foreground">
-          {item.name}: {money ? formatUsd(Math.round(Number(item.value ?? 0) * 100)) : formatCount(Number(item.value ?? 0))}
+          {item.name}: {money ? formatUsd(Math.round(Number(item.value ?? 0) * 100)) : formatCount(Number(item.value ?? 0))}{item.payload?.tooltipSuffix}
         </p>
       ))}
     </div>
@@ -45,7 +45,7 @@ export function Bars({
   money,
   label,
 }: {
-  data: { label: string; value: number }[];
+  data: { label: string; value: number; tooltipSuffix?: string }[];
   name: string;
   color: string;
   money: boolean;
