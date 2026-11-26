@@ -33,9 +33,14 @@ export const getRouter = () => {
     routeTree,
     context: { queryClient },
     scrollRestoration: true,
-    defaultPreloadStaleTime: 0,
-    defaultPendingMs: 0,
-    defaultPendingMinMs: 300,
+    // Warm preloaded pages for 30s; react-query still owns data freshness (60s staleTime).
+    defaultPreloadStaleTime: 30_000,
+    // Fetch route code + loader data on hover/touch intent so clicks resolve instantly.
+    defaultPreload: "intent",
+    // Only show the pending screen if navigation truly exceeds half a second,
+    // and never hold it past completion — no artificial minimum display.
+    defaultPendingMs: 500,
+    defaultPendingMinMs: 0,
     defaultPendingComponent: AppPendingScreen,
   });
 
