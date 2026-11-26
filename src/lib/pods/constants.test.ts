@@ -36,8 +36,8 @@ describe("pods constants", () => {
 });
 
 describe("pods flags", () => {
-  it("enables UI in DEV or when VITE_PODS_UI is true", () => {
-    const expected = import.meta.env.DEV || import.meta.env["VITE_PODS_UI"] === "true";
+  it("enables UI unless VITE_PODS_UI is false", () => {
+    const expected = import.meta.env["VITE_PODS_UI"] !== "false";
     expect(PODS_UI_ENABLED).toBe(expected);
   });
 
