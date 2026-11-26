@@ -18,7 +18,7 @@ export function RegistrationSoonButton({ variant = "outline", className }: Props
   const [open, setOpen] = useState(false);
   return (
     <>
-      <PodsButton variant={variant} className={className} onClick={() => setOpen(true)}>
+      <PodsButton variant={variant} className={className ?? ""} onClick={() => setOpen(true)}>
         Registration Opening Soon
       </PodsButton>
       <Dialog open={open} onOpenChange={setOpen}>
