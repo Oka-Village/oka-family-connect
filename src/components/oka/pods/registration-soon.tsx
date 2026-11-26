@@ -9,8 +9,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-export const POD_REGISTRATION_SOON_MESSAGE =
-  "Cohort registration is opening shortly. For early inquiries or questions, contact hello@oneworldfamily.app";
+import { POD_REGISTRATION_CONTACT_EMAIL } from "@/lib/pods/constants";
+
+export { POD_REGISTRATION_SOON_MESSAGE } from "@/lib/pods/constants";
 
 type Props = { variant?: "primary" | "outline"; className?: string };
 
@@ -27,8 +28,8 @@ export function RegistrationSoonButton({ variant = "outline", className }: Props
             <DialogTitle>Registration opening soon</DialogTitle>
             <DialogDescription>
               Cohort registration is opening shortly. For early inquiries or questions, contact{" "}
-              <a className="underline" href="mailto:hello@oneworldfamily.app">
-                hello@oneworldfamily.app
+              <a className="underline" href={`mailto:${POD_REGISTRATION_CONTACT_EMAIL}`}>
+                {POD_REGISTRATION_CONTACT_EMAIL}
               </a>
             </DialogDescription>
           </DialogHeader>

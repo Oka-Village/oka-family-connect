@@ -54,3 +54,9 @@ export const POD_COMMITMENTS: readonly PodCommitment[] = [
 
 export const POD_PAY_COPY =
   "One payment covers all 3 encounters. You'll see the amount before you pay.";
+
+/** Where members send pod questions while registration is still closed. */
+export const POD_REGISTRATION_CONTACT_EMAIL = "liran@okavillage.com";
+
+export const POD_REGISTRATION_SOON_MESSAGE =
+  "Cohort registration is opening shortly. For early inquiries or questions, contact liran@okavillage.com";

@@ -6,6 +6,8 @@ import {
   POD_ENCOUNTER_COUNT,
   POD_MEMBER_SEATS,
   POD_PAY_COPY,
+  POD_REGISTRATION_CONTACT_EMAIL,
+  POD_REGISTRATION_SOON_MESSAGE,
 } from "@/lib/pods/constants";
 import { PODS_UI_ENABLED } from "@/lib/pods/flags";
 import { MOCK_PODS } from "@/lib/pods/mock-data";
@@ -24,6 +26,11 @@ describe("pods constants", () => {
   it("does not embed a dollar amount in pay copy", () => {
     expect(POD_PAY_COPY).toContain("You'll see the amount before you pay");
     expect(POD_PAY_COPY).not.toMatch(/\$\d/);
+  });
+
+  it("sends pod questions to Liran while registration is closed", () => {
+    expect(POD_REGISTRATION_CONTACT_EMAIL).toBe("liran@okavillage.com");
+    expect(POD_REGISTRATION_SOON_MESSAGE).toContain(POD_REGISTRATION_CONTACT_EMAIL);
   });
 
   it("ships three mock pods with three encounters each", () => {
