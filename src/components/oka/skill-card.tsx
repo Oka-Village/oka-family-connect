@@ -15,7 +15,7 @@ export function SkillCard({ skill }: { skill: SkillRow & { photo?: string | null
       className="surface-card discovery-card group flex h-full flex-col overflow-hidden"
     >
       {skill.photo ? (
-        <img src={skill.photo} alt="" className="aspect-[4/3] w-full object-cover" />
+        <img src={skill.photo} alt="" loading="lazy" decoding="async" className="aspect-[4/3] w-full bg-secondary object-cover" />
       ) : (
         <div className="flex aspect-[4/3] w-full items-center justify-center bg-accent/60">
           <Sparkles className="size-10 text-primary" strokeWidth={1.25} />

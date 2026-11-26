@@ -7,7 +7,7 @@ import type { OkaProfile } from "@/lib/profile";
 export function MemberAvatar({ src, name, className = "size-20" }: { src: string | null | undefined; name?: string | null | undefined; className?: string }) {
   const [failed, setFailed] = useState<string | null>(null);
   return src && failed !== src ? (
-    <img src={src} alt={name ?? "Member photo"} referrerPolicy="no-referrer" onError={() => setFailed(src)} className={`${className} shrink-0 rounded-full object-cover`} />
+    <img src={src} alt={name ?? "Member photo"} decoding="async" referrerPolicy="no-referrer" onError={() => setFailed(src)} className={`${className} shrink-0 rounded-full bg-secondary object-cover`} />
   ) : (
     <span className={`${className} flex shrink-0 items-center justify-center rounded-full bg-secondary`}>
       <User className="size-1/3 text-primary" strokeWidth={1.5} />

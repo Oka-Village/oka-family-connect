@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
+import { toCsv } from "@/lib/csv";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 /** Admin-only: permanently delete a member's account. Role is verified as the caller under RLS first. */
@@ -88,4 +89,30 @@ export const searchAdminMembers = createServerFn({ method: "POST" })
     const rows = (profiles ?? []).map((p) => ({ id: p.id, display_name: p.display_name, email: emails.get(p.id) ?? null }));
     const { page, total } = filterAdminMembers(rows, data.term, data.offset, data.limit);
     return { members: page.map((m) => ({ id: m.id, email: m.email })), total };
+  });
+
+/** Admin-only: every member with email, payment status, location and join date, as CSV text. */
+export const exportAdminMembersCsv = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data: isAdmin, error } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
+    if (error || !isAdmin) throw new Error("Only admins can export members.");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const emails = new Map<string, string | null>();
+    for (let p = 1; p <= 50; p++) {
+      const res = await supabaseAdmin.auth.admin.listUsers({ page: p, perPage: 1000 });
+      if (res.error) throw new Error("We couldn't read member emails.");
+      for (const u of res.data.users) emails.set(u.id, u.email ?? null);
+      if (res.data.users.length < 1000) break;
+    }
+    const { data: profiles, error: pErr } = await supabaseAdmin.from("profiles").select("id,display_name,location,created_at").order("created_at");
+    if (pErr) throw new Error("We couldn't read members.");
+    const { data: ms, error: mErr } = await supabaseAdmin.from("memberships").select("user_id,active");
+    if (mErr) throw new Error("We couldn't read memberships.");
+    const paid = new Set((ms ?? []).filter((m) => m.active).map((m) => m.user_id));
+    const rows = [["Name", "Email", "Phone", "Status", "Location", "Joined Date"]];
+    for (const p of profiles ?? []) {
+      rows.push([p.display_name ?? "", emails.get(p.id) ?? "", "", paid.has(p.id) ? "Paid" : "Free", p.location ?? "", (p.created_at ?? "").slice(0, 10)]);
+    }
+    return { csv: toCsv(rows), count: rows.length - 1 };
   });

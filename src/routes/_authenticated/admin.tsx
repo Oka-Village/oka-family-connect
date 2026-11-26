@@ -1,6 +1,6 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Activity, CalendarDays, Mail, Palette, Gift, Home, Plus, Search, ShieldCheck, Sparkles, Star, Trash2, Users } from "lucide-react";
+import { Activity, CalendarDays, Download, Mail, Palette, Gift, Home, Plus, Search, ShieldCheck, Sparkles, Star, Trash2, Users } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { eventBelongsToMember } from "@/lib/event-publication";
 import { useCurrentUserId, useRoles } from "@/hooks/use-is-admin";
 import { supabase } from "@/integrations/supabase/client";
-import { getAdminMemberStatuses, searchAdminMembers } from "@/lib/admin-members.functions";
+import { exportAdminMembersCsv, getAdminMemberStatuses, searchAdminMembers } from "@/lib/admin-members.functions";
 import { deleteEvent } from "@/lib/event-admin";
 import {
   countExceptionReminders,
@@ -364,6 +364,19 @@ function MembersSection({ viewerIsAdmin }: { viewerIsAdmin: boolean }) {
   const [editing, setEditing] = useState<string | null>(null);
   const [accessing, setAccessing] = useState<string | null>(null);
   const [shown, setShown] = useState(25);
+  const [exporting, setExporting] = useState(false);
+  const exportMembers = useServerFn(exportAdminMembersCsv);
+  const exportCsv = async () => {
+    setExporting(true);
+    try {
+      const { csv, count } = await exportMembers();
+      const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+      const a = document.createElement("a");
+      a.href = url; a.download = `members-list-${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+      URL.revokeObjectURL(url);
+      toast.success(`Exported ${count} members`);
+    } catch (e) { toast.error((e as Error).message); } finally { setExporting(false); }
+  };
   const { data: suspendedIds } = useSuspendedIds();
   const q = useQuery({
     queryKey: ["admin", "members", term, shown],
@@ -449,9 +462,12 @@ function MembersSection({ viewerIsAdmin }: { viewerIsAdmin: boolean }) {
 
   return (
     <section className="mt-10">
-      <div className="relative max-w-md">
-        <Search className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-primary" strokeWidth={1.5} />
-        <Input value={term} onChange={(e) => { setTerm(e.target.value); setShown(25); }} placeholder="Search members by name or email" className="rounded-full pl-10" />
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative w-full max-w-md">
+          <Search className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-primary" strokeWidth={1.5} />
+          <Input value={term} onChange={(e) => { setTerm(e.target.value); setShown(25); }} placeholder="Search members by name or email" className="rounded-full pl-10" />
+        </div>
+        <Button variant="outline" className="rounded-full" disabled={exporting} onClick={exportCsv}><Download className="size-4 text-primary" strokeWidth={1.5} /> {exporting ? "Exporting…" : "Export members (.csv)"}</Button>
       </div>
       <ul className="mt-6 grid gap-3">
         {q.data && <p className="text-sm text-muted-foreground">Showing {q.data.members.length} of {q.data.total} members</p>}

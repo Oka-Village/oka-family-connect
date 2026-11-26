@@ -15,7 +15,8 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useCurrentUserId } from "@/hooks/use-is-admin";
 import { useProfile } from "@/hooks/use-profile";
-import { inviteUrl, PRODUCTION_ORIGIN } from "@/lib/affiliate-share";
+import { inviteUrl } from "@/lib/affiliate-share";
+import { joinUrl } from "@/lib/join-link";
 import { useEnsureInviteCode } from "@/lib/affiliates";
 import { formatEventTimeDual } from "@/lib/event-time";
 import { FORMAT_LABELS, hostName, type EventRow } from "@/lib/events";
@@ -29,10 +30,6 @@ export type InviteEvent = Pick<EventRow, "id" | "title" | "starts_at" | "timezon
 
 function eventIdFromPath(pathname: string): string | null {
   return EVENT_ID_RE.exec(pathname)?.[1] ?? null;
-}
-
-function eventPageUrl(eventId: string) {
-  return `${PRODUCTION_ORIGIN}/events/${eventId}`;
 }
 
 function displayUrl(url: string) {
@@ -147,10 +144,10 @@ export function InviteFriendDialog({
   event?: InviteEvent | null;
 }) {
   const { data: uid } = useCurrentUserId();
-  const invite = useEnsureInviteCode(uid, open && Boolean(uid) && !event);
+  const invite = useEnsureInviteCode(uid, open && Boolean(uid));
   const personalLink = invite.data ? inviteUrl(invite.data) : "";
-  const link = event ? eventPageUrl(event.id) : personalLink;
-  const linkBusy = !event && (invite.isPending || invite.isFetching) && !invite.data;
+  const link = event ? (event.join_slug ? joinUrl(event.join_slug, invite.data) : "") : personalLink;
+  const linkBusy = Boolean(uid) && (invite.isPending || invite.isFetching) && !invite.data;
   const profile = useProfile();
   const name = profile.data?.display_name?.trim() || "A member";
   const [note, setNote] = useState("");

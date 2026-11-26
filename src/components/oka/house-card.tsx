@@ -11,7 +11,7 @@ export function HouseCard({ house }: { house: SignedHouse }) {
     <div className="relative h-full">
     <Link to="/houses/$houseId" params={{ houseId: house.id }} className="surface-card discovery-card group flex h-full flex-col overflow-hidden">
       {hero ? (
-        <img src={hero} alt="" className="aspect-[4/3] w-full object-cover" />
+        <img src={hero} alt="" loading="lazy" decoding="async" className="aspect-[4/3] w-full bg-secondary object-cover" />
       ) : (
         <div className="flex aspect-[4/3] w-full items-center justify-center bg-secondary/70"><Home className="size-10 text-primary" strokeWidth={1.25} /></div>
       )}

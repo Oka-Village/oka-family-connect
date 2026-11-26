@@ -23,9 +23,11 @@ import { useServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { CopyJoinLink } from "@/components/oka/copy-join-link";
 import { canShareEventLink, joinUrl } from "@/lib/join-link";
+import { PRODUCTION_ORIGIN } from "@/lib/affiliate-share";
 import { eventCallAction } from "@/lib/event-call-entry";
 import { canEditEvent } from "@/lib/event-edit";
 import { eventMeetingLink } from "@/lib/event-video";
+import { EventAttendees } from "@/components/oka/event-attendees";
 import { EventVideo } from "@/components/oka/event-video";
 import { useEnsureInviteCode } from "@/lib/affiliates";
 import { ensureEventHostInvite } from "@/lib/affiliate-sharing.functions";
@@ -46,7 +48,9 @@ export const Route = createFileRoute("/events/$eventId")({
   head: ({ loaderData }) => {
     const title = loaderData ? `${loaderData.title} — Oka Events` : "Event — Oka";
     const description = loaderData?.description?.slice(0, 180) || "Details, host and RSVP for an Oka family event.";
-    const image = loaderData?.photo_url?.startsWith("https://") ? loaderData.photo_url : null;
+    const image = loaderData?.photo_url && loaderData.join_slug
+      ? `${PRODUCTION_ORIGIN}/og/event/${encodeURIComponent(loaderData.join_slug)}`
+      : null;
     return { meta: [
       { title }, { name: "description", content: description },
       { property: "og:title", content: title }, { property: "og:description", content: description },
@@ -424,6 +428,7 @@ function EventDetail() {
             </div>
           )}
 
+          {(isManager || isAdmin) && <EventAttendees eventId={ev.id} title={ev.title} />}
           {past && (isManager || isAdmin) && <AttendanceCheckIn eventId={ev.id} />}
         </aside>
       </div>
