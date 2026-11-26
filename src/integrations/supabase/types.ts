@@ -554,6 +554,8 @@ export type Database = {
           id: string
           join_slug: string
           photo_url: string | null
+          pod_id: string | null
+          session_index: number | null
           starts_at: string
           status: string
           timezone: string | null
@@ -577,6 +579,8 @@ export type Database = {
           id?: string
           join_slug?: string
           photo_url?: string | null
+          pod_id?: string | null
+          session_index?: number | null
           starts_at: string
           status?: string
           timezone?: string | null
@@ -600,6 +604,8 @@ export type Database = {
           id?: string
           join_slug?: string
           photo_url?: string | null
+          pod_id?: string | null
+          session_index?: number | null
           starts_at?: string
           status?: string
           timezone?: string | null
@@ -622,6 +628,13 @@ export type Database = {
             columns: ["host_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_pod_id_fkey"
+            columns: ["pod_id"]
+            isOneToOne: false
+            referencedRelation: "pods"
             referencedColumns: ["id"]
           },
         ]
@@ -1137,6 +1150,127 @@ export type Database = {
           },
         ]
       }
+      pod_enrollments: {
+        Row: {
+          commitments: Json
+          created_at: string
+          held_until: string | null
+          id: string
+          payment_id: string | null
+          pod_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          commitments?: Json
+          created_at?: string
+          held_until?: string | null
+          id?: string
+          payment_id?: string | null
+          pod_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          commitments?: Json
+          created_at?: string
+          held_until?: string | null
+          id?: string
+          payment_id?: string | null
+          pod_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pod_enrollments_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pod_enrollments_pod_id_fkey"
+            columns: ["pod_id"]
+            isOneToOne: false
+            referencedRelation: "pods"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pod_enrollments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pods: {
+        Row: {
+          capacity_members: number
+          created_at: string
+          created_by: string
+          description: string | null
+          format: string
+          host_id: string
+          id: string
+          meet_url: string | null
+          photo_url: string | null
+          status: string
+          timezone: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          capacity_members?: number
+          created_at?: string
+          created_by: string
+          description?: string | null
+          format?: string
+          host_id: string
+          id?: string
+          meet_url?: string | null
+          photo_url?: string | null
+          status?: string
+          timezone?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          capacity_members?: number
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          format?: string
+          host_id?: string
+          id?: string
+          meet_url?: string | null
+          photo_url?: string | null
+          status?: string
+          timezone?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pods_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pods_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           age_range: string | null
@@ -1501,6 +1635,10 @@ export type Database = {
       }
       cancel_rsvp: { Args: { _event_id: string }; Returns: string }
       claim_referral: { Args: { _code: string }; Returns: string }
+      confirm_pod_enrollment: {
+        Args: { _enrollment_id: string; _payment_id: string }
+        Returns: Json
+      }
       ensure_event_host_invite: { Args: { _event_id: string }; Returns: string }
       generate_invite_code: { Args: never; Returns: string }
       has_event_rsvp: {
@@ -1510,6 +1648,10 @@ export type Database = {
       has_member_payment_access: { Args: never; Returns: boolean }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
       has_trial_access: { Args: { _user_id: string }; Returns: boolean }
+      hold_pod_enrollment: {
+        Args: { _commitments: Json; _pod_id: string }
+        Returns: Json
+      }
       house_booked_ranges: {
         Args: { _house_id: string }
         Returns: {
