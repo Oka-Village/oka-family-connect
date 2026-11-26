@@ -27,6 +27,7 @@ import { PRODUCTION_ORIGIN } from "@/lib/affiliate-share";
 import { eventCallAction } from "@/lib/event-call-entry";
 import { canEditEvent } from "@/lib/event-edit";
 import { eventMeetingLink } from "@/lib/event-video";
+import { EventAttendees } from "@/components/oka/event-attendees";
 import { EventVideo } from "@/components/oka/event-video";
 import { useEnsureInviteCode } from "@/lib/affiliates";
 import { ensureEventHostInvite } from "@/lib/affiliate-sharing.functions";
@@ -427,6 +428,7 @@ function EventDetail() {
             </div>
           )}
 
+          {(isManager || isAdmin) && <EventAttendees eventId={ev.id} title={ev.title} />}
           {past && (isManager || isAdmin) && <AttendanceCheckIn eventId={ev.id} />}
         </aside>
       </div>
