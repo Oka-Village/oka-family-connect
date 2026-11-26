@@ -1064,7 +1064,6 @@ function StripeCheckNote({ check }: { check: { checkedAt: string | null; unmatch
   return (
     <p className="text-xs">
       Matched with Stripe{time ? ` · ${time}` : ""}
-      {check.unmatched > 0 ? ` · ${check.unmatched} payment${check.unmatched === 1 ? "" : "s"} need a member match` : ""}
     </p>
   );
 }
